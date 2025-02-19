@@ -1,0 +1,75 @@
+{
+  "locale": {
+    "en": "English",
+    "uk": "Ukrainian",
+    "es": "Spanish"
+  },
+  "header": {
+    "prg01": "Branding",
+    "prg02": "Saving",
+    "prg03": "Models",
+    "about": "About"
+  },
+  "footer": {
+    "text1": "Designed By ",
+    "text2": "Zorger",
+    "text3": ".",
+    "text4": "All rights reserved"
+  },
+  "project1": {
+    "name": "Branding the model",
+    "disc": "Description"
+  },
+  "project2": {
+    "name": "Saving the model",
+    "disc": "Description"
+  },
+  "project3": {
+    "name": "Model selection",
+    "disc": "Description"
+  },
+  "models": {
+    "menShirt1": "Male regular T-shirt",
+    "womenShirt": "Women oversized T-shirt",
+    "womenDress": "Mid Victorian Evening Gown",
+    "menShirt2": "Male raglan polo T-shirt"
+  },
+  "rotating": {
+    "clockwise": "Rotate clockwise",
+    "counterclockwise": "Rotate counterclockwise",
+    "pause": "Pause rotation",
+    "stop": "Stop rotation",
+    "180": "Rotate 180°",
+    "mixNo": "It is not allowed to mix texture with color",
+    "mixYes": "It is allowed to mix texture with color"
+  },
+  "changeColor": {
+    "red": "Red",
+    "green": "Green",
+    "blue": "lue",
+    "white": "White",
+    "golden": "Golden",
+    "picker": "Color selection",
+    "reset": "Return to initial color"
+  },
+  "texture": {
+    "texture1": "Loading texture #1",
+    "texture2": "Loading texture #2",
+    "texture3": "Loading texture #3",
+    "texture4": "Loading texture #4",
+    "texture5": "Loading texture #5",
+    "upload": "Load texture...",
+    "reset": "Return to the initial texture"
+  },
+  "about": {
+    "title": "3D Couture",
+    "more01": "More information...",
+    "more02": "\uD83C\uDFA8✨ A unique platform for creating and customizing 3D models! \uD83D\uDD8C\uFE0F\uD83D\uDC57",
+    "more03": "Choose colors, add textures, apply branding, and create stylish looks! \uD83D\uDD76\uFE0F\uD83D\uDC55 Experiment, mix, and customize – your design, your rules! \uD83D\uDE80 Save your creations in PNG, MP4, or PDF formats \uD83D\uDCF8 and share them with the world!",
+    "more04": "\uD83D\uDC51 3D Couture – where technology meets fashion and creativity! \uD83D\uDC83",
+    "more05": "Welcome! \uD83E\uDD29\uD83D\uDE0E",
+    "technologies": "Technologies",
+    "name": "Name",
+    "version": "Version"
+  }
+}

@@ -1,0 +1,3 @@
+User-agent: *
+Disallow:
+Sitemap: https://3d-couture.vercel.app/sitemap.xml

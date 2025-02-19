@@ -1,0 +1,75 @@
+{
+  "locale": {
+    "en": "Inglés",
+    "uk": "Ukraniano",
+    "es": "Español"
+  },
+  "header": {
+    "prg01": "Branding",
+    "prg02": "Guardado",
+    "prg03": "Modelos",
+    "about": "Sobre"
+  },
+  "footer": {
+    "text1": "Diseñado por ",
+    "text2": "Zorger",
+    "text3": ".",
+    "text4": "Todos los derechos reservados"
+  },
+  "project1": {
+    "name": "Marca del modelo",
+    "disc": "Descripción"
+  },
+  "project2": {
+    "name": "Guardando el modelo",
+    "disc": "Descripción"
+  },
+  "project3": {
+    "name": "Selección de modelo",
+    "disc": "Descripción"
+  },
+  "models": {
+    "menShirt1": "Camiseta regular masculina",
+    "womenShirt": "Camiseta mujer oversize",
+    "womenDress": "Vestido de noche de estilo victoriano medio",
+    "menShirt2": "Camiseta polo raglán para hombre"
+  },
+  "rotating": {
+    "clockwise": "Girar en sentido horario",
+    "counterclockwise": "Girar en sentido antihorario",
+    "pause": "Pausa la rotación",
+    "stop": "Dejar de rotar",
+    "180": "Girar 180°",
+    "mixNo": "No está permitido mezclar textura con color",
+    "mixYes": "Se permite mezclar textura con color"
+  },
+  "changeColor": {
+    "red": "Rojo",
+    "green": "Verde",
+    "blue": "Azul",
+    "white": "Blanco",
+    "golden": "Dorado",
+    "picker": "Selección de colores",
+    "reset": "Volver al color inicial"
+  },
+  "texture": {
+    "texture1": "Cargando textura #1",
+    "texture2": "Cargando textura #2",
+    "texture3": "Cargando textura #3",
+    "texture4": "Cargando textura #4",
+    "texture5": "Cargando textura #5",
+    "upload": "Cargar textura...",
+    "reset": "Volver a la textura inicial"
+  },
+  "about": {
+    "title": "3D Couture",
+    "more01": "Más información...",
+    "more02": "\uD83C\uDFA8✨ ¡Una plataforma única para crear y personalizar modelos 3D! \uD83D\uDD8C\uFE0F\uD83D\uDC57",
+    "more03": "¡Elige colores, añade texturas, aplica marcas y crea looks elegantes! \uD83D\uDD76\uFE0F\uD83D\uDC55 ¡Experimenta, combina y personaliza – tu diseño, tus reglas! \uD83D\uDE80 Guarda tus creaciones en formatos PNG, MP4 o PDF \uD83D\uDCF8 y ¡compártelas con el mundo!",
+    "more04": "\uD83D\uDC51 3D Couture – ¡dónde la tecnología se encuentra con la moda y la creatividad! \uD83D\uDC83",
+    "more05": "¡Bienvenido! \uD83E\uDD29\uD83D\uDE0E",
+    "technologies": "Tecnologías",
+    "name": "Nombre",
+    "version": "Versión"
+  }
+}
