@@ -13,7 +13,7 @@ module.exports = {
     }
   },
   pwa: {
-    manifestPath: "https://3d-couture.vercel.app/assets/favicon/manifest.webmanifest",
+    manifestPath: "https://couture-metaverse.vercel.app/assets/favicon/manifest.webmanifest",
     iconPaths: {
       favicon32: null,
       favicon16: null,
@@ -53,11 +53,11 @@ module.exports = {
           {attributes: {property: 'twitter:title', content: 'Couture Metaverse 3D'}},
           {attributes: {property: 'og:description', content: 'Couture Metaverse 3D'}},
           {attributes: {property: 'twitter:description', content: 'Couture Metaverse 3D'}},
-          {attributes: {property: 'og:image', content: 'https://3d-couture.vercel.app/assets/ogimage/bmp/image_all.jpg'}},
-          {attributes: {property: 'twitter:image', content: 'https://3d-couture.vercel.app/assets/ogimage/bmp/image_all.jpg'}},
-          {attributes: {property: 'og:url', content: 'https://3d-couture.vercel.app'}},
+          {attributes: {property: 'og:image', content: 'https://couture-metaverse.vercel.app/assets/ogimage/bmp/image_all.jpg'}},
+          {attributes: {property: 'twitter:image', content: 'https://couture-metaverse.vercel.app/assets/ogimage/bmp/image_all.jpg'}},
+          {attributes: {property: 'og:url', content: 'https://couture-metaverse.vercel.app'}},
           {attributes: {property: 'og:type', content: 'website'}},
-          {attributes: {property: 'og:site_name', content: 'https://3d-couture.vercel.app'}},
+          {attributes: {property: 'og:site_name', content: 'https://couture-metaverse.vercel.app'}},
           {attributes: {property: 'twitter:card', content: 'summary_large_image'}}
         ]
       }),
@@ -76,7 +76,7 @@ module.exports = {
         }
       }),
       new SitemapPlugin({
-        base: 'https://3d-couture.vercel.app', // Базовый URL моего сайта
+        base: 'https://couture-metaverse.vercel.app', // Базовый URL моего сайта
         paths: [
           { path: '/', priority: 1, changefreq: 'always' },
           { path: '/project2', priority: 1, changefreq: 'always' },

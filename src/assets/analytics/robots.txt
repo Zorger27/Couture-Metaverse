@@ -1,3 +1,3 @@
 User-agent: *
 Disallow:
-Sitemap: https://3d-couture.vercel.app/sitemap.xml
+Sitemap: https://couture-metaverse.vercel.app/sitemap.xml
