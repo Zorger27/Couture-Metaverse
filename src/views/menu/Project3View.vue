@@ -17,8 +17,8 @@ export default {
     const title = 'Couture Metaverse 3D - Model selection';
     const metaDescription = 'Couture Metaverse 3D';
     const description = 'Couture Metaverse 3D - Model selection';
-    const imageUrl = 'https://3d-couture.vercel.app/assets/ogimage/bmp/project3.jpg';
-    const url = 'https://3d-couture.vercel.app/project3';
+    const imageUrl = 'https://couture-metaverse.vercel.app/assets/ogimage/bmp/project3.jpg';
+    const url = 'https://couture-metaverse.vercel.app/project3';
 
     this.setOpenGraphTags(metaDescription, title, description, imageUrl, url);
     this.setPageTitle(mainTitle);
