@@ -1,6 +1,7 @@
 # Couture Metaverse 3D #
 ### You can view my CV here: [Curriculum VITAE](https://zorger27.github.io)❗️ ###
 ### You can view my Portfolio here: [My Portfolio](https://Zorin.Expert)❗️ ###
+
 <img width="1661" alt="about" src="https://github.com/user-attachments/assets/cc4a6eea-6654-4a80-972a-f0f00c4b4883" />
 
 #### 🎨✨ A Couture Metaverse 3D is a unique platform for creating and customizing 3D models! 🖌️👗 ####
