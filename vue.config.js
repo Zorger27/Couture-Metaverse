@@ -39,10 +39,10 @@ module.exports = {
         ]
       }),
       new HtmlWebpackTagsPlugin({
-        // scripts: [
-        //   'https://www.googletagmanager.com/gtag/js?id=G-66W2BXPCMK',
-        //   '/assets/analytics/ganal.js',
-        // ],
+        scripts: [
+          'https://www.googletagmanager.com/gtag/js?id=G-R9BM79JPHS',
+          '/assets/analytics/ganal.js',
+        ],
         append: true,
         publicPath: false,
         useHash: false,
