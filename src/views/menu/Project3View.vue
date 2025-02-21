@@ -168,7 +168,10 @@ export default {
       }
     };
 
-    // Функция загрузки всех моделей
+
+
+
+
     const loadAllModels = async () => {
       clearScene(); // Очистка сцены перед загрузкой
       const loader = new GLTFLoader();
@@ -228,15 +231,12 @@ export default {
         // 3. Пересчитываем boundingBox после масштабирования
         boundingBox.setFromObject(model);
 
-        // 4. Выравниваем модели по нижнему краю
-        model.position.y = -boundingBox.min.y * scaleFactor;
-
-        // 5. Размещаем модели по оси X, равномерно
+        // 4. Размещаем модели по оси X, равномерно
         model.position.x = startX + index * spacing;
 
         console.log(`📍 ${modelKey} -> X: ${model.position.x}, Y: ${model.position.y}, Масштаб: ${scaleFactor}`);
 
-        // 6. Применяем материалы и текстуры
+        // 5. Применяем материалы и текстуры
         model.traverse((child) => {
           if (child instanceof THREE.Mesh && child.material) {
             materialPromises.push(applyMaterialSettings(child.material, modelKey));
@@ -250,14 +250,8 @@ export default {
       // Ждём, пока все материалы обновятся
       await Promise.all(materialPromises);
 
-      // Сдвигаем всю группу в центр по оси X
+      // 6️⃣ Сдвигаем всю группу вниз, чтобы она стояла на "полу"
       const groupBoundingBox = new THREE.Box3().setFromObject(sceneGroup);
-      const groupCenterX = (groupBoundingBox.max.x + groupBoundingBox.min.x) / 2;
-
-      // Сдвигаем всю группу так, чтобы она была в центре
-      sceneGroup.position.x -= groupCenterX;
-
-      // Опускаем всю группу вниз (чтобы модели стояли на "полу")
       const groupHeight = groupBoundingBox.max.y - groupBoundingBox.min.y;
       sceneGroup.position.y = -groupBoundingBox.min.y - groupHeight * 0.5;
 
@@ -265,8 +259,20 @@ export default {
 
       // Перерисовываем сцену после всех изменений
       requestAnimationFrame(() => renderer.render(scene, camera));
-      console.log("🎉 Все модели загружены, выровнены и сгруппированы!");
+      console.log("🎉 Все модели загружены, выровнены и прижаты к низу!");
     };
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Функция очистки сцены
     const clearScene = () => {
