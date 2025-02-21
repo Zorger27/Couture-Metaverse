@@ -136,12 +136,11 @@ export default {
         // Запоминаем, какая модель загружена
         model.userData.modelKey = modelKey;
 
-        // 📌 Центрируем модель в сцене
+        // Центрируем модель в сцене
         model.position.set(0, 0, 0);
         model.scale.set(4, 4, 4);
-        // model.rotation.set(-Math.PI / 8, 0, 0); // Исправление наклона
 
-        // 📌 Применяем материалы и текстуры
+        // Применяем материалы и текстуры
         const materialPromises = [];
         model.traverse((child) => {
           if (child instanceof THREE.Mesh && child.material) {
@@ -157,10 +156,10 @@ export default {
         // Сдвигаем модель вниз
         model.position.y = -height / 2;
 
-        // 📌 Добавляем модель в сцену
+        // Добавляем модель в сцену
         scene.add(model);
 
-        // 📌 Обновляем рендер, чтобы изменения сразу стали видны
+        // Обновляем рендер, чтобы изменения сразу стали видны
         requestAnimationFrame(() => renderer.render(scene, camera));
 
       } catch (error) {
@@ -292,11 +291,11 @@ export default {
 
       let needsUpdate = false;
 
-      // 📌 Преобразуем цвет из HEX в THREE.Color, если нужно
+      // Преобразуем цвет из HEX в THREE.Color, если нужно
       const newColor = new THREE.Color(settings.color);
       newColor.multiplyScalar(settings.brightnessMultiplier); // Применяем яркость
 
-      // 📌 Загружаем текстуру, если она указана (асинхронно)
+      // Загружаем текстуру, если она указана (асинхронно)
       const newTexture = settings.texture ? await getTexture(settings.texture) : null;
 
       // Если включено смешивание - применяем цвет и текстуру вместе
@@ -340,10 +339,11 @@ export default {
         needsUpdate = true;
       }
 
-      // 📌 Обновляем сцену, если были изменения
+      // Обновляем сцену, если были изменения
       if (needsUpdate) {
         material.needsUpdate = true;
-        setTimeout(() => renderer.render(scene, camera), 50); // ⏳ Небольшая задержка для обновления
+        // setTimeout(() => renderer.render(scene, camera), 50); // Небольшая задержка для обновления
+        renderer.render(scene, camera);
       }
     };
 
@@ -430,7 +430,8 @@ export default {
       saveModelsToStorage();
       updateMaterials((material) => {applyMaterialSettings(material, modelKey);});
 
-      setTimeout(() => renderer.render(scene, camera), 50); // Обновляем рендер после смены цвета
+      // setTimeout(() => renderer.render(scene, camera), 50); // Обновляем рендер после смены цвета
+      renderer.render(scene, camera);
     };
 
     // Функция изменения текстуры модели
@@ -447,7 +448,8 @@ export default {
       saveModelsToStorage();
       updateMaterials((material) => {applyMaterialSettings(material, modelKey);});
 
-      setTimeout(() => renderer.render(scene, camera), 50); // Обновляем рендер после смены текстуры
+      // setTimeout(() => renderer.render(scene, camera), 50); // Обновляем рендер после смены текстуры
+      renderer.render(scene, camera);
     };
 
     const toggleMixing = () => {
