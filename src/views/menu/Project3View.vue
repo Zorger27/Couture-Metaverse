@@ -626,7 +626,7 @@ export default {
       <img :src="models.womenShirt.icon" :alt="models.womenShirt.name" @click="loadModel('womenShirt')" class="button" :title="$t('models.womenShirt')">
       <img :src="models.menShirt2.icon" :alt="models.menShirt2.name" @click="loadModel('menShirt2')" class="button" :title="$t('models.menShirt2')">
       <img :src="models.womenDress.icon" :alt="models.womenDress.name" @click="loadModel('womenDress')" class="button" :title="$t('models.womenDress')">
-      <button @click="loadAllModels" class="load-all-btn button">
+      <button @click="loadAllModels" class="load-all-btn button" :title="$t('models.allModels')">
         <i class="fas fa-th-large"></i>
       </button>
     </div>

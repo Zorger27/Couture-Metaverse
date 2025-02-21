@@ -32,7 +32,8 @@
     "menShirt1": "Male regular T-shirt",
     "womenShirt": "Women oversized T-shirt",
     "womenDress": "Mid Victorian Evening Gown",
-    "menShirt2": "Male raglan polo T-shirt"
+    "menShirt2": "Male raglan polo T-shirt",
+    "allModels": "Show all models"
   },
   "rotating": {
     "clockwise": "Rotate clockwise",

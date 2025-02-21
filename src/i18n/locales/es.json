@@ -32,7 +32,8 @@
     "menShirt1": "Camiseta regular masculina",
     "womenShirt": "Camiseta mujer oversize",
     "womenDress": "Vestido de noche de estilo victoriano medio",
-    "menShirt2": "Camiseta polo raglán para hombre"
+    "menShirt2": "Camiseta polo raglán para hombre",
+    "allModels": "Mostrar todos los modelos"
   },
   "rotating": {
     "clockwise": "Girar en sentido horario",
