@@ -56,7 +56,7 @@ export default {
         name: 'Male regular T-shirt',
         icon: '/assets/img/models/01_men_shirt.webp',
         originalSettings: {
-          texture: '/assets/textures/texture0.webp', // Путь к начальной текстуре
+          texture: '/assets/textures/materialTexture1.webp', // Путь к начальной текстуре
           color: new THREE.Color(0xffffff), // Начальный цвет
           roughness: 0.1,
           metalness: 0.5,
@@ -69,7 +69,7 @@ export default {
         name: 'Women oversized T-shirt',
         icon: '/assets/img/models/02_women_shirt.webp',
         originalSettings: {
-          texture: '/assets/textures/texture0.webp',
+          texture: '/assets/textures/materialTexture2.webp',
           color: new THREE.Color(0xffffff), // Начальный цвет
           roughness: 0.1,
           metalness: 0.5,
@@ -82,7 +82,7 @@ export default {
         name: 'Male raglan polo T-shirt',
         icon: '/assets/img/models/03_men_shirt.webp',
         originalSettings: {
-          texture: '/assets/textures/texture0.webp',
+          texture: '/assets/textures/materialTexture3.webp',
           color: new THREE.Color(0xffffff), // Начальный цвет
           roughness: 0.1,
           metalness: 0.5,
@@ -95,7 +95,7 @@ export default {
         name: 'Mid Victorian Evening Gown',
         icon: '/assets/img/models/04_dress.webp',
         originalSettings: {
-          texture: '/assets/textures/texture0.webp',
+          texture: '/assets/textures/materialTexture1.webp',
           color: new THREE.Color(0xffffff), // Начальный цвет
           roughness: 0.1,
           metalness: 0.5,
@@ -163,34 +163,25 @@ export default {
       let startX = -(totalModels - 1) * spacing / 2;
       let index = 0;
 
-      let totalHeight = 0; // Общая высота всех моделей
-
       for (const key in models) {
         try {
           const gltf = await loader.loadAsync(models[key].path);
-          const newModel = gltf.scene;
+          const model = gltf.scene;
 
           // Привязываем модель к ключу
-          newModel.userData.modelKey = key;
+          model.userData.modelKey = key;
 
           // Размещаем модели в ряд
           const x = startX + index * spacing;
-          newModel.position.set(x, 0, 0);
-          newModel.scale.set(4, 4, 4);
+          model.position.set(x, 0, 0);
+          model.scale.set(4, 4, 4);
 
-          // Получаем высоту модели
-          const box = new THREE.Box3().setFromObject(newModel);
-          const modelHeight = box.max.y - box.min.y;
-
-          // Размещаем модели по оси Y, чтобы они стояли на нижнем краю
-          newModel.position.y = -modelHeight / 2;
-
-          totalHeight += modelHeight; // Увеличиваем общую высоту всех моделей
+          // // Применяем сохранённые настройки модели
+          // updateMaterials((material) => {applyMaterialSettings(material);});
 
           // Применяем сохранённые текстуры и цвета
-          newModel.traverse((child) => {
+          model.traverse((child) => {
             if (child instanceof THREE.Mesh && child.material) {
-              console.log(`Применяем материалы для ${key}`);
 
               // Применяем настройки материалов
               applyMaterialSettings(child.material, key);
@@ -200,8 +191,15 @@ export default {
             }
           });
 
-          scene.add(newModel);
-          modelList.push(newModel);
+          // Получаем высоту модели
+          const box = new THREE.Box3().setFromObject(model);
+          const modelHeight = box.max.y - box.min.y;
+
+          // Размещаем модели по оси Y, чтобы они стояли на нижнем краю
+          model.position.y = -modelHeight / 2;
+
+          scene.add(model);
+          modelList.push(model);
           index++;
         } catch (error) {
           console.error(`Ошибка загрузки модели ${key}:`, error);
