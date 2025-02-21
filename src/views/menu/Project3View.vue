@@ -168,10 +168,7 @@ export default {
       }
     };
 
-
-
-
-
+    // Функция загрузки всех моделей
     const loadAllModels = async () => {
       clearScene(); // Очистка сцены перед загрузкой
       const loader = new GLTFLoader();
@@ -261,18 +258,6 @@ export default {
       requestAnimationFrame(() => renderer.render(scene, camera));
       console.log("🎉 Все модели загружены, выровнены и прижаты к низу!");
     };
-
-
-
-
-
-
-
-
-
-
-
-
 
     // Функция очистки сцены
     const clearScene = () => {
