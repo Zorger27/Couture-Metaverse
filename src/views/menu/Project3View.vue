@@ -28,6 +28,7 @@ export default {
     let scene, camera, renderer, model;
     let isRotatingClockwise = false;
     let isRotatingCounterClockwise = false;
+    let modelList = [];
 
     // Флаг для смешивания текстур и цветов
     const isMixingEnabled = ref(false);
@@ -124,23 +125,7 @@ export default {
 
     // Функция загрузки модели
     const loadModel = async (modelKey) => {
-      if (model) {
-        model.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            if (child.material) {
-              if (Array.isArray(child.material)) {
-                child.material.forEach((mat) => mat.dispose());
-              } else {
-                child.material.dispose();
-              }
-            }
-            if (child.geometry) {
-              child.geometry.dispose();
-            }
-          }
-        });
-        scene.remove(model);
-      }
+      clearScene(); // Очистка сцены перед загрузкой
 
       // Используем GLTFLoader для загрузки модели
       const loader = new GLTFLoader();
@@ -164,6 +149,106 @@ export default {
       } catch (error) {
         console.error('Ошибка загрузки модели', error);
       }
+    };
+
+    // Функция загрузки всех моделей
+    const loadAllModels = async () => {
+      clearScene(); // Очистка сцены перед загрузкой
+      const loader = new GLTFLoader();
+      const totalModels = Object.keys(models).length;
+      const screenWidth = window.innerWidth;
+
+      // Спейсер для моделей по оси X
+      const spacing = screenWidth / totalModels / 230;
+      let startX = -(totalModels - 1) * spacing / 2;
+      let index = 0;
+
+      let totalHeight = 0; // Общая высота всех моделей
+
+      for (const key in models) {
+        try {
+          const gltf = await loader.loadAsync(models[key].path);
+          const newModel = gltf.scene;
+
+          // Привязываем модель к ключу
+          newModel.userData.modelKey = key;
+
+          // Размещаем модели в ряд
+          const x = startX + index * spacing;
+          newModel.position.set(x, 0, 0);
+          newModel.scale.set(4, 4, 4);
+
+          // Получаем высоту модели
+          const box = new THREE.Box3().setFromObject(newModel);
+          const modelHeight = box.max.y - box.min.y;
+
+          // Размещаем модели по оси Y, чтобы они стояли на нижнем краю
+          newModel.position.y = -modelHeight / 2;
+
+          totalHeight += modelHeight; // Увеличиваем общую высоту всех моделей
+
+          // Применяем сохранённые текстуры и цвета
+          newModel.traverse((child) => {
+            if (child instanceof THREE.Mesh && child.material) {
+              console.log(`Применяем материалы для ${key}`);
+
+              // Применяем настройки материалов
+              applyMaterialSettings(child.material, key);
+
+              // Убедитесь, что материал обновляется
+              child.material.needsUpdate = true;
+            }
+          });
+
+          scene.add(newModel);
+          modelList.push(newModel);
+          index++;
+        } catch (error) {
+          console.error(`Ошибка загрузки модели ${key}:`, error);
+        }
+      }
+    };
+
+    // Очистка сцены перед загрузкой всех моделей
+    const clearScene = () => {
+      if (model) {
+        scene.remove(model); // Убираем текущую модель
+        model.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            if (child.material) {
+              if (Array.isArray(child.material)) {
+                child.material.forEach((mat) => mat.dispose());
+              } else {
+                child.material.dispose();
+              }
+            }
+            if (child.geometry) {
+              child.geometry.dispose();
+            }
+          }
+        });
+        model = null; // Обнуляем текущую модель
+      }
+
+      // Удаляем все предыдущие модели
+      modelList.forEach((m) => {
+        scene.remove(m);
+        m.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            if (child.material) {
+              if (Array.isArray(child.material)) {
+                child.material.forEach((mat) => mat.dispose());
+              } else {
+                child.material.dispose();
+              }
+            }
+            if (child.geometry) {
+              child.geometry.dispose();
+            }
+          }
+        });
+      });
+      modelList = []; // Очищаем массив загруженных моделей
     };
 
     // Определение текстур
@@ -511,6 +596,7 @@ export default {
       canvasContainer,
       models,
       loadModel,
+      loadAllModels,
       uploadTexture,
       changeColor,
       changeColorFromPicker,
@@ -540,6 +626,9 @@ export default {
       <img :src="models.womenShirt.icon" :alt="models.womenShirt.name" @click="loadModel('womenShirt')" class="button" :title="$t('models.womenShirt')">
       <img :src="models.menShirt2.icon" :alt="models.menShirt2.name" @click="loadModel('menShirt2')" class="button" :title="$t('models.menShirt2')">
       <img :src="models.womenDress.icon" :alt="models.womenDress.name" @click="loadModel('womenDress')" class="button" :title="$t('models.womenDress')">
+      <button @click="loadAllModels" class="load-all-btn button">
+        <i class="fas fa-th-large"></i>
+      </button>
     </div>
 
     <!-- Кнопки управления вращением -->
@@ -621,7 +710,7 @@ export default {
       border-radius: 5px;
       //background-color: #a9ed9f;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: ease-in-out, background-color .2s, box-shadow .2s;
+      transition: ease-in-out, color .2s, background-color .2s, box-shadow .2s;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -640,6 +729,14 @@ export default {
       }
 
     }
+
+    .load-all-btn {
+      background: #6f1f8e;
+      color: white;
+      font-size: 24px;
+      .fas {color: white;}
+    }
+    .load-all-btn:hover {.fas {color: gold;} background: #9760aa;}
   }
 
   .rotation-controls {
@@ -811,6 +908,7 @@ export default {
         width: 45px;
         height: 45px;
       }
+      .load-all-btn {display: none;}
     }
 
     .rotation-controls {
@@ -871,6 +969,7 @@ export default {
         width: 40px;
         height: 40px;
       }
+      .load-all-btn {display: none;}
     }
 
     .rotation-controls {
