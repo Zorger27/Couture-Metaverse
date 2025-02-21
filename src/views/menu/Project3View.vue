@@ -28,6 +28,7 @@ export default {
     let scene, camera, renderer, model;
     let isRotatingClockwise = false;
     let isRotatingCounterClockwise = false;
+    let sceneGroup = null; // Эта переменная будет использоваться для всех моделей
     let modelList = [];
 
     // Флаг для смешивания текстур и цветов
@@ -172,58 +173,124 @@ export default {
       clearScene(); // Очистка сцены перед загрузкой
       const loader = new GLTFLoader();
       const totalModels = Object.keys(models).length;
-      const screenWidth = window.innerWidth;
 
-      // Спейсер для моделей по оси X
-      const spacing = screenWidth / totalModels / 230;
-      let startX = -(totalModels - 1) * spacing / 2;
+      // Создаём группу для моделей
+      sceneGroup = new THREE.Group();
+      scene.add(sceneGroup);
 
-      // Создаём массив Promises для ожидания полной загрузки моделей
+      // Определяем максимальные размеры для нормализации
+      let maxModelHeight = 0;
+      let maxModelWidth = 0;
+      let modelsArray = [];
+
+      // 1️⃣ Загружаем модели и вычисляем их размеры
       let modelPromises = Object.keys(models).map(async (key, index) => {
         try {
           const gltf = await loader.loadAsync(models[key].path);
           const model = gltf.scene;
-
-          // Привязываем модель к ключу
           model.userData.modelKey = key;
 
-          // Размещаем модели в ряд
-          const x = startX + index * spacing;
-          model.position.set(x, 0, 0);
-          model.scale.set(4, 4, 4);
+          // Вычисляем boundingBox
+          let boundingBox = new THREE.Box3().setFromObject(model);
+          const modelWidth = boundingBox.max.x - boundingBox.min.x;
+          const modelHeight = boundingBox.max.y - boundingBox.min.y;
 
-          // Собираем Promises для всех материалов модели
-          const materialPromises = [];
+          maxModelWidth = Math.max(maxModelWidth, modelWidth);
+          maxModelHeight = Math.max(maxModelHeight, modelHeight);
 
-          model.traverse((child) => {
-            if (child instanceof THREE.Mesh && child.material) {
-              materialPromises.push(applyMaterialSettings(child.material, key));
-            }
-          });
+          console.log(`✅ ${key}: Высота = ${modelHeight}, Ширина = ${modelWidth}`);
 
-          // Ждём, пока все материалы будут обработаны
-          await Promise.all(materialPromises);
-
-          // Выравниваем модель по нижнему краю
-          const box = new THREE.Box3().setFromObject(model);
-          const modelHeight = box.max.y - box.min.y;
-
-          // Размещаем модели по оси Y, чтобы они стояли на нижнем краю
-          model.position.y = -modelHeight / 2;
-
-          scene.add(model);
-          modelList.push(model);
+          modelsArray[index] = model; // **Сохраняем порядок моделей**
         } catch (error) {
-          console.error(`Ошибка загрузки модели ${key}:`, error);
+          console.error(`❌ Ошибка загрузки модели ${key}:`, error);
         }
       });
 
-      // Ждём, пока все модели загрузятся и применят настройки
+      // Ждём, пока все модели загрузятся
       await Promise.all(modelPromises);
+      console.log(`📏 Максимальная высота: ${maxModelHeight}, максимальная ширина: ${maxModelWidth}`);
+
+      // 2️⃣ Второй проход — нормализация размеров и позиционирование
+      let materialPromises = [];
+      const spacing = maxModelWidth * 3.2; // БОЛЬШЕ отступов между моделями
+      let startX = -(totalModels - 1) * spacing / 2;
+
+      modelsArray.forEach((model, index) => {
+        const modelKey = model.userData.modelKey;
+
+        // 1. Пересчитываем boundingBox до масштабирования
+        let boundingBox = new THREE.Box3().setFromObject(model);
+
+        // 2. Масштабируем модели так, чтобы их высота ≈ 1.8 (уменьшаем!)
+        const scaleFactor = 1.8 / maxModelHeight;
+        model.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+        // 3. Пересчитываем boundingBox после масштабирования
+        boundingBox.setFromObject(model);
+
+        // 4. Выравниваем модели по нижнему краю
+        model.position.y = -boundingBox.min.y * scaleFactor;
+
+        // 5. Размещаем модели по оси X, равномерно
+        model.position.x = startX + index * spacing;
+
+        console.log(`📍 ${modelKey} -> X: ${model.position.x}, Y: ${model.position.y}, Масштаб: ${scaleFactor}`);
+
+        // 6. Применяем материалы и текстуры
+        model.traverse((child) => {
+          if (child instanceof THREE.Mesh && child.material) {
+            materialPromises.push(applyMaterialSettings(child.material, modelKey));
+          }
+        });
+
+        // Добавляем модель в сцену (в правильном порядке!)
+        sceneGroup.add(model);
+      });
+
+      // Ждём, пока все материалы обновятся
+      await Promise.all(materialPromises);
+
+      // Сдвигаем всю группу в центр по оси X
+      const groupBoundingBox = new THREE.Box3().setFromObject(sceneGroup);
+      const groupCenterX = (groupBoundingBox.max.x + groupBoundingBox.min.x) / 2;
+
+      // Сдвигаем всю группу так, чтобы она была в центре
+      sceneGroup.position.x -= groupCenterX;
+
+      // Опускаем всю группу вниз (чтобы модели стояли на "полу")
+      const groupHeight = groupBoundingBox.max.y - groupBoundingBox.min.y;
+      sceneGroup.position.y = -groupBoundingBox.min.y - groupHeight * 0.5;
+
+      console.log(`🎯 Группа -> X: ${sceneGroup.position.x}, Y: ${sceneGroup.position.y}`);
+
+      // Перерисовываем сцену после всех изменений
+      requestAnimationFrame(() => renderer.render(scene, camera));
+      console.log("🎉 Все модели загружены, выровнены и сгруппированы!");
     };
 
-    // Очистка сцены перед загрузкой всех моделей
+    // Функция очистки сцены
     const clearScene = () => {
+      // Удаляем группу с моделями, если она существует
+      if (sceneGroup) {
+        scene.remove(sceneGroup); // Убираем группу
+        sceneGroup.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            if (child.material) {
+              if (Array.isArray(child.material)) {
+                child.material.forEach((mat) => mat.dispose());
+              } else {
+                child.material.dispose();
+              }
+            }
+            if (child.geometry) {
+              child.geometry.dispose();
+            }
+          }
+        });
+        sceneGroup = null; // Обнуляем ссылку на группу
+      }
+
+      // Если загружена одна модель
       if (model) {
         scene.remove(model); // Убираем текущую модель
         model.traverse((child) => {
@@ -243,25 +310,27 @@ export default {
         model = null; // Обнуляем текущую модель
       }
 
-      // Удаляем все предыдущие модели
-      modelList.forEach((m) => {
-        scene.remove(m);
-        m.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            if (child.material) {
-              if (Array.isArray(child.material)) {
-                child.material.forEach((mat) => mat.dispose());
-              } else {
-                child.material.dispose();
+      // Если есть список моделей (для loadAllModels)
+      if (modelList && modelList.length > 0) {
+        modelList.forEach((m) => {
+          scene.remove(m);
+          m.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              if (child.material) {
+                if (Array.isArray(child.material)) {
+                  child.material.forEach((mat) => mat.dispose());
+                } else {
+                  child.material.dispose();
+                }
+              }
+              if (child.geometry) {
+                child.geometry.dispose();
               }
             }
-            if (child.geometry) {
-              child.geometry.dispose();
-            }
-          }
+          });
         });
-      });
-      modelList = []; // Очищаем массив загруженных моделей
+        modelList = []; // Очищаем массив загруженных моделей
+      }
     };
 
     // Определение текстур
