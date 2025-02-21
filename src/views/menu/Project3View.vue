@@ -123,21 +123,33 @@ export default {
       }
     }
 
-    // Функция загрузки модели
+    // Функция загрузки одной модели
     const loadModel = async (modelKey) => {
-      clearScene(); // Очистка сцены перед загрузкой
+      clearScene(); // Очистка текущей сцены перед загрузкой новой модели
 
       // Используем GLTFLoader для загрузки модели
       const loader = new GLTFLoader();
       try {
         const gltf = await loader.loadAsync(models[modelKey].path);
-        // После загрузки модели добавляем её в сцену
         model = gltf.scene;
-        model.userData.modelKey = modelKey; // Запоминаем, какая модель загружена
-        model.scale.set(4, 4, 4);
 
-        // Применяем сохранённые настройки модели
-        updateMaterials((material) => {applyMaterialSettings(material);});
+        // Запоминаем, какая модель загружена
+        model.userData.modelKey = modelKey;
+
+        // 📌 Центрируем модель в сцене
+        model.position.set(0, 0, 0);
+        model.scale.set(4, 4, 4);
+        // model.rotation.set(-Math.PI / 8, 0, 0); // Исправление наклона
+
+        // 📌 Применяем материалы и текстуры
+        const materialPromises = [];
+        model.traverse((child) => {
+          if (child instanceof THREE.Mesh && child.material) {
+            materialPromises.push(applyMaterialSettings(child.material, modelKey));
+          }
+        });
+
+        await Promise.all(materialPromises);
 
         // Определяем границы модели (bounding box)
         const boundingBox = new THREE.Box3().setFromObject(model);
@@ -145,9 +157,14 @@ export default {
         // Сдвигаем модель вниз
         model.position.y = -height / 2;
 
+        // 📌 Добавляем модель в сцену
         scene.add(model);
+
+        // 📌 Обновляем рендер, чтобы изменения сразу стали видны
+        requestAnimationFrame(() => renderer.render(scene, camera));
+
       } catch (error) {
-        console.error('Ошибка загрузки модели', error);
+        console.error(`Ошибка загрузки модели ${modelKey}:`, error);
       }
     };
 
@@ -161,9 +178,9 @@ export default {
       // Спейсер для моделей по оси X
       const spacing = screenWidth / totalModels / 230;
       let startX = -(totalModels - 1) * spacing / 2;
-      let index = 0;
 
-      for (const key in models) {
+      // 📌 Создаём массив Promises для ожидания полной загрузки моделей
+      let modelPromises = Object.keys(models).map(async (key, index) => {
         try {
           const gltf = await loader.loadAsync(models[key].path);
           const model = gltf.scene;
@@ -176,22 +193,19 @@ export default {
           model.position.set(x, 0, 0);
           model.scale.set(4, 4, 4);
 
-          // // Применяем сохранённые настройки модели
-          // updateMaterials((material) => {applyMaterialSettings(material);});
+          // 📌 Собираем Promises для всех материалов модели
+          const materialPromises = [];
 
-          // Применяем сохранённые текстуры и цвета
           model.traverse((child) => {
             if (child instanceof THREE.Mesh && child.material) {
-
-              // Применяем настройки материалов
-              applyMaterialSettings(child.material, key);
-
-              // Убедитесь, что материал обновляется
-              child.material.needsUpdate = true;
+              materialPromises.push(applyMaterialSettings(child.material, key));
             }
           });
 
-          // Получаем высоту модели
+          // 📌 Ждём, пока все материалы будут обработаны
+          await Promise.all(materialPromises);
+
+          // Выравниваем модель по нижнему краю
           const box = new THREE.Box3().setFromObject(model);
           const modelHeight = box.max.y - box.min.y;
 
@@ -200,11 +214,13 @@ export default {
 
           scene.add(model);
           modelList.push(model);
-          index++;
         } catch (error) {
           console.error(`Ошибка загрузки модели ${key}:`, error);
         }
-      }
+      });
+
+      // 📌 Ждём, пока все модели загрузятся и применят настройки
+      await Promise.all(modelPromises);
     };
 
     // Очистка сцены перед загрузкой всех моделей
@@ -265,24 +281,23 @@ export default {
     };
 
     // Функция применяет настройки материала
-    const applyMaterialSettings = (material) => {
-      if (!model || !model.userData.modelKey) return;
-      const modelKey = model.userData.modelKey;
-      const settings = models[modelKey]?.settings;
-
-      if (!settings) {
+    const applyMaterialSettings = async (material, modelKey) => {
+      if (!models[modelKey]) {
         console.warn(`⚠️ Нет настроек для модели: ${modelKey}`);
         return;
       }
 
+      const settings = models[modelKey].settings;
+      if (!settings) return;
+
       let needsUpdate = false;
 
-      // Преобразуем цвет из HEX в THREE.Color, если нужно
-      const newColor = typeof settings.color === 'number' ? new THREE.Color(settings.color) : settings.color.clone();
+      // 📌 Преобразуем цвет из HEX в THREE.Color, если нужно
+      const newColor = new THREE.Color(settings.color);
       newColor.multiplyScalar(settings.brightnessMultiplier); // Применяем яркость
 
-      // Загружаем текстуру, если она указана
-      const newTexture = settings.texture ? getTexture(settings.texture) : null;
+      // 📌 Загружаем текстуру, если она указана (асинхронно)
+      const newTexture = settings.texture ? await getTexture(settings.texture) : null;
 
       // Если включено смешивание - применяем цвет и текстуру вместе
       if (isMixingEnabled.value && settings.texture) {
@@ -318,14 +333,17 @@ export default {
         }
       }
 
+      // Применяем roughness и metalness
       if (material.roughness !== settings.roughness || material.metalness !== settings.metalness) {
         material.roughness = settings.roughness;
         material.metalness = settings.metalness;
         needsUpdate = true;
       }
 
+      // 📌 Обновляем сцену, если были изменения
       if (needsUpdate) {
         material.needsUpdate = true;
+        setTimeout(() => renderer.render(scene, camera), 50); // ⏳ Небольшая задержка для обновления
       }
     };
 
@@ -379,20 +397,26 @@ export default {
 
     // Универсальная функция для изменения материалов модели
     const updateMaterials = (callback) => {
-      if (!model) return;
-      model.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          const materials = Array.isArray(child.material) ? child.material : [child.material];
-          materials.forEach((material) => {
-            if (material instanceof THREE.MeshStandardMaterial) {
-              callback(material);
-            }
-          });
-        }
+      return new Promise((resolve) => {
+        if (!model) return resolve();  // Если нет модели, сразу возвращаем Promise
+
+        model.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            const materials = Array.isArray(child.material) ? child.material : [child.material];
+            materials.forEach((material) => {
+              if (material instanceof THREE.MeshStandardMaterial) {
+                callback(material);
+              }
+            });
+          }
+        });
+
+        resolve(); // Когда traverse завершится, возвращаем Promise
       });
     };
 
-    // Изменение цвета модели
+
+    // Функция изменения цвета модели
     const changeColor = (colorHex) => {
       if (!model) return;
       const modelKey = model.userData.modelKey;
@@ -404,10 +428,12 @@ export default {
       }
 
       saveModelsToStorage();
-      updateMaterials((material) => {applyMaterialSettings(material);});
+      updateMaterials((material) => {applyMaterialSettings(material, modelKey);});
+
+      setTimeout(() => renderer.render(scene, camera), 50); // Обновляем рендер после смены цвета
     };
 
-    // Изменение текстуры модели
+    // Функция изменения текстуры модели
     const changeTexture = (textureKey) => {
       if (!model) return;
       const modelKey = model.userData.modelKey;
@@ -419,7 +445,9 @@ export default {
       }
 
       saveModelsToStorage();
-      updateMaterials((material) => {applyMaterialSettings(material);});
+      updateMaterials((material) => {applyMaterialSettings(material, modelKey);});
+
+      setTimeout(() => renderer.render(scene, camera), 50); // Обновляем рендер после смены текстуры
     };
 
     const toggleMixing = () => {
@@ -429,51 +457,55 @@ export default {
     };
 
     // Загрузка текстуры с диска (FileReader.readAsDataURL())
-    const uploadTexture = (event) => {
+    const uploadTexture = async (event) => {
+      // Получаем файл из события, если его нет — прекращаем выполнение функции
       const file = event.target.files[0];
-      if (!file || !model) return;
+      if (!file || !model) return;  // Если файл или модель не найдены, прекращаем выполнение
+
+      // Получаем ключ модели, если он отсутствует — прекращаем выполнение
       const modelKey = model.userData.modelKey;
       if (!modelKey) return;
 
+      // Создаём новый объект FileReader для чтения содержимого файла
       const reader = new FileReader();
 
-      reader.onload = function (e) {
-        // Обновляем настройки модели
-        models[modelKey].settings.texture = e.target.result;
+      // Оборачиваем FileReader в Promise для асинхронной загрузки текстуры
+      const loadTexture = new Promise((resolve, reject) => {
+        // Если чтение файла прошло успешно, разрешаем Promise с результатом (DataURL)
+        reader.onload = function (e) {
+          resolve(e.target.result);  // Передаем результат чтения файла
+        };
+
+        // Если произошла ошибка при чтении файла, отклоняем Promise с ошибкой
+        reader.onerror = function (error) {
+          reject(error);  // Отклоняем Promise с ошибкой
+        };
+
+        // Запускаем чтение файла как DataURL (встроенный формат для изображений)
+        reader.readAsDataURL(file);
+      });
+
+      try {
+        // Ждем завершения загрузки текстуры и обновляем настройки модели
+        models[modelKey].settings.texture = await loadTexture;
+
+        // Если смешивание текстуры выключено, сбрасываем цвет модели к оригинальному
         if (!isMixingEnabled.value) {
-          // Сбрасываем цвет к оригинальному, если смешивание выключено
           models[modelKey].settings.color = models[modelKey].originalSettings.color;
         }
-        // Обновляем материалы после загрузки текстуры
-        updateMaterials((material) => {applyMaterialSettings(material);});
-        // Сохраняем изменения в localStorage
-        saveModelsToStorage();
-      };
-      // Запускаем чтение файла
-      reader.readAsDataURL(file);
-    };
 
-    // Загрузка текстуры с диска (URL.createObjectURL())
-    // Требует явного освобождения памяти через URL.revokeObjectURL() после использования, иначе могут возникнуть утечки памяти!
-    // const uploadTexture = (event) => {
-    //   const file = event.target.files[0];
-    //   if (!file || !model) return;
-    //   const modelKey = model.userData.modelKey;
-    //   if (!modelKey) return;
-    //
-    //   // Генерируем путь к файлу и сохраняем путь к файлу в настройках модели
-    //   // Это создает временный URL для файла
-    //   models[modelKey].settings.texture = URL.createObjectURL(file);
-    //
-    //   if (!isMixingEnabled.value) {
-    //     models[modelKey].settings.color = models[modelKey].originalSettings.color; // Сбрасываем цвет к оригинальному, если смешивание выключено
-    //   }
-    //
-    //   // Обновляем материалы
-    //   updateMaterials((material) => {applyMaterialSettings(material);});
-    //   // Сохраняем изменения в localStorage
-    //   saveModelsToStorage();
-    // };
+        // Обновляем все материалы модели с применением новых настроек
+        await updateMaterials((material) => {
+          applyMaterialSettings(material, modelKey);  // Применяем настройки к материалам
+        });
+
+        // Сохраняем обновленные настройки модели в localStorage
+        saveModelsToStorage();
+      } catch (error) {
+        // Обработка ошибок при загрузке текстуры
+        console.error('Ошибка при загрузке текстуры:', error);
+      }
+    };
 
     // Изменение цвета через палитру
     const changeColorFromPicker = (event) => {
@@ -481,15 +513,23 @@ export default {
     };
 
     // Сброс настроек модели
-    const resetModelSettings = () => {
+    const resetModelSettings = async () => {
       if (!model) return;
+
       const modelKey = model.userData.modelKey;
       if (!modelKey) return;
 
-      models[modelKey].settings = { ...models[modelKey].originalSettings }; // Сбрасываем настройки к первоначальным
+      // Восстанавливаем настройки модели из оригинальных
+      const originalSettings = models[modelKey].originalSettings;
+      models[modelKey].settings = { ...originalSettings };
 
-      updateMaterials((material) => {applyMaterialSettings(material);});
+      await updateMaterials((material) => {applyMaterialSettings(material, modelKey);});
+
+      // Сохраняем изменения в localStorage
       saveModelsToStorage();
+
+      // Принудительная перерисовка сцены
+      renderer.render(scene, camera);
     };
 
     // Флаг для направления вращения перед паузой
