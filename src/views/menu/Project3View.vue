@@ -26,9 +26,8 @@ export default {
   setup() {
     const canvasContainer = ref(null);
     let scene, camera, renderer, model;
-    let isRotatingClockwise = false;
-    let isRotatingCounterClockwise = false;
     let sceneGroup = null; // Эта переменная будет использоваться для всех моделей
+    const isMultiModelView = ref(false);
     let modelList = [];
 
     // Флаг для смешивания текстур и цветов
@@ -126,9 +125,13 @@ export default {
 
     // Функция загрузки одной модели
     const loadModel = async (modelKey) => {
+      isMultiModelView.value = false; // 📌 Показываем панель
       clearScene(); // Очистка текущей сцены перед загрузкой новой модели
 
-      // Используем GLTFLoader для загрузки модели
+      // Создаём `sceneGroup`, чтобы не ломалось вращение
+      sceneGroup = new THREE.Group();
+      scene.add(sceneGroup);
+
       const loader = new GLTFLoader();
       try {
         const gltf = await loader.loadAsync(models[modelKey].path);
@@ -140,6 +143,12 @@ export default {
         // Центрируем модель в сцене
         model.position.set(0, 0, 0);
         model.scale.set(4, 4, 4);
+
+        // Добавляем модель в `sceneGroup`
+        sceneGroup.add(model);
+
+        // Добавляем модель в rotationStates
+        rotationStates.set(modelKey, { clockwise: false, counterClockwise: false });
 
         // Применяем материалы и текстуры
         const materialPromises = [];
@@ -157,9 +166,6 @@ export default {
         // Сдвигаем модель вниз
         model.position.y = -height / 2;
 
-        // Добавляем модель в сцену
-        scene.add(model);
-
         // Обновляем рендер, чтобы изменения сразу стали видны
         requestAnimationFrame(() => renderer.render(scene, camera));
 
@@ -170,6 +176,7 @@ export default {
 
     // Функция загрузки всех моделей
     const loadAllModels = async () => {
+      isMultiModelView.value = true; // 📌 Скрываем панель
       clearScene(); // Очистка сцены перед загрузкой
       const loader = new GLTFLoader();
       const totalModels = Object.keys(models).length;
@@ -201,6 +208,10 @@ export default {
           console.log(`✅ ${key}: Высота = ${modelHeight}, Ширина = ${modelWidth}`);
 
           modelsArray[index] = model; // **Сохраняем порядок моделей**
+
+          // 📌 Добавляем модель в rotationStates (по умолчанию остановлена)
+          rotationStates.set(key, { clockwise: false, counterClockwise: false });
+
         } catch (error) {
           console.error(`❌ Ошибка загрузки модели ${key}:`, error);
         }
@@ -256,7 +267,7 @@ export default {
 
       // Перерисовываем сцену после всех изменений
       requestAnimationFrame(() => renderer.render(scene, camera));
-      console.log("🎉 Все модели загружены, выровнены и прижаты к низу!");
+      console.log("🎉 Все модели загружены, панель скрыта!");
     };
 
     // Функция очистки сцены
@@ -442,10 +453,15 @@ export default {
       const animate = () => {
         requestAnimationFrame(animate);
 
-        // Вращение модели по кнопкам
-        if (model) {
-          if (isRotatingClockwise) model.rotation.y += 0.01; // Вращение по часовой стрелке
-          else if (isRotatingCounterClockwise) model.rotation.y -= 0.01; // Вращение против часовой стрелке
+        // Проверяем, инициализирована ли `sceneGroup`
+        if (sceneGroup && sceneGroup.children.length > 0) {
+          sceneGroup.children.forEach((model) => {
+            const modelKey = model.userData.modelKey;
+            const state = rotationStates.get(modelKey);
+
+            if (state?.clockwise) model.rotation.y += 0.01;
+            else if (state?.counterClockwise) model.rotation.y -= 0.01;
+          });
         }
 
         controls.update();
@@ -597,51 +613,59 @@ export default {
     // Флаг для направления вращения перед паузой
     let lastRotationDirection = null;
 
-    // Вращение по часовой стрелке
+    // Флаг для хранения направлений вращения каждой модели
+    let rotationStates = new Map(); // { modelKey: { clockwise: true/false, counterClockwise: true/false } }
+
+    // Вращение по часовой стрелке (для всех моделей)
     const rotateClockwise = () => {
-      isRotatingClockwise = true;
-      isRotatingCounterClockwise = false;
+      rotationStates.forEach((state) => {
+        state.clockwise = true;
+        state.counterClockwise = false;
+      });
       lastRotationDirection = 'clockwise';
     };
 
-    // Вращение против часовой стрелке
+    // Вращение против часовой стрелке (для всех моделей)
     const rotateCounterClockwise = () => {
-      isRotatingClockwise = false;
-      isRotatingCounterClockwise = true;
+      rotationStates.forEach((state) => {
+        state.clockwise = false;
+        state.counterClockwise = true;
+      });
       lastRotationDirection = 'counterclockwise';
     };
 
-    // Пауза / Возобновление вращения
+    // Пауза / Возобновление вращения (для всех моделей)
     const pauseRotation = () => {
-      if (isRotatingClockwise || isRotatingCounterClockwise) {
-        // Если модель вращается – пауза
-        isRotatingClockwise = false;
-        isRotatingCounterClockwise = false;
-      } else {
-        // Если модель на паузе – возобновляем в том же направлении
-        if (lastRotationDirection === 'clockwise') {
-          rotateClockwise();
-        } else if (lastRotationDirection === 'counterclockwise') {
-          rotateCounterClockwise();
+      rotationStates.forEach((state) => {
+        if (state.clockwise || state.counterClockwise) {
+          state.clockwise = false;
+          state.counterClockwise = false;
+        } else {
+          state.clockwise = lastRotationDirection === "clockwise";
+          state.counterClockwise = lastRotationDirection === "counterclockwise";
         }
-      }
+      });
     };
 
-    // Полная остановка и сброс модели
+    // Остановка и сброс вращения (для всех моделей)
     const stopRotation = () => {
-      if (model) {
-        model.rotation.set(0, 0, 0); // Сброс поворота модели
-      }
-      isRotatingClockwise = false;
-      isRotatingCounterClockwise = false;
-      lastRotationDirection = null; // Полностью сбрасываем направление
+      sceneGroup.children.forEach((model) => {
+        model.rotation.set(0, 0, 0);
+      });
+
+      rotationStates.forEach((state) => {
+        state.clockwise = false;
+        state.counterClockwise = false;
+      });
+
+      lastRotationDirection = null;
     };
 
-    // Поворот модели на 180 градусов
+    // Поворот на 180 градусов (для всех моделей)
     const rotate180 = () => {
-      if (model) {
-        model.rotation.y += Math.PI; // Добавляем 180 градусов (π радиан)
-      }
+      sceneGroup.children.forEach((model) => {
+        model.rotation.y += Math.PI;
+      });
     };
 
     const onWindowResize = () => {
@@ -691,12 +715,12 @@ export default {
       renderer.dispose();
     });
 
-
     return {
       canvasContainer,
       models,
       loadModel,
       loadAllModels,
+      isMultiModelView,
       uploadTexture,
       changeColor,
       changeColorFromPicker,
@@ -750,7 +774,7 @@ export default {
       </button>
     </div>
 
-    <div class="model-controls">
+    <div class="model-controls" v-if="!isMultiModelView">
       <!-- Кнопки выбора цвета -->
       <div class="color-controls">
         <button @click="changeColor(0xd0d0fb)" :title="$t ('changeColor.blue')" class="color-button" style="background-color: #d0d0fb;"></button>
