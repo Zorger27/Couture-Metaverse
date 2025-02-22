@@ -63,6 +63,9 @@
     "upload": "Cargar textura...",
     "reset": "Volver a la textura inicial"
   },
+  "special": {
+    "delete": "Borrar la memoria local"
+  },
   "about": {
     "title": "Metaverso 3D de alta costura",
     "more01": "Más información...",

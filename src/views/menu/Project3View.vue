@@ -27,11 +27,9 @@ export default {
     const canvasContainer = ref(null);
     let scene, camera, renderer, model;
     let sceneGroup = null; // Эта переменная будет использоваться для всех моделей
+    const isMixingEnabled = ref(false); // Флаг для смешивания текстур и цветов
     const isMultiModelView = ref(false);
     let modelList = [];
-
-    // Флаг для смешивания текстур и цветов
-    const isMixingEnabled = ref(false);
 
     // Загрузка данных из localStorage
     const loadStoredModels = () => {
@@ -47,6 +45,21 @@ export default {
     // Сохранение данных в localStorage
     const saveModelsToStorage = () => {
       localStorage.setItem('modelsSettings', JSON.stringify(models));
+    };
+
+    // Удаление данных из localStorage с подтверждением
+    const clearLocalStorage = () => {
+      // Ожидаем от пользователя подтверждения
+      const confirmed = confirm("Вы уверены, что хотите удалить настройки моделей из локальной памяти?");
+
+      if (confirmed) {
+        // Если пользователь нажал "ОК", удаляем данные
+        localStorage.removeItem('modelsSettings');
+        alert("Настройки моделей были удалены из локальной памяти.");
+      } else {
+        // Если пользователь нажал "Отмена", ничего не делаем
+        alert("Удаление отменено.");
+      }
     };
 
     // Загружаем данные из localStorage, иначе используем стандартные настройки
@@ -168,7 +181,6 @@ export default {
 
         // Обновляем рендер, чтобы изменения сразу стали видны
         requestAnimationFrame(() => renderer.render(scene, camera));
-
       } catch (error) {
         console.error(`Ошибка загрузки модели ${modelKey}:`, error);
       }
@@ -320,8 +332,8 @@ export default {
       let materialPromises = [];
       const frontScale = 1.8 / maxModelHeight;
       const backScale = frontScale * 0.8; // Задние модели меньше
-      const spacingX = maxModelWidth * 3.5; // Отступы по X
-      const spacingZ = maxModelWidth * 1.8; // Отступы по Z (глубина)
+      const spacingX = maxModelWidth * 4.0; // Отступы по X
+      const spacingZ = maxModelWidth * 2.5; // Отступы по Z (глубина)
 
       modelsArray.forEach((model, index) => {
         const modelKey = model.userData.modelKey;
@@ -834,6 +846,7 @@ export default {
       pauseRotation,
       stopRotation,
       rotate180,
+      clearLocalStorage,
     };
   },
 };
@@ -843,6 +856,7 @@ export default {
   <div class="container">
     <h1>{{ $t('project3.name') }} <CanvasFullScreen :canvasContainer="canvasContainer"></CanvasFullScreen> <ToggleFullScreen></ToggleFullScreen></h1>
     <line></line>
+
     <div class="scene-container" ref="canvasContainer"></div>
 
     <!-- Кнопки управления моделями -->
@@ -851,12 +865,8 @@ export default {
       <img :src="models.womenShirt.icon" :alt="models.womenShirt.name" @click="loadModel('womenShirt')" class="button" :title="$t('models.womenShirt')">
       <img :src="models.menShirt2.icon" :alt="models.menShirt2.name" @click="loadModel('menShirt2')" class="button" :title="$t('models.menShirt2')">
       <img :src="models.womenDress.icon" :alt="models.womenDress.name" @click="loadModel('womenDress')" class="button" :title="$t('models.womenDress')">
-      <button @click="loadAllModels" class="load-all-btn button" :title="$t('models.allModels')">
-        <i class="fas fa-th-large"></i>
-      </button>
-      <button @click="loadAllModels3d" class="load-all-btn button" :title="$t('models.allModels3d')">
-        <i class="fas fa-cubes"></i>
-      </button>
+      <button @click="loadAllModels" class="load-all-btn button" :title="$t('models.allModels')"><i class="fas fa-th-large"></i></button>
+      <button @click="loadAllModels3d" class="load-all-btn button" :title="$t('models.allModels3d')"><i class="fas fa-cubes"></i></button>
     </div>
 
     <!-- Кнопки управления вращением -->
@@ -903,6 +913,9 @@ export default {
           <i :class="isMixingEnabled ? 'fas fa-sliders-h' : 'fas fa-gem'"></i>
         </button>
       </div>
+    </div>
+    <div class="special-controls">
+      <button @click="clearLocalStorage" class="button" :title="$t('special.delete')"><i class="fas fa-broom"></i></button>
     </div>
   </div>
 </template>
@@ -1119,7 +1132,36 @@ export default {
           i {transform: rotate(180deg); } /* При активном состоянии иконка может анимированно поворачиваться */
         }
       }
+    }
+  }
+  .special-controls {
+    position: absolute;
+    top: 50%;
+    right: 40px; /* Размещение кнопок справа */
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
 
+    button {
+      width: 50px;
+      height: 50px;
+      font-size: 24px;
+      border: none;
+      border-radius: 5px;
+      color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #ffea00;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+      transition: ease-in-out, border .2s, background-color .2s, box-shadow .2s;
+
+      &:hover {
+        background-color: #ffffff; /* Более яркий цвет при наведении */
+        color: deeppink;
+        border: 2px solid deeppink;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
     }
   }
 }
@@ -1183,6 +1225,15 @@ export default {
         }
       }
     }
+    .special-controls {
+      right: 22px; /* Размещение кнопок справа */
+      top: 54%;
+      .button {
+        width: 45px;
+        height: 45px;
+        margin-bottom: 9px;
+      }
+    }
   }
 }
 
@@ -1242,6 +1293,15 @@ export default {
           height: 40px;
           font-size: 18px;
         }
+      }
+    }
+    .special-controls {
+      right: 20px; /* Размещение кнопок справа */
+      top: 59%;
+      .button {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 8px;
       }
     }
   }

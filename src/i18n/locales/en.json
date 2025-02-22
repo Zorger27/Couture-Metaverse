@@ -63,6 +63,9 @@
     "upload": "Load texture...",
     "reset": "Return to the initial texture"
   },
+  "special": {
+    "delete": "Clearing local memory"
+  },
   "about": {
     "title": "Couture Metaverse 3D",
     "more01": "More information...",
