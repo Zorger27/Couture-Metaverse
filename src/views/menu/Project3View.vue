@@ -275,7 +275,6 @@ export default {
       isMultiModelView.value = true; // 📌 Скрываем панель
       clearScene(); // Очистка сцены перед загрузкой
       const loader = new GLTFLoader();
-      const totalModels = Object.keys(models).length;
 
       // Создаём группу для моделей
       sceneGroup = new THREE.Group();
