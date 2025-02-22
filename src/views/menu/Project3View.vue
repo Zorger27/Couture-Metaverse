@@ -270,6 +270,107 @@ export default {
       console.log("🎉 Все модели загружены, панель скрыта!");
     };
 
+    // Функция загрузки всех моделей (2 спереди, 2 сзади)
+    const loadAllModels3d = async () => {
+      isMultiModelView.value = true; // 📌 Скрываем панель
+      clearScene(); // Очистка сцены перед загрузкой
+      const loader = new GLTFLoader();
+      const totalModels = Object.keys(models).length;
+
+      // Создаём группу для моделей
+      sceneGroup = new THREE.Group();
+      scene.add(sceneGroup);
+
+      // Определяем максимальные размеры для нормализации
+      let maxModelHeight = 0;
+      let maxModelWidth = 0;
+      let modelsArray = [];
+
+      // 1️⃣ Загружаем модели и вычисляем их размеры
+      let modelPromises = Object.keys(models).map(async (key, index) => {
+        try {
+          const gltf = await loader.loadAsync(models[key].path);
+          const model = gltf.scene;
+          model.userData.modelKey = key;
+
+          // Вычисляем boundingBox
+          let boundingBox = new THREE.Box3().setFromObject(model);
+          const modelWidth = boundingBox.max.x - boundingBox.min.x;
+          const modelHeight = boundingBox.max.y - boundingBox.min.y;
+
+          maxModelWidth = Math.max(maxModelWidth, modelWidth);
+          maxModelHeight = Math.max(maxModelHeight, modelHeight);
+
+          console.log(`✅ ${key}: Высота = ${modelHeight}, Ширина = ${modelWidth}`);
+
+          modelsArray[index] = model; // **Сохраняем порядок моделей**
+
+          // 📌 Добавляем модель в rotationStates (по умолчанию остановлена)
+          rotationStates.set(key, { clockwise: false, counterClockwise: false });
+
+        } catch (error) {
+          console.error(`❌ Ошибка загрузки модели ${key}:`, error);
+        }
+      });
+
+      // Ждём, пока все модели загрузятся
+      await Promise.all(modelPromises);
+      console.log(`📏 Максимальная высота: ${maxModelHeight}, максимальная ширина: ${maxModelWidth}`);
+
+      // 2️⃣ Второй проход — нормализация размеров и позиционирование
+      let materialPromises = [];
+      const frontScale = 1.8 / maxModelHeight;
+      const backScale = frontScale * 0.8; // Задние модели меньше
+      const spacingX = maxModelWidth * 3.5; // Отступы по X
+      const spacingZ = maxModelWidth * 1.8; // Отступы по Z (глубина)
+
+      modelsArray.forEach((model, index) => {
+        const modelKey = model.userData.modelKey;
+        const isBackRow = index >= 2;
+
+        // 1. Устанавливаем разные масштабы для переднего и заднего ряда
+        const scaleFactor = isBackRow ? backScale : frontScale;
+        model.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+        // 2. Пересчитываем boundingBox после масштабирования
+        let boundingBox = new THREE.Box3().setFromObject(model);
+
+        // 3. Центрируем модели в ряду
+        const xOffset = isBackRow ? -spacingX / 2 : 0;
+        model.position.x = xOffset + (index % 2 === 0 ? -spacingX / 2 : spacingX / 2);
+        model.position.z = isBackRow ? -spacingZ : 0; // Отодвигаем задний ряд
+
+        // 4. Выравниваем модели по полу
+        model.position.y = -boundingBox.min.y;
+
+        console.log(`📍 ${modelKey} -> X: ${model.position.x}, Z: ${model.position.z}, Y: ${model.position.y}, Масштаб: ${scaleFactor}`);
+
+        // 5. Применяем материалы и текстуры
+        model.traverse((child) => {
+          if (child instanceof THREE.Mesh && child.material) {
+            materialPromises.push(applyMaterialSettings(child.material, modelKey));
+          }
+        });
+
+        // Добавляем модель в сцену (в правильном порядке!)
+        sceneGroup.add(model);
+      });
+
+      // Ждём, пока все материалы обновятся
+      await Promise.all(materialPromises);
+
+      // 6️⃣ Сдвигаем всю группу вниз, чтобы она стояла на "полу"
+      const groupBoundingBox = new THREE.Box3().setFromObject(sceneGroup);
+      const groupHeight = groupBoundingBox.max.y - groupBoundingBox.min.y;
+      sceneGroup.position.y = -groupBoundingBox.min.y - groupHeight * 0.5;
+
+      console.log(`🎯 Группа -> X: ${sceneGroup.position.x}, Y: ${sceneGroup.position.y}`);
+
+      // Перерисовываем сцену после всех изменений
+      requestAnimationFrame(() => renderer.render(scene, camera));
+      console.log("🎉 Все модели загружены (2 спереди, 2 сзади) и выровнены!");
+    };
+
     // Функция очистки сцены
     const clearScene = () => {
       // Удаляем группу с моделями, если она существует
@@ -720,6 +821,7 @@ export default {
       models,
       loadModel,
       loadAllModels,
+      loadAllModels3d,
       isMultiModelView,
       uploadTexture,
       changeColor,
@@ -752,6 +854,9 @@ export default {
       <img :src="models.womenDress.icon" :alt="models.womenDress.name" @click="loadModel('womenDress')" class="button" :title="$t('models.womenDress')">
       <button @click="loadAllModels" class="load-all-btn button" :title="$t('models.allModels')">
         <i class="fas fa-th-large"></i>
+      </button>
+      <button @click="loadAllModels3d" class="load-all-btn button" :title="$t('models.allModels3d')">
+        <i class="fas fa-cubes"></i>
       </button>
     </div>
 

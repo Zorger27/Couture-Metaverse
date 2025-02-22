@@ -33,7 +33,8 @@
     "womenShirt": "Women oversized T-shirt",
     "womenDress": "Mid Victorian Evening Gown",
     "menShirt2": "Male raglan polo T-shirt",
-    "allModels": "Show all models"
+    "allModels": "Show all models",
+    "allModels3d": "Display all models in 3D"
   },
   "rotating": {
     "clockwise": "Rotate clockwise",
