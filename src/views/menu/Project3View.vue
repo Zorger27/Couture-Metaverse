@@ -1240,6 +1240,7 @@ export default {
       .button {
         width: 45px;
         height: 45px;
+        font-size: 22px;
         margin-bottom: 9px;
       }
     }
@@ -1310,6 +1311,7 @@ export default {
       .button {
         width: 40px;
         height: 40px;
+        font-size: 18px;
         margin-bottom: 8px;
       }
     }
