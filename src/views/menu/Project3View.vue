@@ -1033,10 +1033,10 @@ export default {
       .color-button {
         width: 50px;
         height: 50px;
-        border: 1px solid #ccc;
+        border: none;
         margin-bottom: 10px;
         cursor: pointer;
-        border-radius: 50%;
+        border-radius: 5px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
         transition: background-color 0.2s, box-shadow 0.2s;
 

@@ -11,7 +11,7 @@ export default {
   mixins: [openGraphMixin],
   components: {CanvasFullScreen, ToggleFullScreen},
   mounted() {
-    const mainTitle = 'Branding the model';
+    const mainTitle = 'Couture Metaverse 3D';
     const title = 'Couture Metaverse 3D - Branding the model';
     const metaDescription = 'Couture Metaverse 3D';
     const description = 'Couture Metaverse 3D - Branding the model';
