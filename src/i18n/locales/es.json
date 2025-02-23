@@ -64,10 +64,10 @@
     "reset": "Volver a la textura inicial"
   },
   "special": {
-    "delete": "Borrar la memoria local",
+    "delete": "Eliminar configuraciones de modelos del almacenamiento local",
     "confirm": "¿Está seguro de que desea eliminar la configuración del modelo de la memoria local? \uD83E\uDDD0\uD83D\uDE27",
     "alertYes": "¡Las configuraciones del modelo se han eliminado de la memoria local! ☹\uFE0F\uD83D\uDE2D",
-    "alertNo": "¡Eliminación cancelada! \uD83D\uDE01\uD83D\uDE0A",
+    "alertNo": "¡Eliminación de configuración del modelo cancelada! \uD83D\uDE01\uD83D\uDE0A",
     "noData": "¡No se encontraron configuraciones de modelo en el almacenamiento local! \uD83D\uDE44\uD83E\uDEE4"
   },
   "about": {
