@@ -64,7 +64,11 @@
     "reset": "Return to the initial texture"
   },
   "special": {
-    "delete": "Clearing local memory"
+    "delete": "Clearing local memory",
+    "confirm": "Are you sure you want to delete model settings from local storage? \uD83E\uDDD0\uD83D\uDE27",
+    "alertYes": "Model settings were deleted from local memory! ☹\uFE0F\uD83D\uDE2D",
+    "alertNo": "Deletion cancelled! \uD83D\uDE01\uD83D\uDE0A",
+    "noData": "No model settings found in local storage! \uD83D\uDE44\uD83E\uDEE4"
   },
   "about": {
     "title": "Couture Metaverse 3D",

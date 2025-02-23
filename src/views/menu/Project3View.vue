@@ -1,5 +1,6 @@
 <script>
 import {onMounted, onUnmounted, ref} from 'vue';
+import { useI18n } from 'vue-i18n';
 import * as THREE from 'three';
 import {TextureLoader} from 'three';
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
@@ -24,6 +25,7 @@ export default {
     this.setPageTitle(mainTitle);
   },
   setup() {
+    const { t } = useI18n();
     const canvasContainer = ref(null);
     let scene, camera, renderer, model;
     let sceneGroup = null; // Эта переменная будет использоваться для всех моделей
@@ -49,16 +51,24 @@ export default {
 
     // Удаление данных из localStorage с подтверждением
     const clearLocalStorage = () => {
-      // Ожидаем от пользователя подтверждения
-      const confirmed = confirm("Вы уверены, что хотите удалить настройки моделей из локальной памяти?");
+      // Проверяем, есть ли данные с ключом 'modelsSettings' в localStorage
+      const modelsSettings = localStorage.getItem('modelsSettings');
 
-      if (confirmed) {
-        // Если пользователь нажал "ОК", удаляем данные
-        localStorage.removeItem('modelsSettings');
-        alert("Настройки моделей были удалены из локальной памяти.");
+      if (modelsSettings) {
+        // Если данные есть, запрашиваем подтверждение
+        const confirmed = confirm(t('special.confirm'));
+
+        if (confirmed) {
+          // Если пользователь нажал "ОК", удаляем данные
+          localStorage.removeItem('modelsSettings');
+          alert(t('special.alertYes'));
+        } else {
+          // Если пользователь нажал "Отмена", ничего не делаем
+          alert(t('special.alertNo'));
+        }
       } else {
-        // Если пользователь нажал "Отмена", ничего не делаем
-        alert("Удаление отменено.");
+        // Если данных нет, уведомляем пользователя
+        alert(t('special.noData'));
       }
     };
 
@@ -602,7 +612,6 @@ export default {
         resolve(); // Когда traverse завершится, возвращаем Promise
       });
     };
-
 
     // Функция изменения цвета модели
     const changeColor = (colorHex) => {
