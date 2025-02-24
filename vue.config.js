@@ -39,6 +39,14 @@ module.exports = {
         ]
       }),
       new HtmlWebpackTagsPlugin({
+        links: [
+          {
+            path: 'https://couture-metaverse.vercel.app',
+            attributes: {
+              rel: 'canonical'
+            },
+          },
+        ],
         scripts: [
           'https://www.googletagmanager.com/gtag/js?id=G-R9BM79JPHS',
           '/assets/analytics/ganal.js',
