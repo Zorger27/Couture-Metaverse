@@ -1025,7 +1025,7 @@ export default {
     </div>
     <div class="special-controls">
         <!-- Кнопка "Сохранить" -->
-      <button @click="toggleSaveMenu" class="save-button"><i class="fas fa-save"></i></button>
+      <button @click="toggleSaveMenu" class="save-button" :class="{'active': showSaveOptions}"><i class="fas fa-save"></i></button>
         <!-- Раскрывающееся меню -->
       <div v-if="showSaveOptions" class="save-options">
         <button @click="saveAsImage"><i class="fas fa-camera"></i></button>
@@ -1033,14 +1033,14 @@ export default {
       </div>
 
       <!-- Кнопка "Сохранить видео" -->
-      <button @click="toggleSaveVideo" class="save-button"><i class="fas fa-video-camera"></i></button>
+      <button @click="toggleSaveVideo" class="save-button" :class="{'active': showSaveVideo}"><i class="fas fa-video-camera"></i></button>
       <!-- Раскрывающееся меню -->
       <div v-if="showSaveVideo" class="save-options">
         <button @click="startRecording"><i class="fas fa-play-circle"></i></button>
         <button @click="stopRecording"><i class="fas fa-stop-circle"></i></button>
       </div>
 
-      <button @click="clearLocalStorage" class="button" :title="$t('special.delete')"><i class="fas fa-broom"></i></button>
+      <button @click="clearLocalStorage" class="delete" :title="$t('special.delete')"><i class="fas fa-broom"></i></button>
     </div>
   </div>
 </template>
@@ -1280,9 +1280,19 @@ export default {
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
       transition: ease-in-out, border .2s, background-color .2s, box-shadow .2s;
       &:hover {
-        background-color: #ffffff; /* Более яркий цвет при наведении */
-        color: green;
-        border: 2px solid green;
+        //background-color: #ffffff; /* Более яркий цвет при наведении */
+        //color: green;
+        //border: 2px solid green;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+    }
+    .active {
+      color: white;
+      background-color: green;
+      border: none;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+      transition: ease-in-out, border .2s, color .2s, background-color .2s, box-shadow .2s;
+      &:hover {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
     }
@@ -1291,23 +1301,25 @@ export default {
       display: flex;
       flex-direction: column;
       button {
-        background: mistyrose;
+        background: lightgoldenrodyellow;
         width: 50px;
         height: 50px;
         font-size: 24px;
         margin-bottom: 10px;
         border: none;
         border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+        transition: ease-in-out, border .2s, color .2s, background-color .2s, box-shadow .2s;
         &:hover {
           background-color: #ffffff; /* Более яркий цвет при наведении */
-          color: dodgerblue;
-          border: 2px solid dodgerblue;
+          color: green;
+          border: 2px solid green;
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
       }
     }
 
-    button {
+    .delete {
       width: 50px;
       height: 50px;
       font-size: 24px;
