@@ -1,5 +1,5 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin')
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+// const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin')
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 const SitemapPlugin = require('sitemap-webpack-plugin').default
@@ -13,6 +13,7 @@ module.exports = {
       title: 'Couture Metaverse 3D',
     }
   },
+  // pages: undefined, // Отключаем встроенное создание index.html
   pwa: {
     manifestPath: "https://couture-metaverse.vercel.app/assets/favicon/manifest.webmanifest",
     iconPaths: {
@@ -41,7 +42,9 @@ module.exports = {
       }),
       // new HtmlWebpackPlugin({
       //   template: 'public/index.html',
+      //   filename: 'index.html', // <-- Принудительно задаём имя файла
       //   inject: 'head', // Вставляем в <head>
+      //   templateParameters: { BASE_URL: '/' }, // <-- Добавляем BASE_URL вручную
       //   meta: {
       //     canonical: {
       //       rel: 'canonical',
