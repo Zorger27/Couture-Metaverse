@@ -1,5 +1,6 @@
 <script>
 // import { ref, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 // import * as THREE from 'three';
 // import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import ToggleFullScreen from "@/components/util/ToggleFullScreen.vue";
@@ -22,12 +23,20 @@ export default {
     this.setPageTitle(mainTitle);
   },
   methods: {},
+  setup() {
+    // Используем useI18n внутри setup
+    const { t } = useI18n();
+
+    return {
+      t, // Можно вернуть т.к. мы используем setup()
+    };
+  },
 }
 </script>
 
 <template>
   <div class="container">
-    <h1>{{ $t('project1.name') }} <CanvasFullScreen :canvasContainer="canvasContainer"></CanvasFullScreen> <ToggleFullScreen></ToggleFullScreen></h1>
+    <h1>{{ t('project1.name') }} <CanvasFullScreen :canvasContainer="canvasContainer"></CanvasFullScreen> <ToggleFullScreen></ToggleFullScreen></h1>
     <line></line>
     <div class="scene-container" ref="canvasContainer"></div>
   </div>

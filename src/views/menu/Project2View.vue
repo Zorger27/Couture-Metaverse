@@ -930,6 +930,7 @@ export default {
     });
 
     return {
+      t,
       canvasContainer,
       models,
       loadModel,
@@ -970,29 +971,29 @@ export default {
 
     <!-- Кнопки управления моделями -->
     <div class="model-selection">
-      <img :src="models.menShirt1.icon" :alt="models.menShirt1.name" @click="loadModel('menShirt1')" class="button" :title="$t('models.menShirt1')">
-      <img :src="models.womenShirt.icon" :alt="models.womenShirt.name" @click="loadModel('womenShirt')" class="button" :title="$t('models.womenShirt')">
-      <img :src="models.menShirt2.icon" :alt="models.menShirt2.name" @click="loadModel('menShirt2')" class="button" :title="$t('models.menShirt2')">
-      <img :src="models.womenDress.icon" :alt="models.womenDress.name" @click="loadModel('womenDress')" class="button" :title="$t('models.womenDress')">
-      <button @click="loadAllModels" class="load-all-btn button" :title="$t('models.allModels')"><i class="fas fa-th-large"></i></button>
-      <button @click="loadAllModels3d" class="load-all-btn button" :title="$t('models.allModels3d')"><i class="fas fa-cubes"></i></button>
+      <img :src="models.menShirt1.icon" :alt="models.menShirt1.name" @click="loadModel('menShirt1')" class="button" :title="t('models.menShirt1')">
+      <img :src="models.womenShirt.icon" :alt="models.womenShirt.name" @click="loadModel('womenShirt')" class="button" :title="t('models.womenShirt')">
+      <img :src="models.menShirt2.icon" :alt="models.menShirt2.name" @click="loadModel('menShirt2')" class="button" :title="t('models.menShirt2')">
+      <img :src="models.womenDress.icon" :alt="models.womenDress.name" @click="loadModel('womenDress')" class="button" :title="t('models.womenDress')">
+      <button @click="loadAllModels" class="load-all-btn button" :title="t('models.allModels')"><i class="fas fa-th-large"></i></button>
+      <button @click="loadAllModels3d" class="load-all-btn button" :title="t('models.allModels3d')"><i class="fas fa-cubes"></i></button>
     </div>
 
     <!-- Кнопки управления вращением -->
     <div class="rotation-controls">
-      <button @click="rotateClockwise" :title="$t('rotating.clockwise')">
+      <button @click="rotateClockwise" :title="t('rotating.clockwise')">
         <i class="fas fa-arrow-rotate-right"></i>
       </button>
-      <button @click="pauseRotation" :title="$t('rotating.pause')">
+      <button @click="pauseRotation" :title="t('rotating.pause')">
         <i class="fas fa-pause"></i> <!-- Изменили иконку -->
       </button>
-      <button @click="stopRotation" :title="$t('rotating.stop')">
+      <button @click="stopRotation" :title="t('rotating.stop')">
         <i class="fas fa-stop"></i> <!-- Новая кнопка с reset-позицией -->
       </button>
-      <button @click="rotate180" :title="$t('rotating.180')">
+      <button @click="rotate180" :title="t('rotating.180')">
         <i class="fas fa-sync-alt"></i> <!-- Иконка поворота -->
       </button>
-      <button @click="rotateCounterClockwise" :title="$t('rotating.counterclockwise')">
+      <button @click="rotateCounterClockwise" :title="t('rotating.counterclockwise')">
         <i class="fas fa-arrow-rotate-left"></i>
       </button>
     </div>
@@ -1000,25 +1001,25 @@ export default {
     <div class="model-controls" v-if="!isMultiModelView">
       <!-- Кнопки выбора цвета -->
       <div class="color-controls">
-        <button @click="changeColor(0xd0d0fb)" :title="$t ('changeColor.blue')" class="color-button" style="background-color: #d0d0fb;"></button>
-        <button @click="changeColor(0xfaeeb2)" :title="$t ('changeColor.golden')" class="color-button" style="background-color: #faeeb2;"></button>
-        <input type="color" @input="changeColorFromPicker" :title="$t ('changeColor.picker')" class="color-button color-picker"/>
+        <button @click="changeColor(0xd0d0fb)" :title="t ('changeColor.blue')" class="color-button" style="background-color: #d0d0fb;"></button>
+        <button @click="changeColor(0xfaeeb2)" :title="t ('changeColor.golden')" class="color-button" style="background-color: #faeeb2;"></button>
+        <input type="color" @input="changeColorFromPicker" :title="t ('changeColor.picker')" class="color-button color-picker"/>
       </div>
       <!-- Кнопки управления текстурами -->
       <div class="texture-controls">
-        <img src="/assets/textures/texture2.webp" alt="texture2" @click="changeTexture('texture1')" class="button" :title="$t('texture.texture1')">
-        <img src="/assets/textures/texture5.webp" alt="texture5" @click="changeTexture('texture2')" class="button" :title="$t('texture.texture2')">
+        <img src="/assets/textures/texture2.webp" alt="texture2" @click="changeTexture('texture1')" class="button" :title="t('texture.texture1')">
+        <img src="/assets/textures/texture5.webp" alt="texture5" @click="changeTexture('texture2')" class="button" :title="t('texture.texture2')">
         <!-- Кнопка для загрузки текстуры с диска -->
         <input type="file" @change="uploadTexture" id="file-input" class="file-input">
-        <label for="file-input" class="button upload" :title="$t('texture.upload')">
+        <label for="file-input" class="button upload" :title="t('texture.upload')">
           <i class="fa-solid fa-upload"></i>
         </label>
         <!-- Кнопка сброса -->
-        <button @click="resetModelSettings" class="button reset" :title="$t('texture.reset')">
+        <button @click="resetModelSettings" class="button reset" :title="t('texture.reset')">
           <i class="fas fa-reply"></i>
         </button>
         <!-- Кнопка для включения/отключения смешивания -->
-        <button @click="toggleMixing" :title="isMixingEnabled ? $t('rotating.mixYes') : $t('rotating.mixNo')" class="mixing" :class="{'active': isMixingEnabled}">
+        <button @click="toggleMixing" :title="isMixingEnabled ? t('rotating.mixYes') : t('rotating.mixNo')" class="mixing" :class="{'active': isMixingEnabled}">
           <i :class="isMixingEnabled ? 'fas fa-sliders-h' : 'fas fa-gem'"></i>
         </button>
       </div>
@@ -1040,7 +1041,7 @@ export default {
         <button @click="stopRecording"><i class="fas fa-stop-circle"></i></button>
       </div>
 
-      <button @click="clearLocalStorage" class="delete" :title="$t('special.delete')"><i class="fas fa-broom"></i></button>
+      <button @click="clearLocalStorage" class="delete" :title="t('special.delete')"><i class="fas fa-broom"></i></button>
     </div>
   </div>
 </template>

@@ -1,6 +1,7 @@
 <script>
 import infoStore from "@/store/modules/service/infoStore";
 import {openGraphMixin} from "@/assets/ogimage/openGraphMixin";
+import {useI18n} from "vue-i18n";
 
 export default {
   name: 'About',
@@ -33,32 +34,40 @@ export default {
     },
   },
   components: {},
+  setup() {
+    // Используем useI18n внутри setup
+    const { t } = useI18n();
+
+    return {
+      t, // Можно вернуть т.к. мы используем setup()
+    };
+  },
 }
 </script>
 
 <template>
   <div class="about">
     <h1 class="main">
-      {{ $t('about.title') }} <i @click="changeView"><span :class="['fa', tableView ? 'fa-list' : 'fa-th']"></span></i>
+      {{ t('about.title') }} <i @click="changeView"><span :class="['fa', tableView ? 'fa-list' : 'fa-th']"></span></i>
     </h1>
     <line></line>
-    <h2 @click="showMore = !showMore" class="more">{{$t ('about.more01')}}<i style="color: red; margin-left: 0.5rem"
+    <h2 @click="showMore = !showMore" class="more">{{t('about.more01')}}<i style="color: red; margin-left: 0.5rem"
                                                                              class="fas fa-hand-pointer"></i></h2>
-    <p v-if="showMore" style="margin: 0">{{$t ('about.more02')}}</p>
-    <p v-if="showMore" style="margin: 0">{{$t ('about.more03')}}</p>
-    <p v-if="showMore" style="margin: 0">{{$t ('about.more04')}}</p>
-    <h3 v-if="showMore" style="color: deeppink; margin: 0.5rem">{{$t ('about.more05')}}</h3>
+    <p v-if="showMore" style="margin: 0">{{t('about.more02')}}</p>
+    <p v-if="showMore" style="margin: 0">{{t('about.more03')}}</p>
+    <p v-if="showMore" style="margin: 0">{{t('about.more04')}}</p>
+    <h3 v-if="showMore" style="color: deeppink; margin: 0.5rem">{{t('about.more05')}}</h3>
     <line></line>
     <div v-if="tableView" class="table">
       <table>
         <thead>
         <tr>
-          <th class="title" colspan="3">{{ $t('about.technologies') }}</th>
+          <th class="title" colspan="3">{{ t('about.technologies') }}</th>
         </tr>
         <tr>
           <th>№</th>
-          <th>{{ $t('about.name') }}</th>
-          <th>{{ $t('about.version') }}</th>
+          <th>{{ t('about.name') }}</th>
+          <th>{{ t('about.version') }}</th>
         </tr>
         </thead>
         <tbody>
@@ -71,7 +80,7 @@ export default {
       </table>
     </div>
     <div v-else class="inner">
-      <h1 class="title" style="text-decoration: underline">{{ $t('about.technologies') }}</h1>
+      <h1 class="title" style="text-decoration: underline">{{ t('about.technologies') }}</h1>
       <div v-for="info in infoStore.state.infoStore" :key="info.id" class="prj">
         <a class="block" :href="info.url" title="In more detail..." target="_blank">
           <h3>
