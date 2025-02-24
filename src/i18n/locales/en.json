@@ -68,7 +68,15 @@
     "confirm": "Are you sure you want to delete model settings from local storage? \uD83E\uDDD0\uD83D\uDE27",
     "alertYes": "Model settings were deleted from local memory! ☹\uFE0F\uD83D\uDE2D",
     "alertNo": "Model settings deletion canceled! \uD83D\uDE01\uD83D\uDE0A",
-    "noData": "No model settings found in local storage! \uD83D\uDE44\uD83E\uDEE4"
+    "noData": "No model settings found in local storage! \uD83D\uDE44\uD83E\uDEE4",
+    "saveData": "Open the save data menu to the disk",
+    "closeSaveData": "Close the save data menu to the disk",
+    "savePhoto": "Save as .jpg file",
+    "savePDF": "Save as .pdf file",
+    "saveVideo": "Open the save video menu to the disk",
+    "closeSaveVideo": "Close the save video menu to the disk",
+    "startVideo": "Start video recording",
+    "stopVideo": "Stop video recording"
   },
   "about": {
     "title": "Couture Metaverse 3D",

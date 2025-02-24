@@ -68,7 +68,15 @@
     "confirm": "¿Está seguro de que desea eliminar la configuración del modelo de la memoria local? \uD83E\uDDD0\uD83D\uDE27",
     "alertYes": "¡Las configuraciones del modelo se han eliminado de la memoria local! ☹\uFE0F\uD83D\uDE2D",
     "alertNo": "¡Eliminación de configuración del modelo cancelada! \uD83D\uDE01\uD83D\uDE0A",
-    "noData": "¡No se encontraron configuraciones de modelo en el almacenamiento local! \uD83D\uDE44\uD83E\uDEE4"
+    "noData": "¡No se encontraron configuraciones de modelo en el almacenamiento local! \uD83D\uDE44\uD83E\uDEE4",
+    "saveData": "Abra el menú de guardar datos en el disco",
+    "closeSaveData": "Cerrar el menú de guardar datos en el disco",
+    "savePhoto": "Guardar como archivo .jpg",
+    "savePDF": "Guardar como archivo .pdf",
+    "saveVideo": "Abra el menú de guardar video en el disco",
+    "closeSaveVideo": "Cerrar el menú de guardar vídeo en el disco",
+    "startVideo": "Iniciar grabación de vídeo",
+    "stopVideo": "Detener la grabación de vídeo"
   },
   "about": {
     "title": "Metaverso 3D de alta costura",

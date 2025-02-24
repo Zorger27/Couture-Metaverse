@@ -1026,19 +1026,19 @@ export default {
     </div>
     <div class="special-controls">
         <!-- Кнопка "Сохранить" -->
-      <button @click="toggleSaveMenu" class="save-button" :class="{'active': showSaveOptions}"><i class="fas fa-save"></i></button>
+      <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.closeSaveData') : t('special.saveData')" class="save-button" :class="{'active': showSaveOptions}"><i class="fas fa-save"></i></button>
         <!-- Раскрывающееся меню -->
       <div v-if="showSaveOptions" class="save-options">
-        <button @click="saveAsImage"><i class="fas fa-camera"></i></button>
-        <button @click="saveAsPDF"><i class="fas fa-file-pdf"></i></button>
+        <button @click="saveAsImage" :title="t('special.savePhoto')"><i class="fas fa-camera"></i></button>
+        <button @click="saveAsPDF" :title="t('special.savePDF')"><i class="fas fa-file-pdf"></i></button>
       </div>
 
       <!-- Кнопка "Сохранить видео" -->
-      <button @click="toggleSaveVideo" class="save-button" :class="{'active': showSaveVideo}"><i class="fas fa-video-camera"></i></button>
+      <button @click="toggleSaveVideo" :title="showSaveVideo ? t('special.closeSaveVideo') : t('special.saveVideo')" class="save-button" :class="{'active': showSaveVideo}"><i class="fas fa-video-camera"></i></button>
       <!-- Раскрывающееся меню -->
       <div v-if="showSaveVideo" class="save-options">
-        <button @click="startRecording"><i class="fas fa-play-circle"></i></button>
-        <button @click="stopRecording"><i class="fas fa-stop-circle"></i></button>
+        <button @click="startRecording" :title="t('special.startVideo')"><i class="fas fa-play-circle"></i></button>
+        <button @click="stopRecording" :title="t('special.stopVideo')"><i class="fas fa-stop-circle"></i></button>
       </div>
 
       <button @click="clearLocalStorage" class="delete" :title="t('special.delete')"><i class="fas fa-broom"></i></button>
