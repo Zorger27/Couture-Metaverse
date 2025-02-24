@@ -799,7 +799,12 @@ export default {
       showSaveOptions.value = !showSaveOptions.value;
     };
 
-    // 📸 Сохранение сцены как PNG
+    // Закрывает меню после нажатия на кнопку
+    const closeSaveMenu = () => {
+      showSaveOptions.value = false;
+    };
+
+    // Сохранение сцены как PNG
     const saveAsImage = () => {
       if (!renderer || !scene || !camera) return;
 
@@ -814,9 +819,11 @@ export default {
       link.href = image;
       link.download = "model.png";
       link.click();
+
+      closeSaveMenu(); // Закрываем меню после сохранения
     };
 
-    // 📝 Сохранение сцены как PDF (улучшенное качество + белый фон)
+    // Сохранение сцены как PDF (улучшенное качество + белый фон)
     const saveAsPDF = () => {
       if (!renderer || !scene || !camera) return;
 
@@ -865,9 +872,11 @@ export default {
 
       pdf.addImage(image, "JPEG", xOffset, yOffset, imgWidth, imgHeight);
       pdf.save("model.pdf");
+
+      closeSaveMenu(); // Закрываем меню после сохранения
     };
 
-    // 🎥 **Начать запись видео**
+    // Начать запись видео
     const startRecording = () => {
       const stream = renderer.domElement.captureStream(30); // 30 FPS
 
@@ -896,7 +905,7 @@ export default {
       console.log("🎥 Запись началась!");
     };
 
-    // ✅ Фиксированная запись MP4 для Safari
+    // Фиксированная запись MP4 для Safari
     let safariRecorder = null;
     let safariStream = null;
 
@@ -916,7 +925,7 @@ export default {
       console.log("🎥 Запись MP4 началась (Safari)!");
     };
 
-    // ✅ Остановка записи
+    // Остановка записи
     const stopRecording = () => {
       if (mediaRecorder && mediaRecorder.state !== "inactive") {
         mediaRecorder.stop();
@@ -928,9 +937,11 @@ export default {
 
       isRecording.value = false;
       console.log("🛑 Запись остановлена!");
+
+      closeSaveMenu(); // Закрываем меню после остановки записи
     };
 
-    // ✅ Сохранение видео
+    // Сохранение видео
     const saveVideo = () => {
       if (recordedChunks.length === 0) {
         console.warn("⚠️ Нет записанных данных!");
@@ -1095,17 +1106,23 @@ export default {
         </button>
       </div>
     </div>
+
+    <!-- Кнопка "Сохранить" и раскрывающееся меню -->
     <div class="special-controls">
-        <!-- Кнопка "Сохранить" -->
+      <!-- Основная кнопка -->
       <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.closeSaveData') : t('special.saveData')" class="save-button" :class="{'active': showSaveOptions}"><i class="fas fa-save"></i></button>
-        <!-- Раскрывающееся меню -->
-      <div v-if="showSaveOptions" class="save-options">
-        <button @click="saveAsImage" :title="t('special.savePhoto')"><i class="fas fa-camera"></i></button>
-        <button @click="saveAsPDF" :title="t('special.savePDF')"><i class="fas fa-file-pdf"></i></button>
-        <button v-if="!isRecording" @click="startRecording" :title="t('special.startVideo')" class="film-start"><i class="fas fa-film"></i></button>
-        <button v-if="isRecording" @click="stopRecording" :title="t('special.stopVideo')" class="film-stop"><i class="fas fa-stop-circle"></i></button>
-      </div>
+
+      <!-- Анимация для раскрывающегося меню -->
+      <transition name="save-options">
+        <div v-show="showSaveOptions" class="save-options">
+          <button @click="saveAsImage" :title="t('special.savePhoto')"><i class="fas fa-camera"></i></button>
+          <button @click="saveAsPDF" :title="t('special.savePDF')"><i class="fas fa-file-pdf"></i></button>
+          <button v-if="!isRecording" @click="startRecording" :title="t('special.startVideo')" class="film-start"><i class="fas fa-film"></i></button>
+          <button v-if="isRecording" @click="stopRecording" :title="t('special.stopVideo')" class="film-stop"><i class="fas fa-stop-circle"></i></button>
+        </div>
+      </transition>
     </div>
+
   </div>
 </template>
 
@@ -1349,7 +1366,7 @@ export default {
   .special-controls {
     position: absolute;
     top: 50%;
-    right: 40px; /* Размещение кнопок справа */
+    right: 40px;
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
@@ -1367,33 +1384,20 @@ export default {
       background: dodgerblue;
       color: white;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: ease-in-out, border .2s, background-color .2s, box-shadow .2s;
-      &:hover {
-        //background-color: #ffffff; /* Более яркий цвет при наведении */
-        //color: green;
-        //border: 2px solid green;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
-    }
-    .active {
-      color: white;
-      background-color: green;
-      border: none;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: ease-in-out, border .2s, color .2s, background-color .2s, box-shadow .2s;
-      &:hover {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
+      transition: background-color 0.2s, box-shadow 0.2s;
+
+      &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
+      &.active {background-color: green;}
     }
 
     .save-options {
       display: flex;
       flex-direction: column;
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+
       button {
-        background: lightgoldenrodyellow;
         width: 50px;
         height: 50px;
         font-size: 24px;
@@ -1403,18 +1407,35 @@ export default {
         display: flex;
         justify-content: center;
         align-items: center;
+        background: lightgoldenrodyellow;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-        transition: ease-in-out, border .2s, color .2s, background-color .2s, box-shadow .2s;
+        transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+
         &:hover {
-          background-color: #ffffff; /* Более яркий цвет при наведении */
+          background-color: #ffffff;
           color: green;
           border: 2px solid green;
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
+
+        &.film-start:hover { color: purple; border-color: purple; }
+        &.film-stop:hover { color: red; border-color: red; }
       }
-      .film-start:hover {color: purple; border-color: purple;}
-      .film-stop:hover {color: red; border-color: red;}
     }
+
+    // Анимация входа
+    .save-options-enter-from {opacity: 0; transform: translateY(-10px);}
+
+    .save-options-enter-to {opacity: 1; transform: translateY(0);}
+
+    .save-options-enter-active {transition: opacity 0.6s ease, transform 0.6s ease;}
+
+    // Анимация выхода
+    .save-options-leave-from {opacity: 1; transform: translateY(0);}
+
+    .save-options-leave-to {opacity: 0; transform: translateY(-10px);}
+
+    .save-options-leave-active {transition: opacity 0.6s ease, transform 0.6s ease;}
   }
 }
 
