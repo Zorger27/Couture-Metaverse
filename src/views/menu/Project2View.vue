@@ -33,6 +33,7 @@ export default {
     const isMixingEnabled = ref(false); // Флаг для смешивания текстур и цветов
     const isMultiModelView = ref(false);
     const showSaveOptions = ref(false);
+    const showSaveVideo = ref(false);
     let modelList = [];
 
     // Загрузка данных из localStorage
@@ -796,6 +797,10 @@ export default {
       showSaveOptions.value = !showSaveOptions.value;
     };
 
+    const toggleSaveVideo = () => {
+      showSaveVideo.value = !showSaveVideo.value;
+    };
+
     // 📸 Сохранение сцены как PNG
     const saveAsImage = () => {
       if (!renderer || !scene || !camera) return;
@@ -862,6 +867,18 @@ export default {
 
       pdf.addImage(image, "JPEG", xOffset, yOffset, imgWidth, imgHeight);
       pdf.save("model.pdf");
+    };
+
+    // 🎥 **Начать запись**
+    const startRecording = () => {
+
+      console.log("📽 Началась запись видео...");
+    };
+
+    // 🛑 **Остановить запись и сохранить файл**
+    const stopRecording = () => {
+
+      console.log("✅ Запись завершена!");
     };
 
 
@@ -932,9 +949,13 @@ export default {
       stopRotation,
       rotate180,
       showSaveOptions,
+      showSaveVideo,
       toggleSaveMenu,
+      toggleSaveVideo,
       saveAsImage,
       saveAsPDF,
+      startRecording,
+      stopRecording,
       clearLocalStorage,
     };
   },
@@ -1005,11 +1026,18 @@ export default {
     <div class="special-controls">
         <!-- Кнопка "Сохранить" -->
       <button @click="toggleSaveMenu" class="save-button"><i class="fas fa-save"></i></button>
-
         <!-- Раскрывающееся меню -->
       <div v-if="showSaveOptions" class="save-options">
         <button @click="saveAsImage"><i class="fas fa-camera"></i></button>
         <button @click="saveAsPDF"><i class="fas fa-file-pdf"></i></button>
+      </div>
+
+      <!-- Кнопка "Сохранить видео" -->
+      <button @click="toggleSaveVideo" class="save-button"><i class="fas fa-video-camera"></i></button>
+      <!-- Раскрывающееся меню -->
+      <div v-if="showSaveVideo" class="save-options">
+        <button @click="startRecording"><i class="fas fa-play-circle"></i></button>
+        <button @click="stopRecording"><i class="fas fa-stop-circle"></i></button>
       </div>
 
       <button @click="clearLocalStorage" class="button" :title="$t('special.delete')"><i class="fas fa-broom"></i></button>
