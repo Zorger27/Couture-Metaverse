@@ -16,7 +16,7 @@
     "vue-i18n": "^11.1.1",
     "vue-router": "^4.5.0",
     "vuex": "^4.1.0",
-    "webpack": "^5.97.1"
+    "webpack": "^5.98.0"
   },
   "devDependencies": {
     "@types/three": "^0.171.0",
@@ -27,6 +27,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "favicons": "^7.1.1",
     "favicons-webpack-plugin": "^6.0.0",
+    "html-webpack-plugin": "^5.6.3",
     "html-webpack-tags-plugin": "^3.0.2",
     "sass": "^1.32.7",
     "sass-loader": "^12.0.0",

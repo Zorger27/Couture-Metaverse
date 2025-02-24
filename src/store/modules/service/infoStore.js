@@ -34,7 +34,7 @@ const state = {
       {
         id: 6,
         title: "Webpack",
-        version: "5.97.1",
+        version: "5.98.0",
         url: "https://webpack.js.org"
       },
       {

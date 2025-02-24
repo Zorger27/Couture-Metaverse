@@ -1,4 +1,5 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin')
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 const SitemapPlugin = require('sitemap-webpack-plugin').default
@@ -38,25 +39,17 @@ module.exports = {
           }
         ]
       }),
+      // new HtmlWebpackPlugin({
+      //   template: 'public/index.html',
+      //   inject: 'head', // Вставляем в <head>
+      //   meta: {
+      //     canonical: {
+      //       rel: 'canonical',
+      //       href: 'https://couture-metaverse.vercel.app'
+      //     }
+      //   }
+      // }),
       new HtmlWebpackTagsPlugin({
-        tags: [
-          {
-            tag: 'link',
-            attributes: {
-              rel: 'canonical',
-              href: 'https://couture-metaverse.vercel.app',
-            },
-            inject: 'head', // Вставляет тег в <head>
-          }
-        ],
-        // links: [
-        //   {
-        //     path: 'https://couture-metaverse.vercel.app',
-        //     attributes: {
-        //       rel: 'canonical'
-        //     },
-        //   },
-        // ],
         scripts: [
           'https://www.googletagmanager.com/gtag/js?id=G-R9BM79JPHS',
           '/assets/analytics/ganal.js',
