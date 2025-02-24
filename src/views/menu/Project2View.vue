@@ -33,7 +33,9 @@ export default {
     const isMixingEnabled = ref(false); // Флаг для смешивания текстур и цветов
     const isMultiModelView = ref(false);
     const showSaveOptions = ref(false);
-    const showSaveVideo = ref(false);
+    const isRecording = ref(false); // Показываем статус записи
+    let mediaRecorder;
+    let recordedChunks = [];
     let modelList = [];
 
     // Загрузка данных из localStorage
@@ -797,10 +799,6 @@ export default {
       showSaveOptions.value = !showSaveOptions.value;
     };
 
-    const toggleSaveVideo = () => {
-      showSaveVideo.value = !showSaveVideo.value;
-    };
-
     // 📸 Сохранение сцены как PNG
     const saveAsImage = () => {
       if (!renderer || !scene || !camera) return;
@@ -869,18 +867,91 @@ export default {
       pdf.save("model.pdf");
     };
 
-    // 🎥 **Начать запись**
+    // 🎥 **Начать запись видео**
     const startRecording = () => {
+      const stream = renderer.domElement.captureStream(30); // 30 FPS
 
-      console.log("📽 Началась запись видео...");
+      if (MediaRecorder.isTypeSupported("video/webm; codecs=vp9")) {
+        mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp9" });
+      } else if (MediaRecorder.isTypeSupported("video/webm; codecs=vp8")) {
+        mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp8" });
+      } else if (window.MediaSource && MediaSource.isTypeSupported("video/mp4; codecs=avc1.42E01E")) {
+        console.log("🎥 Safari обнаружен! Используем MediaSource для записи MP4.");
+        startRecordingForSafari(stream); // ⚡ Запуск записи MP4 для Safari
+        return;
+      } else {
+        console.error("⛔ Ваш браузер не поддерживает запись видео.");
+        return;
+      }
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) recordedChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = saveVideo;
+
+      recordedChunks = [];
+      mediaRecorder.start();
+      isRecording.value = true;
+      console.log("🎥 Запись началась!");
     };
 
-    // 🛑 **Остановить запись и сохранить файл**
+    // ✅ Фиксированная запись MP4 для Safari
+    let safariRecorder = null;
+    let safariStream = null;
+
+    const startRecordingForSafari = (stream) => {
+      safariStream = stream;
+      safariRecorder = new MediaRecorder(safariStream, { mimeType: "video/mp4" });
+
+      safariRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) recordedChunks.push(event.data);
+      };
+
+      safariRecorder.onstop = saveVideo;
+
+      recordedChunks = [];
+      safariRecorder.start();
+      isRecording.value = true;
+      console.log("🎥 Запись MP4 началась (Safari)!");
+    };
+
+    // ✅ Остановка записи
     const stopRecording = () => {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+      }
 
-      console.log("✅ Запись завершена!");
+      if (safariRecorder && safariRecorder.state !== "inactive") {
+        safariRecorder.stop();
+      }
+
+      isRecording.value = false;
+      console.log("🛑 Запись остановлена!");
     };
 
+    // ✅ Сохранение видео
+    const saveVideo = () => {
+      if (recordedChunks.length === 0) {
+        console.warn("⚠️ Нет записанных данных!");
+        return;
+      }
+
+      const mimeType = safariRecorder ? "video/mp4" : "video/webm";
+      const blob = new Blob(recordedChunks, { type: mimeType });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `model.${safariRecorder ? "mp4" : "webm"}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(url);
+      recordedChunks = [];
+      console.log("💾 Видео сохранено!");
+    };
 
     const onWindowResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
@@ -950,13 +1021,12 @@ export default {
       stopRotation,
       rotate180,
       showSaveOptions,
-      showSaveVideo,
       toggleSaveMenu,
-      toggleSaveVideo,
       saveAsImage,
       saveAsPDF,
       startRecording,
       stopRecording,
+      isRecording,
       clearLocalStorage,
     };
   },
@@ -1032,14 +1102,8 @@ export default {
       <div v-if="showSaveOptions" class="save-options">
         <button @click="saveAsImage" :title="t('special.savePhoto')"><i class="fas fa-camera"></i></button>
         <button @click="saveAsPDF" :title="t('special.savePDF')"><i class="fas fa-file-pdf"></i></button>
-      </div>
-
-      <!-- Кнопка "Сохранить видео" -->
-      <button @click="toggleSaveVideo" :title="showSaveVideo ? t('special.closeSaveVideo') : t('special.saveVideo')" class="save-button" :class="{'active': showSaveVideo}"><i class="fas fa-video-camera"></i></button>
-      <!-- Раскрывающееся меню -->
-      <div v-if="showSaveVideo" class="save-options">
-        <button @click="startRecording" :title="t('special.startVideo')"><i class="fas fa-play-circle"></i></button>
-        <button @click="stopRecording" :title="t('special.stopVideo')"><i class="fas fa-stop-circle"></i></button>
+        <button v-if="!isRecording" @click="startRecording" :title="t('special.startVideo')" class="film-start"><i class="fas fa-film"></i></button>
+        <button v-if="isRecording" @click="stopRecording" :title="t('special.stopVideo')" class="film-stop"><i class="fas fa-stop-circle"></i></button>
       </div>
     </div>
   </div>
@@ -1339,6 +1403,8 @@ export default {
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
       }
+      .film-start:hover {color: purple; border-color: purple;}
+      .film-stop:hover {color: red; border-color: red;}
     }
   }
 }

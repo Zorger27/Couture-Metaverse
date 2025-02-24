@@ -73,8 +73,6 @@
     "closeSaveData": "Close the save data menu to the disk",
     "savePhoto": "Save as .jpg file",
     "savePDF": "Save as .pdf file",
-    "saveVideo": "Open the save video menu to the disk",
-    "closeSaveVideo": "Close the save video menu to the disk",
     "startVideo": "Start video recording",
     "stopVideo": "Stop video recording"
   },

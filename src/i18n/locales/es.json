@@ -73,8 +73,6 @@
     "closeSaveData": "Cerrar el menú de guardar datos en el disco",
     "savePhoto": "Guardar como archivo .jpg",
     "savePDF": "Guardar como archivo .pdf",
-    "saveVideo": "Abra el menú de guardar video en el disco",
-    "closeSaveVideo": "Cerrar el menú de guardar vídeo en el disco",
     "startVideo": "Iniciar grabación de vídeo",
     "stopVideo": "Detener la grabación de vídeo"
   },
