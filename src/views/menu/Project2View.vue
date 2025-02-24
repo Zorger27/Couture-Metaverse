@@ -1361,6 +1361,9 @@ export default {
       margin-bottom: 10px;
       border: none;
       border-radius: 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       background: dodgerblue;
       color: white;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
@@ -1376,6 +1379,9 @@ export default {
       color: white;
       background-color: green;
       border: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
       transition: ease-in-out, border .2s, color .2s, background-color .2s, box-shadow .2s;
       &:hover {
@@ -1394,6 +1400,9 @@ export default {
         margin-bottom: 10px;
         border: none;
         border-radius: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
         transition: ease-in-out, border .2s, color .2s, background-color .2s, box-shadow .2s;
         &:hover {
