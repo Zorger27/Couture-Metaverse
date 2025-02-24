@@ -1,6 +1,7 @@
 <script>
 import {onMounted, onUnmounted, ref} from 'vue';
 import { useI18n } from 'vue-i18n';
+import jsPDF from "jspdf";
 import * as THREE from 'three';
 import {TextureLoader} from 'three';
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
@@ -31,6 +32,7 @@ export default {
     let sceneGroup = null; // Эта переменная будет использоваться для всех моделей
     const isMixingEnabled = ref(false); // Флаг для смешивания текстур и цветов
     const isMultiModelView = ref(false);
+    const showSaveOptions = ref(false);
     let modelList = [];
 
     // Загрузка данных из localStorage
@@ -789,6 +791,80 @@ export default {
       });
     };
 
+    // Переключение меню
+    const toggleSaveMenu = () => {
+      showSaveOptions.value = !showSaveOptions.value;
+    };
+
+    // 📸 Сохранение сцены как PNG
+    const saveAsImage = () => {
+      if (!renderer || !scene || !camera) return;
+
+      // Принудительно рендерим перед сохранением
+      renderer.render(scene, camera);
+
+      // Берём WebGL canvas после рендера
+      const canvas = renderer.domElement;
+      const image = canvas.toDataURL("image/png");
+
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = "model.png";
+      link.click();
+    };
+
+    // 📝 Сохранение сцены как PDF (улучшенное качество + белый фон)
+    const saveAsPDF = () => {
+      if (!renderer || !scene || !camera) return;
+
+      // Создаём временный холст
+      const tempCanvas = document.createElement("canvas");
+      const ctx = tempCanvas.getContext("2d");
+      const { width, height } = renderer.domElement;
+
+      // Устанавливаем размер холста
+      tempCanvas.width = width;
+      tempCanvas.height = height;
+
+      // ⚪ 1️⃣ Заливаем фон белым (чтобы не было чёрного фона)
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, width, height);
+
+      // 🔄 2️⃣ Рендерим сцену
+      renderer.render(scene, camera);
+
+      // 🖼️ 3️⃣ Копируем WebGL canvas поверх белого фона
+      ctx.drawImage(renderer.domElement, 0, 0);
+
+      // 📸 4️⃣ Конвертируем в JPEG с улучшенным качеством (90%)
+      const image = tempCanvas.toDataURL("image/jpeg", 0.99); // Улучшенное качество!
+
+      const pdf = new jsPDF("landscape", "mm", "a4");
+
+      // 📌 Определяем правильное масштабирование
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const canvasRatio = width / height;
+      const pdfRatio = pageWidth / pageHeight;
+
+      let imgWidth, imgHeight;
+      if (canvasRatio > pdfRatio) {
+        imgWidth = pageWidth;
+        imgHeight = pageWidth / canvasRatio;
+      } else {
+        imgHeight = pageHeight;
+        imgWidth = pageHeight * canvasRatio;
+      }
+
+      // 📌 Центрируем изображение
+      const xOffset = (pageWidth - imgWidth) / 2;
+      const yOffset = (pageHeight - imgHeight) / 2;
+
+      pdf.addImage(image, "JPEG", xOffset, yOffset, imgWidth, imgHeight);
+      pdf.save("model.pdf");
+    };
+
+
     const onWindowResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -855,6 +931,10 @@ export default {
       pauseRotation,
       stopRotation,
       rotate180,
+      showSaveOptions,
+      toggleSaveMenu,
+      saveAsImage,
+      saveAsPDF,
       clearLocalStorage,
     };
   },
@@ -923,6 +1003,15 @@ export default {
       </div>
     </div>
     <div class="special-controls">
+        <!-- Кнопка "Сохранить" -->
+      <button @click="toggleSaveMenu" class="save-button"><i class="fas fa-save"></i></button>
+
+        <!-- Раскрывающееся меню -->
+      <div v-if="showSaveOptions" class="save-options">
+        <button @click="saveAsImage"><i class="fas fa-camera"></i></button>
+        <button @click="saveAsPDF"><i class="fas fa-file-pdf"></i></button>
+      </div>
+
       <button @click="clearLocalStorage" class="button" :title="$t('special.delete')"><i class="fas fa-broom"></i></button>
     </div>
   </div>
@@ -941,6 +1030,7 @@ export default {
     align-items: center;
     justify-content: center;
   }
+
   .model-selection {
     position: absolute;
     top: 170px;
@@ -1141,6 +1231,7 @@ export default {
       }
     }
   }
+
   .special-controls {
     position: absolute;
     top: 50%;
@@ -1148,6 +1239,45 @@ export default {
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
+
+    .save-button {
+      width: 50px;
+      height: 50px;
+      font-size: 24px;
+      margin-bottom: 10px;
+      border: none;
+      border-radius: 5px;
+      background: dodgerblue;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+      transition: ease-in-out, border .2s, background-color .2s, box-shadow .2s;
+      &:hover {
+        background-color: #ffffff; /* Более яркий цвет при наведении */
+        color: green;
+        border: 2px solid green;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    .save-options {
+      display: flex;
+      flex-direction: column;
+      button {
+        background: mistyrose;
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        margin-bottom: 10px;
+        border: none;
+        border-radius: 5px;
+        &:hover {
+          background-color: #ffffff; /* Более яркий цвет при наведении */
+          color: dodgerblue;
+          border: 2px solid dodgerblue;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+      }
+    }
 
     button {
       width: 50px;
@@ -1241,6 +1371,20 @@ export default {
         font-size: 22px;
         margin-bottom: 9px;
       }
+      .save-button {
+        width: 45px;
+        height: 45px;
+        font-size: 22px;
+        margin-bottom: 9px;
+      }
+      .save-options {
+        button {
+          width: 45px;
+          height: 45px;
+          font-size: 22px;
+          margin-bottom: 9px;
+        }
+      }
     }
   }
 }
@@ -1311,6 +1455,20 @@ export default {
         height: 40px;
         font-size: 18px;
         margin-bottom: 8px;
+      }
+      .save-button {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+        margin-bottom: 8px;
+      }
+      .save-options {
+        button {
+          width: 40px;
+          height: 40px;
+          font-size: 18px;
+          margin-bottom: 8px;
+        }
       }
     }
   }
