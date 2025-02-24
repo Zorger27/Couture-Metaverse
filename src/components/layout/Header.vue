@@ -2,6 +2,7 @@
 // import Vue from "vue";
 import LanguageSwitcher from "@/components/util/LanguageSwitcher.vue";
 import Header3DLogo2 from "@/components/other/Header3DLogo2.vue";
+import {useI18n} from "vue-i18n";
 
 export default {
   name: 'Header',
@@ -34,6 +35,14 @@ export default {
   beforeUnmount() {
     document.removeEventListener("click", this.clickOutsideHandler);
   },
+  setup() {
+    // Используем useI18n внутри setup
+    const { t } = useI18n();
+
+    return {
+      t, // Можно вернуть т.к. мы используем setup()
+    };
+  },
 };
 </script>
 
@@ -51,10 +60,10 @@ export default {
       <language-switcher class="language"></language-switcher>
     </div>
     <div class="menu" :class="{ 'is-active': showMenu }">
-      <router-link to="/" @click="hideMenu">{{ $t('header.prg01') }}</router-link>
-      <router-link to="/project2" @click="hideMenu">{{ $t('header.prg02') }}</router-link>
-      <router-link to="/project3" @click="hideMenu">{{ $t('header.prg03') }}</router-link>
-      <router-link to="/about" @click="hideMenu">{{ $t('header.about') }}</router-link>
+      <router-link to="/" @click="hideMenu">{{ t('header.prg01') }}</router-link>
+      <router-link to="/project2" @click="hideMenu">{{ t('header.prg02') }}</router-link>
+      <router-link to="/project3" @click="hideMenu">{{ t('header.prg03') }}</router-link>
+      <router-link to="/about" @click="hideMenu">{{ t('header.about') }}</router-link>
     </div>
   </header>
 </template>
