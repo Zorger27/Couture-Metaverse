@@ -977,6 +977,7 @@ export default {
       <img :src="models.womenDress.icon" :alt="models.womenDress.name" @click="loadModel('womenDress')" class="button" :title="t('models.womenDress')">
       <button @click="loadAllModels" class="load-all-btn button" :title="t('models.allModels')"><i class="fas fa-th-large"></i></button>
       <button @click="loadAllModels3d" class="load-all-btn button" :title="t('models.allModels3d')"><i class="fas fa-cubes"></i></button>
+      <button @click="clearLocalStorage" class="delete" :title="t('special.delete')"><i class="fas fa-broom"></i></button>
     </div>
 
     <!-- Кнопки управления вращением -->
@@ -1040,8 +1041,6 @@ export default {
         <button @click="startRecording" :title="t('special.startVideo')"><i class="fas fa-play-circle"></i></button>
         <button @click="stopRecording" :title="t('special.stopVideo')"><i class="fas fa-stop-circle"></i></button>
       </div>
-
-      <button @click="clearLocalStorage" class="delete" :title="t('special.delete')"><i class="fas fa-broom"></i></button>
     </div>
   </div>
 </template>
@@ -1104,6 +1103,28 @@ export default {
       .fas {color: white;}
     }
     .load-all-btn:hover {.fas {color: gold;} background: #9760aa;}
+
+    .delete {
+      width: 50px;
+      height: 50px;
+      font-size: 24px;
+      border: none;
+      border-radius: 5px;
+      color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #ffea00;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+      transition: ease-in-out, border .2s, background-color .2s, box-shadow .2s;
+
+      &:hover {
+        background-color: #ffffff; /* Более яркий цвет при наведении */
+        color: deeppink;
+        border: 2px solid deeppink;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+    }
   }
 
   .rotation-controls {
@@ -1319,28 +1340,6 @@ export default {
         }
       }
     }
-
-    .delete {
-      width: 50px;
-      height: 50px;
-      font-size: 24px;
-      border: none;
-      border-radius: 5px;
-      color: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #ffea00;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: ease-in-out, border .2s, background-color .2s, box-shadow .2s;
-
-      &:hover {
-        background-color: #ffffff; /* Более яркий цвет при наведении */
-        color: deeppink;
-        border: 2px solid deeppink;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
-    }
   }
 }
 
@@ -1357,6 +1356,11 @@ export default {
         height: 45px;
       }
       .load-all-btn {display: none;}
+      .delete {
+        width: 45px;
+        height: 45px;
+        font-size: 22px;
+      }
     }
 
     .rotation-controls {
@@ -1406,12 +1410,6 @@ export default {
     .special-controls {
       right: 22px; /* Размещение кнопок справа */
       top: 54%;
-      .button {
-        width: 45px;
-        height: 45px;
-        font-size: 22px;
-        margin-bottom: 9px;
-      }
       .save-button {
         width: 45px;
         height: 45px;
@@ -1442,6 +1440,11 @@ export default {
         height: 40px;
       }
       .load-all-btn {display: none;}
+      .delete {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
     }
 
     .rotation-controls {
@@ -1491,12 +1494,6 @@ export default {
     .special-controls {
       right: 20px; /* Размещение кнопок справа */
       top: 59%;
-      .button {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-        margin-bottom: 8px;
-      }
       .save-button {
         width: 40px;
         height: 40px;
