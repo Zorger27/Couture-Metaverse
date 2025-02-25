@@ -806,7 +806,9 @@ export default {
 
     // Закрывает меню после нажатия на кнопку
     const closeSaveMenu = () => {
-      showSaveOptions.value = false;
+      if (!isRecording.value) { // ⛔ Не закрываем меню, если идет запись
+        showSaveOptions.value = false;
+      }
     };
 
     const toggleColorMenu = () => {
@@ -978,7 +980,7 @@ export default {
       isRecording.value = false;
       console.log("🛑 Запись остановлена!");
 
-      closeSaveMenu(); // Закрываем меню после остановки записи
+      closeSaveMenu(); // Закрываем меню только теперь!
     };
 
     // Сохранение видео
@@ -1176,8 +1178,8 @@ export default {
         <div v-show="showSaveOptions" class="save-options">
           <button @click="saveAsImage" :title="t('special.savePhoto')"><i class="fas fa-camera"></i></button>
           <button @click="saveAsPDF" :title="t('special.savePDF')"><i class="fas fa-file-pdf"></i></button>
-          <button v-if="!isRecording" @click="startRecording" :title="t('special.startVideo')" class="film-start"><i class="fas fa-film"></i></button>
-          <button v-if="isRecording" @click="stopRecording" :title="t('special.stopVideo')" class="film-stop"><i class="fas fa-stop-circle"></i></button>
+          <button v-show="!isRecording" @click="startRecording" :title="t('special.startVideo')" class="film-start"><i class="fas fa-film"></i></button>
+          <button v-show="isRecording" @click="stopRecording" :title="t('special.stopVideo')" class="film-stop"><i class="fas fa-stop-circle"></i></button>
         </div>
       </transition>
     </div>
