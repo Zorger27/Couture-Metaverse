@@ -466,8 +466,11 @@ export default {
 
     // Определение текстур
     const textures = {
-      texture1: '/assets/textures/texture2.webp',
-      texture2: '/assets/textures/texture5.webp',
+      texture1: '/assets/textures/texture1.webp',
+      texture2: '/assets/textures/texture2.webp',
+      texture3: '/assets/textures/texture3.webp',
+      texture4: '/assets/textures/texture4.webp',
+      texture5: '/assets/textures/texture5.webp'
     };
 
     const textureLoader = new TextureLoader();
@@ -1142,8 +1145,11 @@ export default {
 
         <transition name="slide">
           <div v-show="showTextureMenu" class="texture-controls" :class="{'show': showTextureMenu}">
-            <img src="/assets/textures/texture2.webp" alt="texture2" @click="changeTexture('texture1'); closeTextureMenu()" class="button" :title="t('texture.texture1')">
-            <img src="/assets/textures/texture5.webp" alt="texture5" @click="changeTexture('texture2'); closeTextureMenu()" class="button" :title="t('texture.texture2')">
+            <img src="/assets/textures/texture1.webp" alt="texture1" @click="changeTexture('texture1'); closeTextureMenu()" class="button" :title="t('texture.texture1')">
+            <img src="/assets/textures/texture2.webp" alt="texture2" @click="changeTexture('texture2'); closeTextureMenu()" class="button" :title="t('texture.texture2')">
+            <img src="/assets/textures/texture3.webp" alt="texture3" @click="changeTexture('texture3'); closeTextureMenu()" class="button" :title="t('texture.texture3')">
+            <img src="/assets/textures/texture4.webp" alt="texture4" @click="changeTexture('texture4'); closeTextureMenu()" class="button" :title="t('texture.texture4')">
+            <img src="/assets/textures/texture5.webp" alt="texture5" @click="changeTexture('texture5'); closeTextureMenu()" class="button" :title="t('texture.texture5')">
           </div>
         </transition>
       </div>
