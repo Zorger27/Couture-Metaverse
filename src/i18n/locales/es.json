@@ -52,7 +52,9 @@
     "white": "Blanco",
     "golden": "Dorado",
     "picker": "Selección de colores",
-    "reset": "Volver al color inicial"
+    "reset": "Volver al color inicial",
+    "openColorMenu": "Abrir el menú de selección de colores",
+    "closeColorMenu": "Cerrar el menú de selección de colores"
   },
   "texture": {
     "texture1": "Cargando textura #1",

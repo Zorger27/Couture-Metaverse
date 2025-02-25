@@ -52,7 +52,9 @@
     "white": "White",
     "golden": "Golden",
     "picker": "Color selection",
-    "reset": "Return to initial color"
+    "reset": "Return to initial color",
+    "openColorMenu": "Open color selection menu",
+    "closeColorMenu": "Close color selection menu"
   },
   "texture": {
     "texture1": "Loading texture #1",

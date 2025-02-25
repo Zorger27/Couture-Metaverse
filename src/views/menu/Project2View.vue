@@ -34,6 +34,8 @@ export default {
     const isMultiModelView = ref(false);
     const showSaveOptions = ref(false);
     const isRecording = ref(false); // Показываем статус записи
+    const showColorMenu = ref(false);
+    const showTextureMenu = ref(false);
     let mediaRecorder;
     let recordedChunks = [];
     let modelList = [];
@@ -804,6 +806,40 @@ export default {
       showSaveOptions.value = false;
     };
 
+    const toggleColorMenu = () => {
+      showColorMenu.value = !showColorMenu.value;
+      if (showColorMenu.value) showTextureMenu.value = false; // Закрываем другое меню
+    };
+
+    const closeColorMenu = () => {
+      showColorMenu.value = false;
+    };
+
+    const toggleTextureMenu = () => {
+      showTextureMenu.value = !showTextureMenu.value;
+      if (showTextureMenu.value) showColorMenu.value = false; // Закрываем другое меню
+    };
+
+    const closeTextureMenu = () => {
+      showTextureMenu.value = false;
+    };
+
+    const closeAllMenus = () => {
+      showColorMenu.value = false;
+      showTextureMenu.value = false;
+      showSaveOptions.value = false;
+    };
+
+    const handleClickOutside = (event) => {
+      if (
+        !event.target.closest(".color-container") &&
+        !event.target.closest(".texture-container") &&
+        !event.target.closest(".special-controls")
+      ) {
+        closeAllMenus();
+      }
+    };
+
     // Сохранение сцены как PNG
     const saveAsImage = () => {
       if (!renderer || !scene || !camera) return;
@@ -977,10 +1013,12 @@ export default {
     onMounted(() => {
       init();
       onWindowResize();
+      document.addEventListener("click", handleClickOutside);
     });
 
     onUnmounted(() => {
       window.removeEventListener('resize', onWindowResize);
+      document.removeEventListener("click", handleClickOutside);
 
       if (model) {
         model.traverse((child) => {
@@ -1038,6 +1076,13 @@ export default {
       startRecording,
       stopRecording,
       isRecording,
+      toggleColorMenu,
+      toggleTextureMenu,
+      showColorMenu,
+      showTextureMenu,
+      closeColorMenu,
+      closeTextureMenu,
+      closeAllMenus,
       clearLocalStorage,
     };
   },
@@ -1063,47 +1108,51 @@ export default {
 
     <!-- Кнопки управления вращением -->
     <div class="rotation-controls">
-      <button @click="rotateClockwise" :title="t('rotating.clockwise')">
-        <i class="fas fa-arrow-rotate-right"></i>
-      </button>
-      <button @click="pauseRotation" :title="t('rotating.pause')">
-        <i class="fas fa-pause"></i> <!-- Изменили иконку -->
-      </button>
-      <button @click="stopRotation" :title="t('rotating.stop')">
-        <i class="fas fa-stop"></i> <!-- Новая кнопка с reset-позицией -->
-      </button>
-      <button @click="rotate180" :title="t('rotating.180')">
-        <i class="fas fa-sync-alt"></i> <!-- Иконка поворота -->
-      </button>
-      <button @click="rotateCounterClockwise" :title="t('rotating.counterclockwise')">
-        <i class="fas fa-arrow-rotate-left"></i>
-      </button>
+      <button @click="rotateClockwise" :title="t('rotating.clockwise')"><i class="fas fa-arrow-rotate-right"></i></button>
+      <button @click="pauseRotation" :title="t('rotating.pause')"><i class="fas fa-pause"></i></button>
+      <button @click="stopRotation" :title="t('rotating.stop')"><i class="fas fa-stop"></i></button>
+      <button @click="rotate180" :title="t('rotating.180')"><i class="fas fa-sync-alt"></i></button>
+      <button @click="rotateCounterClockwise" :title="t('rotating.counterclockwise')"><i class="fas fa-arrow-rotate-left"></i></button>
     </div>
 
     <div class="model-controls" v-if="!isMultiModelView">
-      <!-- Кнопки выбора цвета -->
-      <div class="color-controls">
-        <button @click="changeColor(0xd0d0fb)" :title="t ('changeColor.blue')" class="color-button" style="background-color: #d0d0fb;"></button>
-        <button @click="changeColor(0xfaeeb2)" :title="t ('changeColor.golden')" class="color-button" style="background-color: #faeeb2;"></button>
-        <input type="color" @input="changeColorFromPicker" :title="t ('changeColor.picker')" class="color-button color-picker"/>
+      <!-- Кнопка и выезжающее меню для выбора цвета -->
+      <div class="color-container">
+        <button @click="toggleColorMenu" :title="showColorMenu ? t('changeColor.closeColorMenu') : t('changeColor.openColorMenu')" class="color-main" :class="{'active': showColorMenu}"><i class="fas fa-palette"></i></button>
+
+        <!-- Анимированное выезжающее меню -->
+        <transition name="slide">
+          <div v-show="showColorMenu" class="color-controls" :class="{'show': showColorMenu}">
+            <button @click="changeColor(0xd0d0fb); closeColorMenu()" class="color-button" style="background-color: #d0d0fb;" :title="t('changeColor.blue')"></button>
+            <button @click="changeColor(0xfaeeb2); closeColorMenu()" class="color-button" style="background-color: #faeeb2;" :title="t('changeColor.golden')"></button>
+          </div>
+        </transition>
       </div>
-      <!-- Кнопки управления текстурами -->
-      <div class="texture-controls">
-        <img src="/assets/textures/texture2.webp" alt="texture2" @click="changeTexture('texture1')" class="button" :title="t('texture.texture1')">
-        <img src="/assets/textures/texture5.webp" alt="texture5" @click="changeTexture('texture2')" class="button" :title="t('texture.texture2')">
+
+      <div class="color-other">
+        <input type="color" @input="changeColorFromPicker" @click="closeAllMenus()" :title="t ('changeColor.picker')" class="color-button color-picker"/>
+      </div>
+
+      <!-- Кнопка и выезжающее меню для выбора текстуры -->
+      <div class="texture-container">
+        <button @click="toggleTextureMenu" :title="showTextureMenu ? t('texture.closeTextureMenu') : t('texture.openTextureMenu')" class="texture-main" :class="{'active': showTextureMenu}"><i class="fas fa-fill-drip"></i></button>
+
+        <transition name="slide">
+          <div v-show="showTextureMenu" class="texture-controls" :class="{'show': showTextureMenu}">
+            <img src="/assets/textures/texture2.webp" alt="texture2" @click="changeTexture('texture1'); closeTextureMenu()" class="button" :title="t('texture.texture1')">
+            <img src="/assets/textures/texture5.webp" alt="texture5" @click="changeTexture('texture2'); closeTextureMenu()" class="button" :title="t('texture.texture2')">
+          </div>
+        </transition>
+      </div>
+
+      <div class="texture-other">
         <!-- Кнопка для загрузки текстуры с диска -->
         <input type="file" @change="uploadTexture" id="file-input" class="file-input">
-        <label for="file-input" class="button upload" :title="t('texture.upload')">
-          <i class="fa-solid fa-upload"></i>
-        </label>
+        <label for="file-input" class="button upload" :title="t('texture.upload')"><i class="fa-solid fa-upload"></i></label>
         <!-- Кнопка сброса -->
-        <button @click="resetModelSettings" class="button reset" :title="t('texture.reset')">
-          <i class="fas fa-reply"></i>
-        </button>
+        <button @click="resetModelSettings(); closeAllMenus()" class="button reset" :title="t('texture.reset')"><i class="fas fa-reply"></i></button>
         <!-- Кнопка для включения/отключения смешивания -->
-        <button @click="toggleMixing" :title="isMixingEnabled ? t('rotating.mixYes') : t('rotating.mixNo')" class="mixing" :class="{'active': isMixingEnabled}">
-          <i :class="isMixingEnabled ? 'fas fa-sliders-h' : 'fas fa-gem'"></i>
-        </button>
+        <button @click="toggleMixing(); closeAllMenus()" :title="isMixingEnabled ? t('rotating.mixYes') : t('rotating.mixNo')" class="mixing" :class="{'active': isMixingEnabled}"><i :class="isMixingEnabled ? 'fas fa-sliders-h' : 'fas fa-gem'"></i></button>
       </div>
     </div>
 
@@ -1130,7 +1179,13 @@ export default {
 .container {
   flex: 1 0 auto;
   background: linear-gradient(to bottom, rgb(229, 251, 255), rgb(255, 240, 244)) no-repeat center;
-  h1 {font-size: 2.5rem;margin: 0.7rem auto;color: black;}
+
+  h1 {
+    font-size: 2.5rem;
+    margin: 0.7rem auto;
+    color: black;
+  }
+
   .scene-container {
     max-height: 70vh;
     position: relative;
@@ -1181,9 +1236,19 @@ export default {
       background: #6f1f8e;
       color: white;
       font-size: 24px;
-      .fas {color: white;}
+
+      .fas {
+        color: white;
+      }
     }
-    .load-all-btn:hover {.fas {color: gold;} background: #9760aa;}
+
+    .load-all-btn:hover {
+      .fas {
+        color: gold;
+      }
+
+      background: #9760aa;
+    }
 
     .delete {
       width: 50px;
@@ -1241,11 +1306,81 @@ export default {
 
   .model-controls {
     position: absolute;
-    left: 40px; /* Размещение кнопок слева */
+    left: 40px;
     top: 55%;
     transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 
-    .color-controls {
+    .color-container,
+    .texture-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      .color-main, .texture-main {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: darkblue;
+        color: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+        transition: background-color 0.2s, box-shadow 0.2s;
+
+        &.active {background-color: darkgreen;}
+        &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
+      }
+
+      .color-controls, .texture-controls {
+        position: absolute;
+        left: 60px; /* Отступ вправо от основной кнопки */
+        display: flex;
+        gap: 10px;
+        opacity: 0;
+        transform: translateX(-20px);
+        transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+
+        &.show {
+          opacity: 1;
+          transform: translateX(0);
+        }
+
+        .color-button, .button {
+          width: 50px;
+          height: 50px;
+          border-radius: 5px;
+          border: none;
+          cursor: pointer;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+          transition: box-shadow 0.2s;
+
+          &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
+        }
+      }
+    }
+    /* 🎯 Анимация для Vue Transition */
+    .slide-enter-from, .slide-leave-to {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+
+    .slide-enter-to, .slide-leave-from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .slide-enter-active, .slide-leave-active {
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    }
+
+    .color-other {
       display: flex;
       flex-direction: column;
 
@@ -1253,30 +1388,27 @@ export default {
         width: 50px;
         height: 50px;
         border: none;
-        margin-bottom: 10px;
+        //margin-bottom: 10px;
         cursor: pointer;
         border-radius: 5px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
         transition: background-color 0.2s, box-shadow 0.2s;
 
-        &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
+        &:hover {
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
       }
+
       .color-picker {
         padding: 0;
         border-radius: 5px;
       }
-      .reset-button {
-        background-color: #f0f0f0;
-        border: 1px solid #ccc;
-
-        &:hover {background-color: #e0e0e0;}
-        .fas {font-size: 24px;}
-      }
     }
 
-    .texture-controls {
+    .texture-other {
       display: flex;
       flex-direction: column;
+
       .button {
         width: 50px;
         height: 50px;
@@ -1290,9 +1422,13 @@ export default {
         justify-content: center;
         overflow: hidden; /* Скрываем части изображения, выходящие за границы контейнера */
 
-        .fa-solid, .fa-brands, .fas { font-size: 24px; }
+        .fa-solid, .fa-brands, .fas {
+          font-size: 24px;
+        }
 
-        &:hover { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        &:hover {
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
 
         img {
           width: 100%; /* Ширина изображения соответствует ширине контейнера */
@@ -1314,8 +1450,9 @@ export default {
         //background: linear-gradient(to bottom, rgb(229, 255, 229), rgb(250, 247, 234)) no-repeat center;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
         transition: ease-in-out, background-color .2s, box-shadow .2s;
+
         &:hover {
-          background-color: mediumvioletred;
+          background-color: darkgreen;
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
       }
@@ -1325,11 +1462,15 @@ export default {
         background-color: #f0f0f0;
         border: 1px solid #ccc;
 
-        &:hover {background-color: #e0e0e0;}
+        &:hover {
+          background-color: #e0e0e0;
+        }
       }
 
       /* Скрываем оригинальный input */
-      .file-input {display: none;}
+      .file-input {
+        display: none;
+      }
 
       .mixing {
         width: 50px;
@@ -1344,6 +1485,7 @@ export default {
         background-color: red;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
         transition: ease-in-out, background-color .2s, box-shadow .2s;
+
         &:hover {
           background-color: mediumvioletred;
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -1354,10 +1496,16 @@ export default {
         background-color: darkgreen;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
         transition: ease-in-out, background-color .2s, box-shadow .2s;
+
         &:hover {
           background-color: mediumseagreen;
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-          i {transform: rotate(180deg); } /* При активном состоянии иконка может анимированно поворачиваться */
+
+          i {
+            transform: rotate(180deg);
+          }
+
+          /* При активном состоянии иконка может анимированно поворачиваться */
         }
       }
     }
@@ -1387,7 +1535,7 @@ export default {
       transition: background-color 0.2s, box-shadow 0.2s;
 
       &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
-      &.active {background-color: green;}
+      &.active {background-color: darkgreen;}
     }
 
     .save-options {
@@ -1413,35 +1561,60 @@ export default {
 
         &:hover {
           background-color: #ffffff;
-          color: green;
-          border: 2px solid green;
+          color: darkgreen;
+          border: 2px solid darkgreen;
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        &.film-start:hover { color: purple; border-color: purple; }
-        &.film-stop:hover { color: red; border-color: red; }
+        &.film-start:hover {
+          color: purple;
+          border-color: purple;
+        }
+
+        &.film-stop:hover {
+          color: red;
+          border-color: red;
+        }
       }
     }
 
     // Анимация входа
-    .save-options-enter-from {opacity: 0; transform: translateY(-10px);}
+    .save-options-enter-from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
 
-    .save-options-enter-to {opacity: 1; transform: translateY(0);}
+    .save-options-enter-to {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-    .save-options-enter-active {transition: opacity 0.6s ease, transform 0.6s ease;}
+    .save-options-enter-active {
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
 
     // Анимация выхода
-    .save-options-leave-from {opacity: 1; transform: translateY(0);}
+    .save-options-leave-from {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-    .save-options-leave-to {opacity: 0; transform: translateY(-10px);}
+    .save-options-leave-to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
 
-    .save-options-leave-active {transition: opacity 0.6s ease, transform 0.6s ease;}
+    .save-options-leave-active {
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
   }
 }
-
 @media(max-width: 1020px) {
   .container {
-    h1 {font-size: 2.3rem;margin: 0.6rem auto;}
+    h1 {
+      font-size: 2.3rem;
+      margin: 0.6rem auto;
+    }
 
     .model-selection {
       top: 165px;
@@ -1451,7 +1624,11 @@ export default {
         width: 45px;
         height: 45px;
       }
-      .load-all-btn {display: none;}
+
+      .load-all-btn {
+        display: none;
+      }
+
       .delete {
         width: 45px;
         height: 45px;
@@ -1471,31 +1648,51 @@ export default {
     }
 
     .model-controls {
-      left: 22px; /* Размещение кнопок слева */
+      left: 22px;
       top: 54%;
-      .color-controls {
-        .color-button {
+      gap: 9px;
+
+      .color-container,
+      .texture-container {
+
+        .color-main, .texture-main {
           width: 45px;
           height: 45px;
-          margin-bottom: 9px;
+          font-size: 22px;
         }
-        .color-picker {
-          width: 45px;
-          height: 45px;
-          margin-bottom: 9px;
-        }
-        .reset-button {
-          .fas {font-size: 22px;}
+
+        .color-controls, .texture-controls {
+          left: 55px; /* Отступ вправо от основной кнопки */
+          gap: 9px;
+
+          .color-button, .button {
+            width: 45px;
+            height: 45px;
+          }
         }
       }
 
-      .texture-controls {
+      .color-other {
+        .color-button {
+          width: 45px;
+          height: 45px;
+        }
+      }
+
+      .texture-other {
         .button {
           width: 45px;
           height: 45px;
           margin-bottom: 9px;
-          .fa-solid,.fa-brands,.fas {font-size: 22px;}
+          .fa-solid, .fa-brands, .fas {font-size: 22px;}
         }
+
+        .upload {
+          width: 45px;
+          height: 45px;
+          margin-bottom: 9px;
+        }
+
         .mixing {
           width: 45px;
           height: 45px;
@@ -1503,15 +1700,18 @@ export default {
         }
       }
     }
+
     .special-controls {
       right: 22px; /* Размещение кнопок справа */
       top: 54%;
+
       .save-button {
         width: 45px;
         height: 45px;
         font-size: 22px;
         margin-bottom: 9px;
       }
+
       .save-options {
         button {
           width: 45px;
@@ -1526,7 +1726,11 @@ export default {
 
 @media (max-width: 768px) {
   .container {
-    h1 {font-size: 2rem;margin: 0.5rem auto;}
+    h1 {
+      font-size: 2rem;
+      margin: 0.5rem auto;
+    }
+
     .model-selection {
       top: 150px;
       gap: 10px;
@@ -1535,7 +1739,11 @@ export default {
         width: 40px;
         height: 40px;
       }
-      .load-all-btn {display: none;}
+
+      .load-all-btn {
+        display: none;
+      }
+
       .delete {
         width: 40px;
         height: 40px;
@@ -1555,31 +1763,51 @@ export default {
     }
 
     .model-controls {
-      left: 20px; /* Размещение кнопок слева */
+      left: 20px;
       top: 59%;
-      .color-controls {
-        .color-button {
+      gap: 8px;
+
+      .color-container,
+      .texture-container {
+
+        .color-main, .texture-main {
           width: 40px;
           height: 40px;
-          margin-bottom: 8px;
+          font-size: 18px;
         }
-        .color-picker {
-          width: 40px;
-          height: 40px;
-          margin-bottom: 8px;
-        }
-        .reset-button {
-          .fas {font-size: 18px;}
+
+        .color-controls, .texture-controls {
+          left: 50px; /* Отступ вправо от основной кнопки */
+          gap: 8px;
+
+          .color-button, .button {
+            width: 40px;
+            height: 40px;
+          }
         }
       }
 
-      .texture-controls {
+      .color-other {
+        .color-button {
+          width: 40px;
+          height: 40px;
+        }
+      }
+
+      .texture-other {
         .button {
           width: 40px;
           height: 40px;
           margin-bottom: 8px;
-          .fa-solid,.fa-brands,.fas {font-size: 18px;}
+          .fa-solid, .fa-brands, .fas {font-size: 18px;}
         }
+
+        .upload {
+          width: 40px;
+          height: 40px;
+          margin-bottom: 8px;
+        }
+
         .mixing {
           width: 40px;
           height: 40px;
@@ -1587,15 +1815,18 @@ export default {
         }
       }
     }
+
     .special-controls {
       right: 20px; /* Размещение кнопок справа */
       top: 59%;
+
       .save-button {
         width: 40px;
         height: 40px;
         font-size: 18px;
         margin-bottom: 8px;
       }
+
       .save-options {
         button {
           width: 40px;
