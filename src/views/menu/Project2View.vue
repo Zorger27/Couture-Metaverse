@@ -1183,7 +1183,6 @@ export default {
         </div>
       </transition>
     </div>
-
   </div>
 </template>
 
@@ -1846,6 +1845,8 @@ export default {
           font-size: 18px;
           margin-bottom: 8px;
         }
+        .film-start {display: none;}
+        .film-stop {display: none;}
       }
     }
   }
