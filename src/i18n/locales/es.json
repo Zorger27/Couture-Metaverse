@@ -63,7 +63,10 @@
     "texture4": "Cargando textura #4",
     "texture5": "Cargando textura #5",
     "upload": "Cargar textura...",
-    "reset": "Volver a la textura inicial"
+    "reset": "Volver a la textura inicial",
+    "resetAll": "Volver a la configuración original",
+    "openTextureMenu": "Abrir el menú de selección de textura",
+    "closeTextureMenu": "Cerrar el menú de selección de textura"
   },
   "special": {
     "delete": "Eliminar configuraciones de modelos del almacenamiento local",

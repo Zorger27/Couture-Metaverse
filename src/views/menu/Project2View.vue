@@ -1150,7 +1150,7 @@ export default {
         <input type="file" @change="uploadTexture" id="file-input" class="file-input">
         <label for="file-input" class="button upload" :title="t('texture.upload')"><i class="fa-solid fa-upload"></i></label>
         <!-- Кнопка сброса -->
-        <button @click="resetModelSettings(); closeAllMenus()" class="button reset" :title="t('texture.reset')"><i class="fas fa-reply"></i></button>
+        <button @click="resetModelSettings(); closeAllMenus()" class="button reset" :title="t('texture.resetAll')"><i class="fas fa-reply"></i></button>
         <!-- Кнопка для включения/отключения смешивания -->
         <button @click="toggleMixing(); closeAllMenus()" :title="isMixingEnabled ? t('rotating.mixYes') : t('rotating.mixNo')" class="mixing" :class="{'active': isMixingEnabled}"><i :class="isMixingEnabled ? 'fas fa-sliders-h' : 'fas fa-gem'"></i></button>
       </div>

@@ -63,7 +63,10 @@
     "texture4": "Loading texture #4",
     "texture5": "Loading texture #5",
     "upload": "Load texture...",
-    "reset": "Return to the initial texture"
+    "reset": "Return to the initial texture",
+    "resetAll": "Return to original settings",
+    "openTextureMenu": "Open texture selection menu",
+    "closeTextureMenu": "Close texture selection menu"
   },
   "special": {
     "delete": "Deleting models settings from local storage",
