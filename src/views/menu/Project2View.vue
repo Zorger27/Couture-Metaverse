@@ -1123,8 +1123,11 @@ export default {
         <!-- Анимированное выезжающее меню -->
         <transition name="slide">
           <div v-show="showColorMenu" class="color-controls" :class="{'show': showColorMenu}">
-            <button @click="changeColor(0xd0d0fb); closeColorMenu()" class="color-button" style="background-color: #d0d0fb;" :title="t('changeColor.blue')"></button>
-            <button @click="changeColor(0xfaeeb2); closeColorMenu()" class="color-button" style="background-color: #faeeb2;" :title="t('changeColor.golden')"></button>
+            <button @click="changeColor(0xfbc6c6); closeColorMenu()" :title="t('changeColor.red')" class="color-button" style="background-color: #fbc6c6;"></button>
+            <button @click="changeColor(0xc6fbc6); closeColorMenu()" :title="t('changeColor.green')" class="color-button" style="background-color: #c6fbc6;"></button>
+            <button @click="changeColor(0xd0d0fb); closeColorMenu()" :title="t('changeColor.blue')" class="color-button" style="background-color: #d0d0fb;"></button>
+            <button @click="changeColor(0xffffff); closeColorMenu()" :title="t('changeColor.white')" class="color-button" style="background-color: #ffffff;"></button>
+            <button @click="changeColor(0xfaeeb2); closeColorMenu()" :title="t('changeColor.golden')" class="color-button" style="background-color: #faeeb2;"></button>
           </div>
         </transition>
       </div>
@@ -1135,7 +1138,7 @@ export default {
 
       <!-- Кнопка и выезжающее меню для выбора текстуры -->
       <div class="texture-container">
-        <button @click="toggleTextureMenu" :title="showTextureMenu ? t('texture.closeTextureMenu') : t('texture.openTextureMenu')" class="texture-main" :class="{'active': showTextureMenu}"><i class="fas fa-fill-drip"></i></button>
+        <button @click="toggleTextureMenu" :title="showTextureMenu ? t('texture.closeTextureMenu') : t('texture.openTextureMenu')" class="texture-main" :class="{'active': showTextureMenu}"><i class="fas fa-images"></i></button>
 
         <transition name="slide">
           <div v-show="showTextureMenu" class="texture-controls" :class="{'show': showTextureMenu}">
