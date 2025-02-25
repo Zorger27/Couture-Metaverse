@@ -917,7 +917,8 @@ export default {
 
     // Начать запись видео
     const startRecording = () => {
-      const stream = renderer.domElement.captureStream(30); // 30 FPS
+      // const stream = renderer.domElement.captureStream(30); // 30 FPS
+      const stream = renderer.domElement.captureStream(60); // 60 FPS (плавнее)
 
       if (MediaRecorder.isTypeSupported("video/webm; codecs=vp9")) {
         mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp9" });
