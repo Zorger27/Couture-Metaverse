@@ -76,7 +76,8 @@
     "noData": "No model settings found in local storage! \uD83D\uDE44\uD83E\uDEE4",
     "saveData": "Open the save data menu to the disk",
     "closeSaveData": "Close the save data menu to the disk",
-    "savePhoto": "Save as .png file",
+    "saveJPG": "Save as .jpg file",
+    "savePNG": "Save as .png file",
     "savePDF": "Save as .pdf file",
     "startVideo": "Start video recording",
     "stopVideo": "Stop video recording"

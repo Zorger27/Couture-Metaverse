@@ -31,11 +31,14 @@ export default {
     let scene, camera, renderer, model;
     let sceneGroup = null; // Эта переменная будет использоваться для всех моделей
     const isMixingEnabled = ref(false); // Флаг для смешивания текстур и цветов
-    const isMultiModelView = ref(false);
     const showSaveOptions = ref(false);
     const isRecording = ref(false); // Показываем статус записи
     const showColorMenu = ref(false);
     const showTextureMenu = ref(false);
+    const currentModelKey = ref(null);  // 🏷 Переменная для отслеживания текущей модели
+    const isMultiModelView = ref(false); // 🏷 Флаг для обычного режима "1x4 модели"
+    const isThreeDView = ref(false); // 🏷 Флаг для режима "2x2 модели"
+
     let mediaRecorder;
     let recordedChunks = [];
     let modelList = [];
@@ -156,6 +159,9 @@ export default {
     // Функция загрузки одной модели
     const loadModel = async (modelKey) => {
       isMultiModelView.value = false; // 📌 Показываем панель
+      isThreeDView.value = false; // Выключаем 2x2 режим
+      currentModelKey.value = modelKey; // Запоминаем ключ модели
+
       clearScene(); // Очистка текущей сцены перед загрузкой новой модели
 
       // Создаём `sceneGroup`, чтобы не ломалось вращение
@@ -206,6 +212,9 @@ export default {
     // Функция загрузки всех моделей
     const loadAllModels = async () => {
       isMultiModelView.value = true; // 📌 Скрываем панель
+      isThreeDView.value = false; // Выключаем 2x2 режим
+      currentModelKey.value = null;
+
       clearScene(); // Очистка сцены перед загрузкой
       const loader = new GLTFLoader();
       const totalModels = Object.keys(models).length;
@@ -301,7 +310,10 @@ export default {
 
     // Функция загрузки всех моделей (2 спереди, 2 сзади)
     const loadAllModels3d = async () => {
-      isMultiModelView.value = true; // 📌 Скрываем панель
+      isThreeDView.value = true; // Указываем, что это 2x2 компоновка
+      isMultiModelView.value = false;
+      currentModelKey.value = null;
+
       clearScene(); // Очистка сцены перед загрузкой
       const loader = new GLTFLoader();
 
@@ -800,13 +812,11 @@ export default {
     };
 
     // Переключение меню
-    const toggleSaveMenu = () => {
-      showSaveOptions.value = !showSaveOptions.value;
-    };
+    const toggleSaveMenu = () => {showSaveOptions.value = !showSaveOptions.value;};
 
     // Закрывает меню после нажатия на кнопку
     const closeSaveMenu = () => {
-      if (!isRecording.value) { // ⛔ Не закрываем меню, если идет запись
+      if (!isRecording.value) { // Не закрываем меню, если идет запись
         showSaveOptions.value = false;
       }
     };
@@ -816,18 +826,14 @@ export default {
       if (showColorMenu.value) showTextureMenu.value = false; // Закрываем другое меню
     };
 
-    const closeColorMenu = () => {
-      showColorMenu.value = false;
-    };
+    const closeColorMenu = () => {showColorMenu.value = false;};
 
     const toggleTextureMenu = () => {
       showTextureMenu.value = !showTextureMenu.value;
       if (showTextureMenu.value) showColorMenu.value = false; // Закрываем другое меню
     };
 
-    const closeTextureMenu = () => {
-      showTextureMenu.value = false;
-    };
+    const closeTextureMenu = () => {showTextureMenu.value = false;};
 
     const closeAllMenus = () => {
       showColorMenu.value = false;
@@ -845,23 +851,154 @@ export default {
       }
     };
 
-    // Сохранение сцены как PNG
-    const saveAsImage = () => {
+    // 📌 Функция получения данных для сохранения
+    const getSaveMetadata = () => {
+      let title = "Unknown Model";
+
+      if (currentModelKey.value) {
+        title = models[currentModelKey.value]?.name || currentModelKey.value;
+      } else if (isThreeDView.value) {
+        title = "Models Composition 2 x 2";  // Корректно для loadAllModels3d
+      } else if (isMultiModelView.value) {
+        title = "Models Composition 1 x 4";  // Корректно для loadAllModels
+      }
+
+      const dateTime = new Date().toLocaleString();
+      const footer = "Created with Couture Metaverse 3D (https://couture-metaverse.vercel.app)";
+
+      return { title, dateTime, footer };
+    };
+
+    // Сохранение сцены как JPG (белый фон)
+    const saveAsJPG = () => {
       if (!renderer || !scene || !camera) return;
 
-      // Принудительно рендерим перед сохранением
       renderer.render(scene, camera);
-
-      // Берём WebGL canvas после рендера
       const canvas = renderer.domElement;
-      const image = canvas.toDataURL("image/png");
 
+      // Создаём временный холст
+      const tempCanvas = document.createElement("canvas");
+      const tempCtx = tempCanvas.getContext("2d");
+
+      // 📏 Динамические параметры
+      const isMobile = window.innerWidth < 768;
+      const baseFontSize = Math.floor(canvas.width * 0.045);
+      const smallFontSize = Math.floor(baseFontSize * 0.7);
+      let footerFontSize = Math.floor(baseFontSize * 0.6);
+
+      // 🛠️ **Отступы:**
+      const padding = Math.floor(baseFontSize * 1.1); // Отступ от краёв (равен размеру шрифта)
+      const paddingTop = padding * (isMobile ? 3.3 : 2.3);
+      const paddingBottom = padding * (isMobile ? 4.3 : 2.3);
+      const dateOffset = paddingTop + Math.floor(isMobile ? 2.5 : 1.7); // Отступ между заголовком и датой
+
+      tempCanvas.width = canvas.width + padding * 2;
+      tempCanvas.height = canvas.height + paddingTop + paddingBottom;
+
+      // ⚪ Белый фон
+      tempCtx.fillStyle = "white";
+      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+      // 🖼️ Копируем WebGL canvas по центру
+      tempCtx.drawImage(canvas, padding, paddingTop);
+
+      const { title, dateTime, footer } = getSaveMetadata();
+
+      // 📌 Проверка влезания нижнего текста
+      tempCtx.font = `italic ${footerFontSize}px Arial`;
+      while (tempCtx.measureText(footer).width > tempCanvas.width * 0.9 && footerFontSize > 10) {
+        footerFontSize -= 1;
+        tempCtx.font = `italic ${footerFontSize}px Arial`;
+      }
+
+      // 📝 Заголовок (зелёный)
+      tempCtx.font = `bold ${baseFontSize}px Arial`;
+      tempCtx.fillStyle = "green";
+      tempCtx.textAlign = "center";
+      tempCtx.fillText(title, tempCanvas.width / 2, paddingTop - baseFontSize);
+
+      // 📅 Дата (голубая)
+      tempCtx.font = `normal ${smallFontSize}px Arial`;
+      tempCtx.fillStyle = "dodgerblue";
+      tempCtx.fillText(dateTime, tempCanvas.width / 2, dateOffset);
+
+      // 🔽 Нижний текст (розовый)
+      tempCtx.font = `italic ${footerFontSize}px Arial`;
+      tempCtx.fillStyle = "deeppink";
+      tempCtx.fillText(footer, tempCanvas.width / 2, tempCanvas.height - footerFontSize * 1.5);
+
+      // 📸 Сохранение в JPG
+      const image = tempCanvas.toDataURL("image/jpeg", 0.99);
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = "model.jpg";
+      link.click();
+
+      closeSaveMenu();
+    };
+
+    // Сохранение сцены как PNG (прозрачный фон)
+    const saveAsPNG = () => {
+      if (!renderer || !scene || !camera) return;
+
+      renderer.render(scene, camera);
+      const canvas = renderer.domElement;
+
+      // Создаём временный холст
+      const tempCanvas = document.createElement("canvas");
+      const tempCtx = tempCanvas.getContext("2d");
+
+      // 📏 Динамические параметры
+      const isMobile = window.innerWidth < 768;
+      const baseFontSize = Math.floor(canvas.width * 0.045);
+      const smallFontSize = Math.floor(baseFontSize * 0.7);
+      let footerFontSize = Math.floor(baseFontSize * 0.6);
+
+      // 🛠️ **Отступы:**
+      const padding = Math.floor(baseFontSize * 1.1); // Отступ от краёв (равен размеру шрифта)
+      const paddingTop = padding * (isMobile ? 3.3 : 2.3);
+      const paddingBottom = padding * (isMobile ? 4.3 : 2.3);
+      const dateOffset = paddingTop + Math.floor(isMobile ? 2.5 : 1.7); // Отступ между заголовком и датой
+
+      tempCanvas.width = canvas.width + padding * 2;
+      tempCanvas.height = canvas.height + paddingTop + paddingBottom;
+
+      // 🖼️ Копируем WebGL canvas по центру
+      tempCtx.drawImage(canvas, padding, paddingTop);
+
+      const { title, dateTime, footer } = getSaveMetadata();
+
+      // 📌 Проверка влезания нижнего текста
+      tempCtx.font = `italic ${footerFontSize}px Arial`;
+      while (tempCtx.measureText(footer).width > tempCanvas.width * 0.9 && footerFontSize > 10) {
+        footerFontSize -= 1;
+        tempCtx.font = `italic ${footerFontSize}px Arial`;
+      }
+
+      // 📝 Заголовок (зелёный)
+      tempCtx.font = `bold ${baseFontSize}px Arial`;
+      tempCtx.fillStyle = "green";
+      tempCtx.textAlign = "center";
+      tempCtx.fillText(title, tempCanvas.width / 2, paddingTop - baseFontSize);
+
+      // 📅 Дата (голубая) (вернул **старый отступ**)
+      tempCtx.font = `normal ${smallFontSize}px Arial`;
+      tempCtx.fillStyle = "dodgerblue";
+      tempCtx.fillText(dateTime, tempCanvas.width / 2, dateOffset);
+
+      // 🔽 Нижний текст (розовый)
+      tempCtx.font = `italic ${footerFontSize}px Arial`;
+      tempCtx.fillStyle = "deeppink";
+      tempCtx.fillText(footer, tempCanvas.width / 2, tempCanvas.height - footerFontSize * 1.5);
+
+      // 📸 Сохранение в PNG
+      const image = tempCanvas.toDataURL("image/png");
       const link = document.createElement("a");
       link.href = image;
       link.download = "model.png";
       link.click();
 
-      closeSaveMenu(); // Закрываем меню после сохранения
+      closeSaveMenu();
     };
 
     // Сохранение сцены как PDF (улучшенное качество + белый фон)
@@ -873,11 +1010,10 @@ export default {
       const ctx = tempCanvas.getContext("2d");
       const { width, height } = renderer.domElement;
 
-      // Устанавливаем размер холста
       tempCanvas.width = width;
       tempCanvas.height = height;
 
-      // ⚪ 1️⃣ Заливаем фон белым (чтобы не было чёрного фона)
+      // ⚪ 1️⃣ Заливаем фон белым
       ctx.fillStyle = "white";
       ctx.fillRect(0, 0, width, height);
 
@@ -887,12 +1023,13 @@ export default {
       // 🖼️ 3️⃣ Копируем WebGL canvas поверх белого фона
       ctx.drawImage(renderer.domElement, 0, 0);
 
-      // 📸 4️⃣ Конвертируем в JPEG с улучшенным качеством (90%)
-      const image = tempCanvas.toDataURL("image/jpeg", 0.99); // Улучшенное качество!
+      // 📸 4️⃣ Конвертируем в JPEG (99% качество)
+      const image = tempCanvas.toDataURL("image/jpeg", 0.99);
 
       const pdf = new jsPDF("landscape", "mm", "a4");
+      const { title, dateTime, footer } = getSaveMetadata();
 
-      // 📌 Определяем правильное масштабирование
+      // 📌 Расчёт масштабирования
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const canvasRatio = width / height;
@@ -907,14 +1044,31 @@ export default {
         imgWidth = pageHeight * canvasRatio;
       }
 
-      // 📌 Центрируем изображение
+      // 📌 Расчёт центровки
       const xOffset = (pageWidth - imgWidth) / 2;
-      const yOffset = (pageHeight - imgHeight) / 2;
+      const yOffset = (pageHeight - imgHeight) / 2 + 10; // Добавляем отступ вниз
 
       pdf.addImage(image, "JPEG", xOffset, yOffset, imgWidth, imgHeight);
+
+      // 📝 5️⃣ Добавляем текст
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 128, 0);
+      pdf.setFontSize(22);
+      pdf.text(title, pageWidth / 2, 15, { align: "center" });
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(30, 144, 255);
+      pdf.setFontSize(16);
+      pdf.text(dateTime, pageWidth / 2, 25, { align: "center" });
+
+      pdf.setFont("helvetica", "italic");
+      pdf.setTextColor(255, 105, 180);
+      pdf.setFontSize(14);
+      pdf.text(footer, pageWidth / 2, pageHeight - 10, { align: "center" });
+
       pdf.save("model.pdf");
 
-      closeSaveMenu(); // Закрываем меню после сохранения
+      closeSaveMenu(); // Закрываем меню
     };
 
     // Начать запись видео
@@ -1063,6 +1217,7 @@ export default {
       loadAllModels,
       loadAllModels3d,
       isMultiModelView,
+      isThreeDView,
       uploadTexture,
       changeColor,
       changeColorFromPicker,
@@ -1077,7 +1232,8 @@ export default {
       rotate180,
       showSaveOptions,
       toggleSaveMenu,
-      saveAsImage,
+      saveAsJPG,
+      saveAsPNG,
       saveAsPDF,
       startRecording,
       stopRecording,
@@ -1121,8 +1277,9 @@ export default {
       <button @click="rotateCounterClockwise" :title="t('rotating.counterclockwise')"><i class="fas fa-arrow-rotate-left"></i></button>
     </div>
 
-    <div class="model-controls" v-if="!isMultiModelView">
-      <!-- Кнопка и выезжающее меню для выбора цвета -->
+    <div class="model-controls" v-if="!isMultiModelView && !isThreeDView">
+
+    <!-- Кнопка и выезжающее меню для выбора цвета -->
       <div class="color-container">
         <button @click="toggleColorMenu" :title="showColorMenu ? t('changeColor.closeColorMenu') : t('changeColor.openColorMenu')" class="color-main" :class="{'active': showColorMenu}"><i class="fas fa-palette"></i></button>
 
@@ -1176,7 +1333,8 @@ export default {
       <!-- Анимация для раскрывающегося меню -->
       <transition name="save-options">
         <div v-show="showSaveOptions" class="save-options">
-          <button @click="saveAsImage" :title="t('special.savePhoto')"><i class="fas fa-camera"></i></button>
+          <button @click="saveAsJPG" :title="t('special.saveJPG')"><i class="fas fa-camera"></i></button>
+          <button @click="saveAsPNG" :title="t('special.savePNG')"><i class="fas fa-file-image"></i></button>
           <button @click="saveAsPDF" :title="t('special.savePDF')"><i class="fas fa-file-pdf"></i></button>
           <button v-show="!isRecording" @click="startRecording" :title="t('special.startVideo')" class="film-start"><i class="fas fa-film"></i></button>
           <button v-show="isRecording" @click="stopRecording" :title="t('special.stopVideo')" class="film-stop"><i class="fas fa-stop-circle"></i></button>
