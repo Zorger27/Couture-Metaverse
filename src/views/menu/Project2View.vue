@@ -981,7 +981,7 @@ export default {
       tempCtx.textAlign = "center";
       tempCtx.fillText(title, tempCanvas.width / 2, paddingTop - baseFontSize);
 
-      // 📅 Дата (голубая) (вернул **старый отступ**)
+      // 📅 Дата (голубая)
       tempCtx.font = `normal ${smallFontSize}px Arial`;
       tempCtx.fillStyle = "dodgerblue";
       tempCtx.fillText(dateTime, tempCanvas.width / 2, dateOffset);
