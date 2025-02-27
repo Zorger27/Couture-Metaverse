@@ -893,7 +893,7 @@ export default {
       let footerFontSize = Math.floor(baseFontSize * 0.6);
       const padding = Math.floor(baseFontSize * 1.1);
 
-      // Новая система отступов
+      // Система отступов
       const topMargin = padding * (isMobile ? 2.0 : 1.2); // Отступ сверху
       const titleDateSpacing = padding * (isMobile ? 1.0 : 0.9); // Пробел для заголовка-даты
       const footerSiteSpacing = padding * (isMobile ? 0.8 : 0.7); // Пробел для footer-site
@@ -911,16 +911,23 @@ export default {
 
       const { title, dateTime, footer, site } = getSaveMetadata();
 
-      // 🔄 Оптимизированное уменьшение шрифтов
-      while (
-        (tempCtx.measureText(title).width > tempCanvas.width * 0.9 ||
-          tempCtx.measureText(footer).width > tempCanvas.width * 0.9 ||
-          tempCtx.measureText(site).width > tempCanvas.width * 0.9) &&
-        footerFontSize > 10
-        ) {
-        footerFontSize -= 1;
-        baseFontSize = Math.max(10, baseFontSize - 1);
-      }
+      // Функция для динамического подбора размера шрифта
+      const adjustFontSize = (text, maxWidth, initialFontSize) => {
+        let fontSize = initialFontSize;
+        do {
+          tempCtx.font = `bold ${fontSize}px Arial`;
+          if (tempCtx.measureText(text).width <= maxWidth) {
+            return fontSize;
+          }
+          fontSize--;
+        } while (fontSize > 10);
+        return fontSize;
+      };
+
+      // Подбор размера шрифта для каждого текста
+      baseFontSize = adjustFontSize(title, tempCanvas.width * 0.9, baseFontSize);
+      footerFontSize = adjustFontSize(footer, tempCanvas.width * 0.9, footerFontSize);
+      const siteFontSize = adjustFontSize(site, tempCanvas.width * 0.9, footerFontSize);
 
       // 📌 Заголовок (зелёный)
       tempCtx.font = `bold ${baseFontSize}px Arial`;
@@ -940,7 +947,7 @@ export default {
       tempCtx.fillText(footer, tempCanvas.width / 2, footerY);
 
       // 📅 Сайт (синий)
-      tempCtx.font = `italic ${footerFontSize}px Arial`;
+      tempCtx.font = `italic ${siteFontSize}px Arial`;
       tempCtx.fillStyle = "blue";
       tempCtx.fillText(site, tempCanvas.width / 2, footerY + footerSiteSpacing);
 
