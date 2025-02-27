@@ -1,6 +1,6 @@
 <script>
 import {onMounted, onUnmounted, ref} from 'vue';
-import { useI18n } from 'vue-i18n';
+import {useI18n} from 'vue-i18n';
 import jsPDF from "jspdf";
 import * as THREE from 'three';
 import {TextureLoader} from 'three';
@@ -86,7 +86,7 @@ export default {
     const models = loadStoredModels() || {
       menShirt1: {
         path: '/assets/models/01_men_shirt.glb',
-        name: 'Male regular T-shirt',
+        name: 'models.menShirt1', // Ключ для перевода
         icon: '/assets/img/models/01_men_shirt.webp',
         originalSettings: {
           texture: '/assets/textures/materialTexture1.webp', // Путь к начальной текстуре
@@ -99,7 +99,7 @@ export default {
       },
       womenShirt: {
         path: '/assets/models/02_women_shirt.glb',
-        name: 'Women oversized T-shirt',
+        name: 'models.womenShirt', // Ключ для перевода
         icon: '/assets/img/models/02_women_shirt.webp',
         originalSettings: {
           texture: '/assets/textures/materialTexture2.webp',
@@ -112,7 +112,7 @@ export default {
       },
       menShirt2: {
         path: '/assets/models/03_men_shirt.glb',
-        name: 'Male raglan polo T-shirt',
+        name: 'models.menShirt2', // Ключ для перевода
         icon: '/assets/img/models/03_men_shirt.webp',
         originalSettings: {
           texture: '/assets/textures/materialTexture3.webp',
@@ -125,7 +125,7 @@ export default {
       },
       womenDress: {
         path: '/assets/models/04_dress.glb',
-        name: 'Mid Victorian Evening Gown',
+        name: 'models.womenDress', // Ключ для перевода
         icon: '/assets/img/models/04_dress.webp',
         originalSettings: {
           texture: '/assets/textures/materialTexture1.webp',
@@ -856,78 +856,94 @@ export default {
       let title = "Unknown Model";
 
       if (currentModelKey.value) {
-        title = models[currentModelKey.value]?.name || currentModelKey.value;
+        const model = models[currentModelKey.value];
+        title = model ? t(model.name) : currentModelKey.value;
       } else if (isThreeDView.value) {
-        title = "Models Composition 2 x 2";  // Корректно для loadAllModels3d
+        title = t('models.composition2x2');
       } else if (isMultiModelView.value) {
-        title = "Models Composition 1 x 4";  // Корректно для loadAllModels
+        title = t('models.composition1x4');
       }
 
       const dateTime = new Date().toLocaleString();
-      const footer = "Created with Couture Metaverse 3D (https://couture-metaverse.vercel.app)";
+      const footer = t('special.created');
+      const site = "https://couture-metaverse.vercel.app";
 
-      return { title, dateTime, footer };
+      return { title, dateTime, footer, site };
     };
 
     // Сохранение сцены как JPG (белый фон)
     const saveAsJPG = () => {
-      if (!renderer || !scene || !camera) return;
+      if (!renderer || !scene || !camera) {
+        console.error("Ошибка: renderer, scene или camera не инициализированы");
+        return;
+      }
 
       renderer.render(scene, camera);
       const canvas = renderer.domElement;
-
-      // Создаём временный холст
       const tempCanvas = document.createElement("canvas");
       const tempCtx = tempCanvas.getContext("2d");
 
-      // 📏 Динамические параметры
+      // Определение мобильного режима
       const isMobile = window.innerWidth < 768;
-      const baseFontSize = Math.floor(canvas.width * 0.045);
+
+      // Коэффициент масштабирования
+      const scaleFactor = isMobile ? 1.2 : 1.0;
+      let baseFontSize = Math.floor(canvas.width * 0.045 * scaleFactor);
       const smallFontSize = Math.floor(baseFontSize * 0.7);
       let footerFontSize = Math.floor(baseFontSize * 0.6);
+      const padding = Math.floor(baseFontSize * 1.1);
 
-      // 🛠️ **Отступы:**
-      const padding = Math.floor(baseFontSize * 1.1); // Отступ от краёв (равен размеру шрифта)
-      const paddingTop = padding * (isMobile ? 3.3 : 2.3);
-      const paddingBottom = padding * (isMobile ? 4.3 : 2.3);
-      const dateOffset = paddingTop + Math.floor(isMobile ? 2.5 : 1.7); // Отступ между заголовком и датой
+      // Новая система отступов
+      const topMargin = padding * (isMobile ? 2.0 : 1.2); // Отступ сверху
+      const titleDateSpacing = padding * (isMobile ? 1.0 : 0.9); // Пробел для заголовка-даты
+      const footerSiteSpacing = padding * (isMobile ? 0.8 : 0.7); // Пробел для footer-site
+      const bottomMargin = padding * (isMobile ? 1.0 : 0.5); // Отступ снизу
 
-      tempCanvas.width = canvas.width + padding * 2;
-      tempCanvas.height = canvas.height + paddingTop + paddingBottom;
+      const canvasWidth = canvas.width + padding * 2;
+      const canvasHeight = canvas.height + topMargin + titleDateSpacing + footerSiteSpacing + bottomMargin;
 
-      // ⚪ Белый фон
+      tempCanvas.width = canvasWidth;
+      tempCanvas.height = canvasHeight;
+
       tempCtx.fillStyle = "white";
       tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+      tempCtx.drawImage(canvas, padding, topMargin + titleDateSpacing);
 
-      // 🖼️ Копируем WebGL canvas по центру
-      tempCtx.drawImage(canvas, padding, paddingTop);
+      const { title, dateTime, footer, site } = getSaveMetadata();
 
-      const { title, dateTime, footer } = getSaveMetadata();
-
-      // 📌 Проверка влезания нижнего текста
-      tempCtx.font = `italic ${footerFontSize}px Arial`;
-      while (tempCtx.measureText(footer).width > tempCanvas.width * 0.9 && footerFontSize > 10) {
+      // 🔄 Оптимизированное уменьшение шрифтов
+      while (
+        (tempCtx.measureText(title).width > tempCanvas.width * 0.9 ||
+          tempCtx.measureText(footer).width > tempCanvas.width * 0.9 ||
+          tempCtx.measureText(site).width > tempCanvas.width * 0.9) &&
+        footerFontSize > 10
+        ) {
         footerFontSize -= 1;
-        tempCtx.font = `italic ${footerFontSize}px Arial`;
+        baseFontSize = Math.max(10, baseFontSize - 1);
       }
 
-      // 📝 Заголовок (зелёный)
+      // 📌 Заголовок (зелёный)
       tempCtx.font = `bold ${baseFontSize}px Arial`;
       tempCtx.fillStyle = "green";
       tempCtx.textAlign = "center";
-      tempCtx.fillText(title, tempCanvas.width / 2, paddingTop - baseFontSize);
+      tempCtx.fillText(title, tempCanvas.width / 2, topMargin);
 
       // 📅 Дата (голубая)
       tempCtx.font = `normal ${smallFontSize}px Arial`;
       tempCtx.fillStyle = "dodgerblue";
-      tempCtx.fillText(dateTime, tempCanvas.width / 2, dateOffset);
+      tempCtx.fillText(dateTime, tempCanvas.width / 2, topMargin + titleDateSpacing);
 
-      // 🔽 Нижний текст (розовый)
-      tempCtx.font = `italic ${footerFontSize}px Arial`;
+      // 🔽 Footer (розовый)
+      const footerY = tempCanvas.height - footerSiteSpacing - bottomMargin;
+      tempCtx.font = `normal ${footerFontSize}px Arial`;
       tempCtx.fillStyle = "deeppink";
-      tempCtx.fillText(footer, tempCanvas.width / 2, tempCanvas.height - footerFontSize * 1.5);
+      tempCtx.fillText(footer, tempCanvas.width / 2, footerY);
 
-      // 📸 Сохранение в JPG
+      // 📅 Сайт (синий)
+      tempCtx.font = `italic ${footerFontSize}px Arial`;
+      tempCtx.fillStyle = "blue";
+      tempCtx.fillText(site, tempCanvas.width / 2, footerY + footerSiteSpacing);
+
       const image = tempCanvas.toDataURL("image/jpeg", 0.99);
       const link = document.createElement("a");
       link.href = image;
@@ -1263,8 +1279,8 @@ export default {
       <img :src="models.womenShirt.icon" :alt="models.womenShirt.name" @click="loadModel('womenShirt')" class="button" :title="t('models.womenShirt')">
       <img :src="models.menShirt2.icon" :alt="models.menShirt2.name" @click="loadModel('menShirt2')" class="button" :title="t('models.menShirt2')">
       <img :src="models.womenDress.icon" :alt="models.womenDress.name" @click="loadModel('womenDress')" class="button" :title="t('models.womenDress')">
-      <button @click="loadAllModels" class="load-all-btn button" :title="t('models.allModels')"><i class="fas fa-th-large"></i></button>
-      <button @click="loadAllModels3d" class="load-all-btn button" :title="t('models.allModels3d')"><i class="fas fa-cubes"></i></button>
+      <button @click="loadAllModels" class="load-all-btn button" :title="t('models.composition1x4')"><i class="fas fa-th-large"></i></button>
+      <button @click="loadAllModels3d" class="load-all-btn button" :title="t('models.composition2x2')"><i class="fas fa-cubes"></i></button>
       <button @click="clearLocalStorage" class="delete" :title="t('special.delete')"><i class="fas fa-broom"></i></button>
     </div>
 
