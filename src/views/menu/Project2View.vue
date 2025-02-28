@@ -836,9 +836,15 @@ export default {
     const closeTextureMenu = () => {showTextureMenu.value = false;};
 
     const closeAllMenus = () => {
-      showColorMenu.value = false;
-      showTextureMenu.value = false;
-      showSaveOptions.value = false;
+      if (isRecording.value) {
+        showSaveOptions.value = true;
+        showColorMenu.value = false;
+        showTextureMenu.value = false;
+      } else {
+        showColorMenu.value = false;
+        showTextureMenu.value = false;
+        showSaveOptions.value = false;
+      }
     };
 
     const handleClickOutside = (event) => {
@@ -1156,8 +1162,61 @@ export default {
 
     // Начать запись видео
     const startRecording = () => {
-      // const stream = renderer.domElement.captureStream(30); // 30 FPS
-      const stream = renderer.domElement.captureStream(60); // 60 FPS (плавнее)
+      if (!renderer || !scene || !camera) {
+        console.error("Ошибка: renderer, scene или camera не инициализированы");
+        return;
+      }
+
+      const streamCanvas = document.createElement("canvas");
+      const streamCtx = streamCanvas.getContext("2d");
+      streamCanvas.width = renderer.domElement.width;
+      streamCanvas.height = renderer.domElement.height;
+      const stream = streamCanvas.captureStream(60); // 60 FPS
+
+      // 📏 Динамические параметры
+      const isMobile = window.innerWidth < 768;
+      const baseFontSize = Math.floor(streamCanvas.width * 0.03);
+      const smallFontSize = Math.floor(baseFontSize * 0.7);
+      const footerFontSize = Math.floor(baseFontSize * 0.6);
+
+      // 🛠️ Отступы
+      const paddingTop = baseFontSize * (isMobile ? 2.0 : 1.2); // Отступ сверху
+      const paddingBottom = baseFontSize * (isMobile ? 1.0 : 0.5); // Отступ снизу
+      const textSpacing = baseFontSize * (isMobile ? 1.0 : 0.9); // Расстояние между текстами
+
+      const drawFrame = () => {
+        renderer.render(scene, camera);
+        streamCtx.fillStyle = "white";
+        streamCtx.fillRect(0, 0, streamCanvas.width, streamCanvas.height);
+        streamCtx.drawImage(renderer.domElement, 0, 0);
+
+        const { title, dateTime, footer, site } = getSaveMetadata();
+
+        // 📌 Заголовок (зелёный)
+        streamCtx.font = `bold ${baseFontSize}px Arial`;
+        streamCtx.fillStyle = "green";
+        streamCtx.textAlign = "center";
+        streamCtx.fillText(title, streamCanvas.width / 2, paddingTop);
+
+        // 📅 Дата (голубая)
+        streamCtx.font = `normal ${smallFontSize}px Arial`;
+        streamCtx.fillStyle = "dodgerblue";
+        streamCtx.fillText(dateTime, streamCanvas.width / 2, paddingTop + textSpacing);
+
+        // 🔽 Footer (розовый)
+        streamCtx.font = `normal ${footerFontSize}px Arial`;
+        streamCtx.fillStyle = "deeppink";
+        streamCtx.fillText(footer, streamCanvas.width / 2, streamCanvas.height - paddingBottom - textSpacing);
+
+        // 📅 Сайт (синий)
+        streamCtx.font = `italic ${footerFontSize}px Arial`;
+        streamCtx.fillStyle = "blue";
+        streamCtx.fillText(site, streamCanvas.width / 2, streamCanvas.height - paddingBottom);
+
+        requestAnimationFrame(drawFrame);
+      };
+
+      drawFrame(); // Запуск обновления кадров
 
       if (MediaRecorder.isTypeSupported("video/webm; codecs=vp9")) {
         mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp9" });
@@ -1165,7 +1224,7 @@ export default {
         mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp8" });
       } else if (window.MediaSource && MediaSource.isTypeSupported("video/mp4; codecs=avc1.42E01E")) {
         console.log("🎥 Safari обнаружен! Используем MediaSource для записи MP4.");
-        startRecordingForSafari(stream); // ⚡ Запуск записи MP4 для Safari
+        startRecordingForSafari(stream);
         return;
       } else {
         console.error("⛔ Ваш браузер не поддерживает запись видео.");
@@ -1177,12 +1236,12 @@ export default {
       };
 
       mediaRecorder.onstop = saveVideo;
-
       recordedChunks = [];
       mediaRecorder.start();
       isRecording.value = true;
-      console.log("🎥 Запись началась!");
+      console.log("🎥 Запись началась с аннотациями!");
     };
+
 
     // Фиксированная запись MP4 для Safari
     let safariRecorder = null;
