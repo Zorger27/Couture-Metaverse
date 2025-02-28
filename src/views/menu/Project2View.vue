@@ -966,53 +966,76 @@ export default {
 
       renderer.render(scene, camera);
       const canvas = renderer.domElement;
-
-      // Создаём временный холст
       const tempCanvas = document.createElement("canvas");
       const tempCtx = tempCanvas.getContext("2d");
 
-      // 📏 Динамические параметры
+      // Определение мобильного режима
       const isMobile = window.innerWidth < 768;
-      const baseFontSize = Math.floor(canvas.width * 0.045);
+
+      // Коэффициент масштабирования
+      const scaleFactor = isMobile ? 1.2 : 1.0;
+      let baseFontSize = Math.floor(canvas.width * 0.045 * scaleFactor);
       const smallFontSize = Math.floor(baseFontSize * 0.7);
       let footerFontSize = Math.floor(baseFontSize * 0.6);
+      const padding = Math.floor(baseFontSize * 1.1);
 
-      // 🛠️ **Отступы:**
-      const padding = Math.floor(baseFontSize * 1.1); // Отступ от краёв (равен размеру шрифта)
-      const paddingTop = padding * (isMobile ? 3.3 : 2.3);
-      const paddingBottom = padding * (isMobile ? 4.3 : 2.3);
-      const dateOffset = paddingTop + Math.floor(isMobile ? 2.5 : 1.7); // Отступ между заголовком и датой
+      // Система отступов
+      const topMargin = padding * (isMobile ? 2.0 : 1.2); // Отступ сверху
+      const titleDateSpacing = padding * (isMobile ? 1.0 : 0.9); // Пробел для заголовка-даты
+      const footerSiteSpacing = padding * (isMobile ? 0.8 : 0.7); // Пробел для footer-site
+      const bottomMargin = padding * (isMobile ? 1.0 : 0.5); // Отступ снизу
 
-      tempCanvas.width = canvas.width + padding * 2;
-      tempCanvas.height = canvas.height + paddingTop + paddingBottom;
+      const canvasWidth = canvas.width + padding * 2;
+      const canvasHeight = canvas.height + topMargin + titleDateSpacing + footerSiteSpacing + bottomMargin;
 
-      // 🖼️ Копируем WebGL canvas по центру
-      tempCtx.drawImage(canvas, padding, paddingTop);
+      tempCanvas.width = canvasWidth;
+      tempCanvas.height = canvasHeight;
 
-      const { title, dateTime, footer } = getSaveMetadata();
+      // tempCtx.fillStyle = "white";
+      // tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+      tempCtx.drawImage(canvas, padding, topMargin + titleDateSpacing);
 
-      // 📌 Проверка влезания нижнего текста
-      tempCtx.font = `italic ${footerFontSize}px Arial`;
-      while (tempCtx.measureText(footer).width > tempCanvas.width * 0.9 && footerFontSize > 10) {
-        footerFontSize -= 1;
-        tempCtx.font = `italic ${footerFontSize}px Arial`;
-      }
+      const { title, dateTime, footer, site } = getSaveMetadata();
 
-      // 📝 Заголовок (зелёный)
+      // Функция для динамического подбора размера шрифта
+      const adjustFontSize = (text, maxWidth, initialFontSize) => {
+        let fontSize = initialFontSize;
+        do {
+          tempCtx.font = `bold ${fontSize}px Arial`;
+          if (tempCtx.measureText(text).width <= maxWidth) {
+            return fontSize;
+          }
+          fontSize--;
+        } while (fontSize > 10);
+        return fontSize;
+      };
+
+      // Подбор размера шрифта для каждого текста
+      baseFontSize = adjustFontSize(title, tempCanvas.width * 0.9, baseFontSize);
+      footerFontSize = adjustFontSize(footer, tempCanvas.width * 0.9, footerFontSize);
+      const siteFontSize = adjustFontSize(site, tempCanvas.width * 0.9, footerFontSize);
+
+      // 📌 Заголовок (зелёный)
       tempCtx.font = `bold ${baseFontSize}px Arial`;
       tempCtx.fillStyle = "green";
       tempCtx.textAlign = "center";
-      tempCtx.fillText(title, tempCanvas.width / 2, paddingTop - baseFontSize);
+      tempCtx.fillText(title, tempCanvas.width / 2, topMargin);
 
       // 📅 Дата (голубая)
       tempCtx.font = `normal ${smallFontSize}px Arial`;
       tempCtx.fillStyle = "dodgerblue";
-      tempCtx.fillText(dateTime, tempCanvas.width / 2, dateOffset);
+      tempCtx.fillText(dateTime, tempCanvas.width / 2, topMargin + titleDateSpacing);
 
-      // 🔽 Нижний текст (розовый)
-      tempCtx.font = `italic ${footerFontSize}px Arial`;
+      // 🔽 Footer (розовый)
+      const footerY = tempCanvas.height - footerSiteSpacing - bottomMargin;
+      tempCtx.font = `normal ${footerFontSize}px Arial`;
       tempCtx.fillStyle = "deeppink";
-      tempCtx.fillText(footer, tempCanvas.width / 2, tempCanvas.height - footerFontSize * 1.5);
+      tempCtx.fillText(footer, tempCanvas.width / 2, footerY);
+
+      // 📅 Сайт (синий)
+      tempCtx.font = `italic ${siteFontSize}px Arial`;
+      tempCtx.fillStyle = "blue";
+      tempCtx.fillText(site, tempCanvas.width / 2, footerY + footerSiteSpacing);
 
       // 📸 Сохранение в PNG
       const image = tempCanvas.toDataURL("image/png");
@@ -1024,7 +1047,7 @@ export default {
       closeSaveMenu();
     };
 
-    // Сохранение сцены как PDF (улучшенное качество + белый фон)
+    // Сохранение сцены как PDF
     const saveAsPDF = () => {
       if (!renderer || !scene || !camera) return;
 
@@ -1050,7 +1073,7 @@ export default {
       const image = tempCanvas.toDataURL("image/jpeg", 0.99);
 
       const pdf = new jsPDF("landscape", "mm", "a4");
-      const { title, dateTime, footer } = getSaveMetadata();
+      const { title, dateTime, footer, site } = getSaveMetadata();
 
       // 📌 Расчёт масштабирования
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -1084,10 +1107,15 @@ export default {
       pdf.setFontSize(16);
       pdf.text(dateTime, pageWidth / 2, 25, { align: "center" });
 
-      pdf.setFont("helvetica", "italic");
+      pdf.setFont("helvetica", "normal");
       pdf.setTextColor(255, 105, 180);
       pdf.setFontSize(14);
-      pdf.text(footer, pageWidth / 2, pageHeight - 10, { align: "center" });
+      pdf.text(footer, pageWidth / 2, pageHeight - 12, { align: "center" });
+
+      pdf.setFont("helvetica", "italic");
+      pdf.setTextColor(0, 0, 255);
+      pdf.setFontSize(14);
+      pdf.text(site, pageWidth / 2, pageHeight - 5, { align: "center" });
 
       pdf.save("model.pdf");
 
