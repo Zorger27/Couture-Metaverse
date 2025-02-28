@@ -1242,7 +1242,6 @@ export default {
       console.log("🎥 Запись началась с аннотациями!");
     };
 
-
     // Фиксированная запись MP4 для Safari
     let safariRecorder = null;
     let safariStream = null;
