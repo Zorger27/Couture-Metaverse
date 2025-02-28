@@ -1469,12 +1469,14 @@ export default {
 
     <!-- Кнопка "Сохранить" и раскрывающееся меню -->
     <div class="special-controls">
-      <!-- Основная кнопка -->
-      <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.closeSaveData') : t('special.saveData')" class="save-button" :class="{'active': showSaveOptions}"><i class="fas fa-save"></i></button>
+      <!-- Кнопка -->
+      <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.closeSaveData') : t('special.saveData')" class="save-button" :class="{'active': showSaveOptions}">
+        <i class="fas fa-save"></i>
+      </button>
 
-      <!-- Анимация для раскрывающегося меню -->
-      <transition name="save-options">
-        <div v-show="showSaveOptions" class="save-options">
+      <!-- Меню с анимацией -->
+      <transition name="slide">
+        <div v-show="showSaveOptions" class="save-options" :class="{'show': showSaveOptions}">
           <button @click="saveAsJPG" :title="t('special.saveJPG')"><i class="fas fa-camera"></i></button>
           <button @click="saveAsPNG" :title="t('special.savePNG')"><i class="fas fa-file-image"></i></button>
           <button @click="saveAsPDF" :title="t('special.savePDF')"><i class="fas fa-file-pdf"></i></button>
@@ -1819,8 +1821,8 @@ export default {
 
   .special-controls {
     position: absolute;
-    top: 50%;
-    right: 40px;
+    top: 55%;
+    right: 40px; /* Кнопка справа */
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
@@ -1829,7 +1831,6 @@ export default {
       width: 50px;
       height: 50px;
       font-size: 24px;
-      margin-bottom: 10px;
       border: none;
       border-radius: 5px;
       display: flex;
@@ -1840,22 +1841,34 @@ export default {
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
       transition: background-color 0.2s, box-shadow 0.2s;
 
-      &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
-      &.active {background-color: darkgreen;}
+      &:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      &.active {
+        background-color: darkgreen;
+      }
     }
 
     .save-options {
       display: flex;
-      flex-direction: column;
-      opacity: 1;
-      transform: translateY(0);
+      flex-direction: row; /* Меню горизонтальное */
+      position: absolute;
+      right: 100%; /* Меню появляется слева от кнопки */
+      top: 0;
+      opacity: 0;
+      transform: translateX(20px); /* Начальная позиция для анимации (справа) */
       transition: opacity 0.4s ease, transform 0.4s ease;
+
+      &.show {
+        opacity: 1;
+        transform: translateX(0); /* Меню появляется в центре */
+      }
 
       button {
         width: 50px;
         height: 50px;
         font-size: 24px;
-        margin-bottom: 10px;
+        margin-right: 10px; /* Расстояние между кнопками */
         border: none;
         border-radius: 5px;
         display: flex;
@@ -1884,34 +1897,19 @@ export default {
       }
     }
 
-    // Анимация входа
-    .save-options-enter-from {
+    /* 🎯 Анимация для Vue Transition */
+    .slide-enter-from, .slide-leave-to {
       opacity: 0;
-      transform: translateY(-10px);
+      transform: translateX(20px); /* Меню уезжает вправо, начиная с центра */
     }
 
-    .save-options-enter-to {
+    .slide-enter-to, .slide-leave-from {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(0); /* Меню появляется или возвращается в нормальное положение */
     }
 
-    .save-options-enter-active {
-      transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-
-    // Анимация выхода
-    .save-options-leave-from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .save-options-leave-to {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-
-    .save-options-leave-active {
-      transition: opacity 0.6s ease, transform 0.6s ease;
+    .slide-enter-active, .slide-leave-active {
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out;
     }
   }
 }
