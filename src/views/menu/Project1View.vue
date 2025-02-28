@@ -589,7 +589,7 @@ export default {
       scene.add(directionalLight);
 
       // Загружаем модель по умолчанию
-      loadModel('menShirt2'); // По умолчанию загружается мужская тенниска
+      loadModel('menShirt1'); // По умолчанию загружается мужская тенниска
 
       // Добавляем рендерер в контейнер
       canvasContainer.value.appendChild(renderer.domElement);
