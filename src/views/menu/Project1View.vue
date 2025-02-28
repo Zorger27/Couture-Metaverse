@@ -2014,7 +2014,6 @@ export default {
         width: 45px;
         height: 45px;
         font-size: 22px;
-        margin-bottom: 9px;
       }
 
       .save-options {
@@ -2022,7 +2021,7 @@ export default {
           width: 45px;
           height: 45px;
           font-size: 22px;
-          margin-bottom: 9px;
+          margin-right: 9px;
         }
       }
     }
@@ -2129,7 +2128,6 @@ export default {
         width: 40px;
         height: 40px;
         font-size: 18px;
-        margin-bottom: 8px;
       }
 
       .save-options {
@@ -2137,7 +2135,7 @@ export default {
           width: 40px;
           height: 40px;
           font-size: 18px;
-          margin-bottom: 8px;
+          margin-right: 8px;
         }
         .film-start {display: none;}
         .film-stop {display: none;}
