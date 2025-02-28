@@ -603,8 +603,8 @@ export default {
             const modelKey = model.userData.modelKey;
             const state = rotationStates.get(modelKey);
 
-            if (state?.clockwise) model.rotation.y += 0.01;
-            else if (state?.counterClockwise) model.rotation.y -= 0.01;
+            if (state?.clockwise) model.rotation.y += 0.02;
+            else if (state?.counterClockwise) model.rotation.y -= 0.02;
           });
         }
 
