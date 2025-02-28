@@ -1048,10 +1048,42 @@ export default {
     };
 
     // Сохранение сцены как PDF
-    const saveAsPDF = () => {
-      if (!renderer || !scene || !camera) return;
+    const saveAsPDF = async () => {
+      if (!renderer || !scene || !camera) {
+        console.error("Ошибка: renderer, scene или camera не инициализированы");
+        return;
+      }
 
-      // Создаём временный холст
+      // Функция для загрузки шрифта
+      const loadFont = async (url) => {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Не удалось загрузить шрифт: ${response.statusText}`);
+        }
+        return await response.arrayBuffer();
+      };
+
+      // Загрузка шрифта
+      let fontArrayBuffer;
+      try {
+        fontArrayBuffer = await loadFont('/assets/fonts/RobotoFlex-Regular.ttf');
+      } catch (error) {
+        console.error(error);
+        return;
+      }
+
+      const fontBase64 = btoa(
+        new Uint8Array(fontArrayBuffer)
+          .reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+
+      // Добавление кастомного шрифта в jsPDF
+      const addCustomFont = (pdf) => {
+        pdf.addFileToVFS('RobotoFlex-Regular.ttf', fontBase64);
+        pdf.addFont('RobotoFlex-Regular.ttf', 'RobotoFlex', 'normal');
+      };
+
+      renderer.render(scene, camera);
       const tempCanvas = document.createElement("canvas");
       const ctx = tempCanvas.getContext("2d");
       const { width, height } = renderer.domElement;
@@ -1073,6 +1105,9 @@ export default {
       const image = tempCanvas.toDataURL("image/jpeg", 0.99);
 
       const pdf = new jsPDF("landscape", "mm", "a4");
+      addCustomFont(pdf);
+      pdf.setFont('RobotoFlex');
+
       const { title, dateTime, footer, site } = getSaveMetadata();
 
       // 📌 Расчёт масштабирования
@@ -1097,22 +1132,19 @@ export default {
       pdf.addImage(image, "JPEG", xOffset, yOffset, imgWidth, imgHeight);
 
       // 📝 5️⃣ Добавляем текст
-      pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(0, 128, 0);
       pdf.setFontSize(22);
+      pdf.setTextColor(0, 128, 0);
       pdf.text(title, pageWidth / 2, 15, { align: "center" });
 
-      pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(30, 144, 255);
       pdf.setFontSize(16);
+      pdf.setTextColor(30, 144, 255);
       pdf.text(dateTime, pageWidth / 2, 25, { align: "center" });
 
-      pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(255, 105, 180);
       pdf.setFontSize(14);
+      pdf.setTextColor(255, 105, 180);
       pdf.text(footer, pageWidth / 2, pageHeight - 12, { align: "center" });
 
-      pdf.setFont("helvetica", "italic");
+      pdf.setFont("RobotoFlex", "italic");
       pdf.setTextColor(0, 0, 255);
       pdf.setFontSize(14);
       pdf.text(site, pageWidth / 2, pageHeight - 5, { align: "center" });
