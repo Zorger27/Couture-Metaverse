@@ -42,7 +42,7 @@ module.exports = {
       }),
       // new HtmlWebpackPlugin({
       //   template: 'public/index.html',
-      //   filename: 'index.html', // <-- Принудительно задаём имя файла
+      //   filename: 'index.html', // <-- Принудительно задаём имя файла.
       //   inject: 'head', // Вставляем в <head>
       //   templateParameters: { BASE_URL: '/' }, // <-- Добавляем BASE_URL вручную
       //   meta: {
