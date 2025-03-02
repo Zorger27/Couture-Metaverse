@@ -4,7 +4,15 @@ const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 const SitemapPlugin = require('sitemap-webpack-plugin').default
 
 module.exports = {
-  pages: undefined, // Полностью отключаем встроенный механизм страниц
+  // pages: undefined, // Полностью отключаем встроенный механизм страниц
+  pages: {
+    index: {
+      entry: 'src/main.js',
+      template: 'public/index.html',
+      filename: 'index.html',
+      title: 'Couture Metaverse 3D',
+    }
+  },
     pwa: {
     manifestPath: "https://couture-metaverse.vercel.app/assets/favicon/manifest.webmanifest",
     iconPaths: {
