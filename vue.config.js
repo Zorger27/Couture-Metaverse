@@ -11,6 +11,7 @@ module.exports = {
       template: 'public/index.html',
       filename: 'index.html',
       title: 'Couture Metaverse 3D',
+      canonical: 'https://couture-metaverse.vercel.app',
     }
   },
     pwa: {
@@ -70,7 +71,6 @@ module.exports = {
         outputPath: 'assets/favicon/', // Куда будут на сервере скидываться созданные favicon-ки
         prefix: 'assets/favicon/', // Этот префикс для файла index.html, чтобы правильно прописать пути иконок с сервера!
         manifest: './src/assets/manifest/manifest.webmanifest',
-        canonical: 'https://couture-metaverse.vercel.app',
         favicons: {
           appName: 'Couture Metaverse 3D',
           appDescription: 'Couture Metaverse 3D',
