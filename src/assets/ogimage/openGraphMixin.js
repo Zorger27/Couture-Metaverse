@@ -26,7 +26,7 @@ export const openGraphMixin = {
         { property: 'twitter:image', content: imageUrl },
         { property: 'og:url', content: url },
         { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: 'https://Zorin.Expert' },
+        { property: 'og:site_name', content: 'https://couture-metaverse.vercel.app' },
         { property: 'twitter:card', content: 'summary_large_image' }
       ];
 

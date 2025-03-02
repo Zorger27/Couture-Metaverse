@@ -1,20 +1,11 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin')
-// const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin')
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 const SitemapPlugin = require('sitemap-webpack-plugin').default
 
 module.exports = {
-  pages: {
-    index: {
-      entry: 'src/main.js',
-      template: 'public/index.html',
-      filename: 'index.html',
-      title: 'Couture Metaverse 3D',
-    }
-  },
-  // pages: undefined, // Отключаем встроенное создание index.html
-  pwa: {
+  pages: undefined, // Полностью отключаем встроенный механизм страниц
+    pwa: {
     manifestPath: "https://couture-metaverse.vercel.app/assets/favicon/manifest.webmanifest",
     iconPaths: {
       favicon32: null,
@@ -24,7 +15,7 @@ module.exports = {
       msTileImage: null
     }
   },
-  configureWebpack: {
+    configureWebpack: {
     plugins: [
       new CopyWebpackPlugin({ //СУПЕР-ВАЖНАЯ штука для ссылок на файлы (pdf или картинки), расположенные на самом сервере!!!
         patterns: [
@@ -40,18 +31,6 @@ module.exports = {
           }
         ]
       }),
-      // new HtmlWebpackPlugin({
-      //   template: 'public/index.html',
-      //   filename: 'index.html', // <-- Принудительно задаём имя файла.
-      //   inject: 'head', // Вставляем в <head>
-      //   templateParameters: { BASE_URL: '/' }, // <-- Добавляем BASE_URL вручную
-      //   meta: {
-      //     canonical: {
-      //       rel: 'canonical',
-      //       href: 'https://couture-metaverse.vercel.app'
-      //     }
-      //   }
-      // }),
       new HtmlWebpackTagsPlugin({
         scripts: [
           'https://www.googletagmanager.com/gtag/js?id=G-R9BM79JPHS',
@@ -103,4 +82,4 @@ module.exports = {
       }),
     ]
   }
-}
+};
