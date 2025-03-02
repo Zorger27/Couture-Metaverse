@@ -459,7 +459,7 @@ export default {
 
     // Определение текстур
     const textures = {
-      texture1: '/assets/textures/texture2.webp',
+      texture1: '/assets/textures/texture4.webp',
       texture2: '/assets/textures/texture5.webp',
     };
 
@@ -871,10 +871,10 @@ export default {
 
     <!-- Кнопки управления моделями -->
     <div class="model-selection">
-      <img :src="models.menShirt1.icon" :alt="models.menShirt1.name" @click="loadModel('menShirt1')" class="button" :title="t('models.menShirt1')">
-      <img :src="models.womenShirt.icon" :alt="models.womenShirt.name" @click="loadModel('womenShirt')" class="button" :title="t('models.womenShirt')">
-      <img :src="models.menShirt2.icon" :alt="models.menShirt2.name" @click="loadModel('menShirt2')" class="button" :title="t('models.menShirt2')">
-      <img :src="models.womenDress.icon" :alt="models.womenDress.name" @click="loadModel('womenDress')" class="button" :title="t('models.womenDress')">
+      <img :src="models.menShirt1.icon" :alt="t('models.menShirt1')" @click="loadModel('menShirt1')" class="button" :title="t('models.menShirt1')">
+      <img :src="models.womenShirt.icon" :alt="t('models.womenShirt')" @click="loadModel('womenShirt')" class="button" :title="t('models.womenShirt')">
+      <img :src="models.menShirt2.icon" :alt="t('models.menShirt2')" @click="loadModel('menShirt2')" class="button" :title="t('models.menShirt2')">
+      <img :src="models.womenDress.icon" :alt="t('models.womenDress')" @click="loadModel('womenDress')" class="button" :title="t('models.womenDress')">
       <button @click="loadAllModels" class="load-all-btn button" :title="t('models.allModels')"><i class="fas fa-th-large"></i></button>
       <button @click="loadAllModels3d" class="load-all-btn button" :title="t('models.allModels3d')"><i class="fas fa-cubes"></i></button>
       <button @click="clearLocalStorage" class="delete" :title="t('special.delete')"><i class="fas fa-broom"></i></button>
@@ -908,7 +908,7 @@ export default {
       </div>
       <!-- Кнопки управления текстурами -->
       <div class="texture-controls">
-        <img src="/assets/textures/texture2.webp" alt="texture2" @click="changeTexture('texture1')" class="button" :title="t('texture.texture1')">
+        <img src="/assets/textures/texture4.webp" alt="texture2" @click="changeTexture('texture1')" class="button" :title="t('texture.texture1')">
         <img src="/assets/textures/texture5.webp" alt="texture5" @click="changeTexture('texture2')" class="button" :title="t('texture.texture2')">
         <!-- Кнопка для загрузки текстуры с диска -->
         <input type="file" @change="uploadTexture" id="file-input" class="file-input">
