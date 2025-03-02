@@ -9,7 +9,7 @@ export default {
     const title = 'Couture Metaverse 3D - Page NOT Found';
     const metaDescription = 'Couture Metaverse 3D';
     const description = 'Couture Metaverse 3D - Page NOT Found';
-    const imageUrl = 'https://3couture-metaverse.vercel.app/assets/ogimage/bmp/image_404.jpg';
+    const imageUrl = 'https://couture-metaverse.vercel.app/assets/ogimage/bmp/image_404.jpg';
     const url = 'https://couture-metaverse.vercel.app';
 
     this.setOpenGraphTags(metaDescription, title, description, imageUrl, url);
