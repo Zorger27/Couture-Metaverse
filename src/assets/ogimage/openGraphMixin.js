@@ -14,6 +14,8 @@ export const openGraphMixin = {
         document.head.appendChild(newTitleTag);
       }
 
+      // Создание <link rel="canonical" href="https://couture-metaverse.vercel.app"/> - часто Google требует!
+
       // Проверка, существует ли уже тег <link rel="canonical">
       const canonicalUrl = 'https://couture-metaverse.vercel.app'; // Переменная для URL
       let canonicalLink = document.querySelector('link[rel="canonical"]');
