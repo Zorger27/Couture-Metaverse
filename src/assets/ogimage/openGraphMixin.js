@@ -13,14 +13,19 @@ export const openGraphMixin = {
         newTitleTag.innerText = mainTitle;
         document.head.appendChild(newTitleTag);
       }
+
       // Проверка, существует ли уже тег <link rel="canonical">
+      const canonicalUrl = 'https://couture-metaverse.vercel.app'; // Переменная для URL
       let canonicalLink = document.querySelector('link[rel="canonical"]');
       if (!canonicalLink) {
         // Если <link rel="canonical"> не существует, создать новый
         canonicalLink = document.createElement('link');
         canonicalLink.setAttribute('rel', 'canonical');
-        canonicalLink.setAttribute('href', 'https://couture-metaverse.vercel.app');
+        canonicalLink.setAttribute('href', canonicalUrl);
         document.head.appendChild(canonicalLink);
+      } else {
+        // Если <link rel="canonical"> существует, обновить его href
+        canonicalLink.setAttribute('href', canonicalUrl);
       }
     },
 
