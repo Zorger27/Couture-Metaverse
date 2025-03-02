@@ -47,7 +47,7 @@ module.exports = {
           {attributes: {property: 'og:title', content: 'Couture Metaverse 3D'}},
           {attributes: {property: 'twitter:title', content: 'Couture Metaverse 3D'}},
           {attributes: {property: 'og:description', content: 'A unique platform for creating and customizing 3D models!'}},
-          {attributes: {property: 'twitter:description', content: 'Couture Metaverse 3D'}},
+          {attributes: {property: 'twitter:description', content: 'A unique platform for creating and customizing 3D models!'}},
           {attributes: {property: 'og:image', content: 'https://couture-metaverse.vercel.app/assets/ogimage/bmp/image_all.jpg'}},
           {attributes: {property: 'twitter:image', content: 'https://couture-metaverse.vercel.app/assets/ogimage/bmp/image_all.jpg'}},
           {attributes: {property: 'og:url', content: 'https://couture-metaverse.vercel.app'}},
