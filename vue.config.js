@@ -41,7 +41,7 @@ module.exports = {
         publicPath: false,
         useHash: false,
         metas: [
-          {attributes: {name: 'title', content: 'Couture Metaverse 3D'}},
+          // {attributes: {name: 'title', content: 'Couture Metaverse 3D'}},
           {attributes: {name: 'google-site-verification', content: 'Gq9vrXtN91P1JteGFo-xrlLKT0PR8u-4P4xs21oUr8Y'}},
           {attributes: {name: 'description', content: 'Couture Metaverse 3D'}},
           {attributes: {property: 'og:title', content: 'Couture Metaverse 3D'}},
