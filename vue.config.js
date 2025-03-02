@@ -15,6 +15,7 @@ module.exports = {
   },
     pwa: {
     manifestPath: "https://couture-metaverse.vercel.app/assets/favicon/manifest.webmanifest",
+    canonical: "https://couture-metaverse.vercel.app",
     iconPaths: {
       favicon32: null,
       favicon16: null,
