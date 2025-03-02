@@ -1,5 +1,5 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin')
-// const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin')
+const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin')
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 const SitemapPlugin = require('sitemap-webpack-plugin').default
 
@@ -32,29 +32,30 @@ module.exports = {
           }
         ]
       }),
-      // new HtmlWebpackTagsPlugin({
-      //   scripts: [
-      //     'https://www.googletagmanager.com/gtag/js?id=G-R9BM79JPHS',
-      //     '/assets/analytics/ganal.js',
-      //   ],
-      //   append: true,
-      //   publicPath: false,
-      //   useHash: false,
-      //   metas: [
-      //     {attributes: {name: 'google-site-verification', content: 'Gq9vrXtN91P1JteGFo-xrlLKT0PR8u-4P4xs21oUr8Y'}},
-      //     {attributes: {name: 'description', content: 'Couture Metaverse 3D'}},
-      //     {attributes: {property: 'og:title', content: 'Couture Metaverse 3D'}},
-      //     {attributes: {property: 'twitter:title', content: 'Couture Metaverse 3D'}},
-      //     {attributes: {property: 'og:description', content: 'A unique platform for creating and customizing 3D models!'}},
-      //     {attributes: {property: 'twitter:description', content: 'A unique platform for creating and customizing 3D models!'}},
-      //     {attributes: {property: 'og:image', content: 'https://couture-metaverse.vercel.app/assets/ogimage/bmp/image_all.jpg'}},
-      //     {attributes: {property: 'twitter:image', content: 'https://couture-metaverse.vercel.app/assets/ogimage/bmp/image_all.jpg'}},
-      //     {attributes: {property: 'og:url', content: 'https://couture-metaverse.vercel.app'}},
-      //     {attributes: {property: 'og:type', content: 'website'}},
-      //     {attributes: {property: 'og:site_name', content: 'https://couture-metaverse.vercel.app'}},
-      //     {attributes: {property: 'twitter:card', content: 'summary_large_image'}}
-      //   ]
-      // }),
+      new HtmlWebpackTagsPlugin({
+        scripts: [
+          'https://www.googletagmanager.com/gtag/js?id=G-R9BM79JPHS',
+          '/assets/analytics/ganal.js',
+        ],
+        append: true,
+        publicPath: false,
+        useHash: false,
+        metas: [
+          {attributes: {name: 'title', content: 'Couture Metaverse 3D'}},
+          {attributes: {name: 'google-site-verification', content: 'Gq9vrXtN91P1JteGFo-xrlLKT0PR8u-4P4xs21oUr8Y'}},
+          {attributes: {name: 'description', content: 'Couture Metaverse 3D'}},
+          {attributes: {property: 'og:title', content: 'Couture Metaverse 3D'}},
+          {attributes: {property: 'twitter:title', content: 'Couture Metaverse 3D'}},
+          {attributes: {property: 'og:description', content: 'A unique platform for creating and customizing 3D models!'}},
+          {attributes: {property: 'twitter:description', content: 'A unique platform for creating and customizing 3D models!'}},
+          {attributes: {property: 'og:image', content: 'https://couture-metaverse.vercel.app/assets/ogimage/bmp/image_all.jpg'}},
+          {attributes: {property: 'twitter:image', content: 'https://couture-metaverse.vercel.app/assets/ogimage/bmp/image_all.jpg'}},
+          {attributes: {property: 'og:url', content: 'https://couture-metaverse.vercel.app'}},
+          {attributes: {property: 'og:type', content: 'website'}},
+          {attributes: {property: 'og:site_name', content: 'https://couture-metaverse.vercel.app'}},
+          {attributes: {property: 'twitter:card', content: 'summary_large_image'}}
+        ]
+      }),
       new FaviconsWebpackPlugin({
         logo: './src/assets/img/favbig.png',
         mode: 'webapp',
