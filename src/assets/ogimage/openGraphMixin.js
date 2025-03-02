@@ -13,6 +13,11 @@ export const openGraphMixin = {
         newTitleTag.innerText = mainTitle;
         document.head.appendChild(newTitleTag);
       }
+      // Добавление тега <link rel="canonical">
+      const canonicalLink = document.createElement('link');
+      canonicalLink.setAttribute('rel', 'canonical');
+      canonicalLink.setAttribute('href', 'https://couture-metaverse.vercel.app');
+      document.head.appendChild(canonicalLink);
     },
 
     setOpenGraphTags(metaDescription, title, description, imageUrl, url) {

@@ -11,7 +11,6 @@ module.exports = {
       template: 'public/index.html',
       filename: 'index.html',
       title: 'Couture Metaverse 3D',
-      canonical: 'https://couture-metaverse.vercel.app',
     }
   },
     pwa: {
