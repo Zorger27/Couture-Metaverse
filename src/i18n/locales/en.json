@@ -74,14 +74,27 @@
     "alertYes": "Model settings were deleted from local memory! ☹\uFE0F\uD83D\uDE2D",
     "alertNo": "Model settings deletion canceled! \uD83D\uDE01\uD83D\uDE0A",
     "noData": "No model settings found in local storage! \uD83D\uDE44\uD83E\uDEE4",
-    "saveData": "Open the save data menu to the disk",
-    "closeSaveData": "Close the save data menu to the disk",
     "created": "Created with Couture Metaverse 3D",
-    "saveJPG": "Save as .jpg file",
-    "savePNG": "Save as .png file",
-    "savePDF": "Save as .pdf file",
-    "startVideo": "Start video recording",
-    "stopVideo": "Stop video recording"
+    "saving": {
+      "saveData": "Open the save data menu to the disk",
+      "closeSaveData": "Close the save data menu to the disk",
+      "saveJPG": "Save as .jpg file",
+      "savePNG": "Save as .png file",
+      "savePDF": "Save as .pdf file",
+      "startVideo": "Start video recording",
+      "stopVideo": "Stop video recording"
+    },
+    "branding": {
+      "openBranding": "Open menu for model branding",
+      "closeBranding": "Close menu for model branding",
+      "upload": "Load brand image from disk",
+      "applyBrand": "Apply a brand image to the model",
+      "scale": "Scale",
+      "positionY": "Vertical",
+      "positionX": "Horizontal",
+      "removeBrand": "Remove current brand image",
+      "removeAllBrands": "Remove all branded images"
+    }
   },
   "about": {
     "title": "Couture Metaverse 3D",
