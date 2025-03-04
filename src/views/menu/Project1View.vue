@@ -45,12 +45,21 @@ export default {
     const positionX = ref(0);
     const positionY = ref(0);
 
-    let brandTexture = null;
-    // let brandMaterial = null;
+    // Определение текстур
+    const textures = {
+      texture1: '/assets/textures/texture1.webp',
+      texture2: '/assets/textures/texture2.webp',
+      texture3: '/assets/textures/texture3.webp',
+      texture4: '/assets/textures/texture4.webp',
+      texture5: '/assets/textures/texture5.webp'
+    };
+
+    // Фиксированная запись MP4 для Safari
+    let safariRecorder = null;
+    let safariStream = null;
 
     let mediaRecorder;
     let recordedChunks = [];
-    let modelList = [];
 
     // Загрузка данных из localStorage
     const loadStoredModels = () => {
@@ -461,37 +470,6 @@ export default {
         });
         model = null; // Обнуляем текущую модель
       }
-
-      // Если есть список моделей (для loadAllModels)
-      if (modelList && modelList.length > 0) {
-        modelList.forEach((m) => {
-          scene.remove(m);
-          m.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              if (child.material) {
-                if (Array.isArray(child.material)) {
-                  child.material.forEach((mat) => mat.dispose());
-                } else {
-                  child.material.dispose();
-                }
-              }
-              if (child.geometry) {
-                child.geometry.dispose();
-              }
-            }
-          });
-        });
-        modelList = []; // Очищаем массив загруженных моделей
-      }
-    };
-
-    // Определение текстур
-    const textures = {
-      texture1: '/assets/textures/texture1.webp',
-      texture2: '/assets/textures/texture2.webp',
-      texture3: '/assets/textures/texture3.webp',
-      texture4: '/assets/textures/texture4.webp',
-      texture5: '/assets/textures/texture5.webp'
     };
 
     const textureLoader = new TextureLoader();
@@ -599,8 +577,6 @@ export default {
       // Загружаем модель по умолчанию
       loadModel('menShirt1'); // По умолчанию загружается мужская тенниска
 
-      loadBrandFromStorage(); // 📌 Загружаем сохранённый бренд
-
       // Добавляем рендерер в контейнер
       canvasContainer.value.appendChild(renderer.domElement);
 
@@ -664,28 +640,21 @@ export default {
       renderer.render(scene, camera);
     };
 
-    // 📌 Функция изменения текстуры модели
+    // Функция изменения текстуры модели
     const changeTexture = (textureKey) => {
       if (!model) return;
       const modelKey = model.userData.modelKey;
       if (!modelKey || !textures[textureKey]) return;
 
-      // 📌 Обновляем настройки модели
-      models[modelKey].settings.texture = textures[textureKey];
-
-      // 📌 Если смешивание выключено — сбрасываем цвет модели к оригинальному
+      models[modelKey].settings.texture = textures[textureKey]; // Обновляем настройки модели
       if (!isMixingEnabled.value) {
-        models[modelKey].settings.color = models[modelKey].originalSettings.color;
+        models[modelKey].settings.color = models[modelKey].originalSettings.color; // Сбрасываем цвет к оригинальному, если смешивание выключено
       }
 
-      // 📌 Сохраняем в localStorage и обновляем материалы
       saveModelsToStorage();
-      updateMaterials((material) => {
-        applyMaterialSettings(material, modelKey);
-        applyTextureToFront(material); // 📌 Ограничиваем область наложения бренда 🚀
-      });
+      updateMaterials((material) => {applyMaterialSettings(material, modelKey);});
 
-      // 📌 Обновляем рендер после смены текстуры
+      // setTimeout(() => renderer.render(scene, camera), 50); // Обновляем рендер после смены текстуры
       renderer.render(scene, camera);
     };
 
@@ -699,7 +668,7 @@ export default {
     const uploadTexture = async (event) => {
       // Получаем файл из события, если его нет — прекращаем выполнение функции
       const file = event.target.files[0];
-      if (!file || !model) return; // Если файл или модель не найдены, прекращаем выполнение
+      if (!file || !model) return;  // Если файл или модель не найдены, прекращаем выполнение
 
       // Получаем ключ модели, если он отсутствует — прекращаем выполнение
       const modelKey = model.userData.modelKey;
@@ -712,12 +681,12 @@ export default {
       const loadTexture = new Promise((resolve, reject) => {
         // Если чтение файла прошло успешно, разрешаем Promise с результатом (DataURL)
         reader.onload = function (e) {
-          resolve(e.target.result); // Передаем результат чтения файла
+          resolve(e.target.result);  // Передаем результат чтения файла
         };
 
         // Если произошла ошибка при чтении файла, отклоняем Promise с ошибкой
         reader.onerror = function (error) {
-          reject(error); // Отклоняем Promise с ошибкой
+          reject(error);  // Отклоняем Promise с ошибкой
         };
 
         // Запускаем чтение файла как DataURL (встроенный формат для изображений)
@@ -735,15 +704,14 @@ export default {
 
         // Обновляем все материалы модели с применением новых настроек
         await updateMaterials((material) => {
-          applyMaterialSettings(material, modelKey);
-          applyTextureToFront(material); // 📌 Ограничиваем область наложения бренда 🚀
+          applyMaterialSettings(material, modelKey);  // Применяем настройки к материалам
         });
 
         // Сохраняем обновленные настройки модели в localStorage
         saveModelsToStorage();
       } catch (error) {
         // Обработка ошибок при загрузке текстуры
-        console.error("Ошибка при загрузке текстуры:", error);
+        console.error('Ошибка при загрузке текстуры:', error);
       }
     };
 
@@ -752,7 +720,7 @@ export default {
       changeColor(event.target.value);
     };
 
-    // Сброс настроек модели
+    // Сброс настроек модели!!!
     const resetModelSettings = async () => {
       if (!model) return;
 
@@ -864,7 +832,7 @@ export default {
         showColorMenu.value = false;
         showTextureMenu.value = false;
         showSaveOptions.value = false;
-        // isBrandingOpen.value = false;
+        // isBrandingOpen.value = true;
       }
     };
 
@@ -1263,10 +1231,7 @@ export default {
       console.log("🎥 Запись началась с аннотациями!");
     };
 
-    // Фиксированная запись MP4 для Safari
-    let safariRecorder = null;
-    let safariStream = null;
-
+    // Запись видео для Safari
     const startRecordingForSafari = (stream) => {
       safariStream = stream;
       safariRecorder = new MediaRecorder(safariStream, { mimeType: "video/mp4" });
@@ -1329,187 +1294,30 @@ export default {
 
     const loadBrandImage = (event) => {
       const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        brandImage.value = e.target.result;
-        localStorage.setItem("brandImage", brandImage.value);
-        loadTexture();
-      };
-      reader.readAsDataURL(file);
-    };
-
-    const loadTexture = () => {
-      if (!brandImage.value || !model) return;
-
-      const loader = new THREE.TextureLoader();
-      loader.load(
-        brandImage.value,
-        (texture) => {
-          brandTexture = texture;
-          applyTexture();
-        },
-        undefined,
-        (err) => console.error("Ошибка загрузки текстуры", err)
-      );
-    };
-
-    // 📌 Загружаем бренд из localStorage
-    const loadBrandFromStorage = () => {
-      const savedBrand = localStorage.getItem("brandSettings");
-      if (savedBrand) {
-        const { brandImage: img, scale: s, positionX: x, positionY: y } = JSON.parse(savedBrand);
-        brandImage.value = img;
-        scale.value = s;
-        positionX.value = x;
-        positionY.value = y;
-        loadTexture(); // 📌 Автоматически загружаем бренд
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          brandImage.value = e.target.result;
+          localStorage.setItem("brandImage", brandImage.value);
+        };
+        reader.readAsDataURL(file);
       }
-    };
-
-    // 📌 Функция, которая ограничивает текстуру только передней частью футболки
-    const applyTextureToFront = (mesh) => {
-      if (!mesh.geometry || !mesh.geometry.attributes || !mesh.geometry.attributes.uv) return;
-
-      const uvAttribute = mesh.geometry.attributes.uv;
-      const uvArray = uvAttribute.array;
-
-      for (let i = 0; i < uvArray.length; i += 2) {
-        const v = uvArray[i + 1]; // Вертикальная UV координата
-
-        // 📌 Ограничиваем текстуру только центральной областью передней части футболки
-        if (v < 0.4 || v > 0.7) {
-          uvArray[i] = 0;
-          uvArray[i + 1] = 0;
-        }
-      }
-
-      uvAttribute.needsUpdate = true;
-    };
-
-    // 📌 Наносим бренд на переднюю часть футболки
-    const applyTexture = () => {
-      if (!brandTexture || !model) return;
-
-      model.traverse((child) => {
-        if (child.isMesh) {
-          console.log("Применяем бренд к:", child.name);
-
-          // 📌 Проверяем, уже ли нанесён бренд
-          if (child.material.map === brandTexture) {
-            console.warn("Бренд уже нанесён! Пропускаем...");
-            return;
-          }
-
-          // 📌 Создаём текстуру с правильным позиционированием
-          const mixedTexture = createMixedTexture(child.material.map, brandTexture);
-
-          if (mixedTexture) {
-            child.material.map = mixedTexture;
-            child.material.needsUpdate = true;
-          }
-        }
-      });
-
-      // 📌 Сохраняем бренд в localStorage
-      saveBrandToStorage();
-    };
-
-    // 📌 Создаём комбинированную текстуру (футболка + бренд)
-    const createMixedTexture = (baseTexture, brandTexture) => {
-      if (!baseTexture || !brandTexture) return null;
-
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
-      // 📌 Проверяем, есть ли изображение у текстуры
-      if (!baseTexture.image) {
-        console.error("Ошибка: `baseTexture.image` отсутствует!");
-        return null;
-      }
-
-      canvas.width = baseTexture.image.width;
-      canvas.height = baseTexture.image.height;
-
-      // 📌 Рисуем оригинальную текстуру футболки
-      ctx.drawImage(baseTexture.image, 0, 0, canvas.width, canvas.height);
-
-      // 📌 Переворачиваем бренд (по Y)
-      ctx.save();
-      ctx.scale(1, -1);
-      ctx.translate(0, -canvas.height);
-
-      // 📌 Поддержка PNG (если у бренда прозрачный фон)
-      ctx.globalCompositeOperation = "source-over";
-
-      // 📌 Наносим бренд точно в центр передней части футболки
-      const brandWidth = canvas.width * 0.35 * scale.value;
-      const brandHeight = canvas.height * 0.2 * scale.value;
-      const brandX = canvas.width * (0.5 - brandWidth / 2);
-      const brandY = canvas.height * (0.5 - brandHeight / 2);
-
-      ctx.drawImage(brandTexture.image, brandX, brandY, brandWidth, brandHeight);
-      ctx.restore();
-
-      return new THREE.CanvasTexture(canvas);
     };
 
     const applyBrand = () => {
-      localStorage.setItem(
-        "brandSettings",
-        JSON.stringify({ scale: scale.value, x: positionX.value, y: positionY.value })
-      );
+      // Логика нанесения изображения на модель (Three.js)
+      localStorage.setItem("brandSettings", JSON.stringify({ scale: scale.value, x: positionX.value, y: positionY.value }));
     };
 
-    // 📌 Сохраняем бренд в localStorage
-    const saveBrandToStorage = () => {
-      if (!brandImage.value) return;
-
-      const brandData = {
-        brandImage: brandImage.value,
-        scale: scale.value,
-        positionX: positionX.value,
-        positionY: positionY.value,
-      };
-
-      localStorage.setItem("brandSettings", JSON.stringify(brandData));
-      console.log("Бренд сохранён в localStorage!");
-    };
-
-    // 📌 Удаляем бренд с модели
     const removeBrand = () => {
-      if (!model) return;
+      brandImage.value = null;
+      localStorage.removeItem("brandImage");
+    };
 
-      model.traverse((child) => {
-        if (child.isMesh && child.material.map) {
-          console.log("Удаляем бренд с:", child.name);
-
-          // 📌 Восстанавливаем оригинальную текстуру
-          const originalTexture = textures[model.userData.modelKey];
-
-          if (originalTexture) {
-            child.material.map = originalTexture;
-            child.material.needsUpdate = true;
-          } else {
-            console.warn("Оригинальная текстура не найдена!");
-          }
-        }
-      });
-
+    const removeAllBrands = () => {
       brandImage.value = null;
       localStorage.removeItem("brandImage");
       localStorage.removeItem("brandSettings");
-
-      console.log("Бренд удалён!");
-    };
-
-    // 📌 Удаляем все бренды с модели
-    const removeAllBrands = () => {
-      removeBrand();
-      localStorage.removeItem("brandImage");
-      localStorage.removeItem("brandSettings");
-      console.log("Все бренды удалены!");
     };
 
     const onWindowResize = () => {
@@ -1601,11 +1409,9 @@ export default {
       isBrandingOpen,
       toggleBranding,
       loadBrandImage,
-      brandImage,
       scale,
       positionX,
       positionY,
-      applyTexture,
       applyBrand,
       removeBrand,
       removeAllBrands,
@@ -1708,15 +1514,15 @@ export default {
             <div class="position">
               <!-- Кнопка-ползунок "Масштаб" -->
               <label for="scale">{{ t('special.branding.scale') }}</label>
-              <input type="range" v-model="scale" @input="applyTexture" id="scale" min="0.5" max="2" step="0.1" />
+              <input type="range" v-model="scale" @input="applyBrand" id="scale" min="0.5" max="2" step="0.1" />
 
               <!-- Кнопка-ползунок "Вертикаль" -->
               <label for="positionY">{{ t('special.branding.positionY') }}</label>
-              <input type="range" v-model="positionY" @input="applyTexture" id="positionY" min="-1" max="1" step="0.1" />
+              <input type="range" v-model="positionY" @input="applyBrand" id="positionY" min="-1" max="1" step="0.1" />
 
               <!-- Кнопка-ползунок "Горизонталь" -->
               <label for="positionX">{{ t('special.branding.positionX') }}</label>
-              <input type="range" v-model="positionX" @input="applyTexture" id="positionX" min="-1" max="1" step="0.1" />
+              <input type="range" v-model="positionX" @input="applyBrand" id="positionX" min="-1" max="1" step="0.1" />
             </div>
 
             <div class="remove">
