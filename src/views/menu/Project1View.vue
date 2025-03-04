@@ -1688,12 +1688,11 @@ export default {
       </div>
     </div>
 
-
     <div class="special-controls">
 
       <div class="branding-container" v-if="!isMultiModelView && !isThreeDView">
         <!-- Кнопка "Брендировать" и раскрывающееся меню -->
-        <button @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-registered"></i></button>
+        <button @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
 
         <transition name="fade">
           <div v-if="isBrandingOpen" class="branding-controls">
@@ -1703,7 +1702,7 @@ export default {
               <label for="brand-input" class="upload" :title="t('special.branding.upload')"><i class="fa-solid fa-upload"></i></label>
 
               <!-- Кнопка "Применить" -->
-              <button @click="applyBrand" class="apply" :title="t('special.branding.applyBrand')"><i class="fas fa-pen-nib"></i></button>
+              <button @click="applyBrand" class="apply" :title="t('special.branding.applyBrand')"><i class="fas fa-check-circle"></i></button>
             </div>
 
             <div class="position">
@@ -2100,7 +2099,7 @@ export default {
         align-items: center;
         background: dodgerblue;
         color: white;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
         transition: background-color 0.2s, box-shadow 0.2s;
 
         &:hover {
@@ -2137,8 +2136,8 @@ export default {
           justify-content: center;
           align-items: center;
           background: lightgoldenrodyellow;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-          transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+          transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
 
           &:hover {
             background-color: #ffffff;
@@ -2200,7 +2199,7 @@ export default {
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         &.active {
-          background-color: lightseagreen;
+          background-color: darkgreen;
         }
       }
 
@@ -2214,7 +2213,6 @@ export default {
           font-size: 24px;
           border: none;
           border-radius: 5px;
-          color: white;
           display: flex;
           justify-content: center;
           align-items: center;
@@ -2222,7 +2220,7 @@ export default {
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
           transition: ease-in-out, background-color .2s, box-shadow .2s;
 
-          &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);}
+          &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
         }
 
         .select-brand {
@@ -2231,30 +2229,41 @@ export default {
           justify-content: center;
 
           .upload {
-            width: 50px;
-            height: 50px;
+            width: 46px;
+            height: 46px;
             font-size: 24px;
             margin-right: 10px;
-            border: none;
+            border: 2px solid transparent;
             border-radius: 5px;
-            color: white;
             display: flex;
             justify-content: center;
             align-items: center;
             margin-bottom: 10px;
-            background-color: dodgerblue;
+            background-color: lightgoldenrodyellow;
             //background: linear-gradient(to bottom, rgb(229, 255, 229), rgb(250, 247, 234)) no-repeat center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-            transition: ease-in-out, background-color .2s, box-shadow .2s;
+            transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
 
             &:hover {
-              background-color: darkgreen;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+              background-color: #ffffff;
+              color: dodgerblue;
+              border: 2px solid dodgerblue;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             }
           }
           .brand-input {display: none;} /* Скрываем оригинальный input */
 
-          .apply {background-color: darkblue;}
+          .apply {
+            background-color: lightgoldenrodyellow;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+            transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
+            &:hover {
+              background-color: #ffffff;
+              color: purple;
+              border: 2px solid purple;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+          }
         }
 
         .position {
@@ -2270,12 +2279,22 @@ export default {
           flex-direction: row;
           justify-content: center;
           .remove-one {
-            background-color: mediumvioletred;
+            background-color: lightgoldenrodyellow;
             margin-right: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+            transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
+            &:hover {
+              background-color: #ffffff; /* Более яркий цвет при наведении */
+              color: darkred;
+              border: 2px solid darkred;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
           }
           .remove-all {
-            background-color: #ffea00;
+            background-color: lightgoldenrodyellow;
             color: black;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+            transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
             &:hover {
               background-color: #ffffff; /* Более яркий цвет при наведении */
               color: deeppink;
@@ -2293,7 +2312,6 @@ export default {
         opacity: 0;
       }
     }
-
   }
 }
 
@@ -2428,8 +2446,8 @@ export default {
 
           .select-brand {
             .upload {
-              width: 45px;
-              height: 45px;
+              width: 41px;
+              height: 41px;
               font-size: 22px;
               margin-right: 9px;
               margin-bottom: 9px;
@@ -2581,8 +2599,8 @@ export default {
 
           .select-brand {
             .upload {
-              width: 40px;
-              height: 40px;
+              width: 36px;
+              height: 36px;
               font-size: 18px;
               margin-right: 8px;
               margin-bottom: 8px;
