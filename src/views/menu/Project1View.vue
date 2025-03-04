@@ -1733,12 +1733,13 @@ export default {
 
       <div class="saving-container">
         <!-- Кнопка "Сохранить" и раскрывающееся меню -->
-        <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.saving.closeSaveData') : t('special.saving.saveData')" class="save-button" :class="{'active': showSaveOptions}">
+        <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.saving.closeSaveData') : t('special.saving.saveData')" class="save-button" :class="{'open': showSaveOptions}">
           <i class="fas fa-save"></i>
         </button>
         <!-- Меню с анимацией -->
         <transition name="slide">
-          <div v-show="showSaveOptions" class="save-options" :class="{'show': showSaveOptions}">
+          <div v-show="showSaveOptions" class="save-options" :class="{'show': showSaveOptions, 'active': isBrandingOpen}">
+<!--          <div v-show="showSaveOptions" class="save-options" :class="{'show': showSaveOptions}">-->
             <button @click="saveAsJPG" :title="t('special.saving.saveJPG')"><i class="fas fa-camera"></i></button>
             <button @click="saveAsPNG" :title="t('special.saving.savePNG')"><i class="fas fa-file-image"></i></button>
             <button @click="saveAsPDF" :title="t('special.saving.savePDF')"><i class="fas fa-file-pdf"></i></button>
@@ -2105,7 +2106,7 @@ export default {
         &:hover {
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        &.active {
+        &.open {
           background-color: darkgreen;
         }
       }
@@ -2123,6 +2124,10 @@ export default {
         &.show {
           opacity: 1;
           transform: translateX(0); /* Меню появляется в центре */
+        }
+        &.active {
+          //transform: translateX(40px);
+          margin-right: -42px;
         }
 
         button {
@@ -2419,6 +2424,7 @@ export default {
         }
 
         .save-options {
+          &.active {margin-right: -45px;}
           button {
             width: 45px;
             height: 45px;
@@ -2570,6 +2576,7 @@ export default {
         }
 
         .save-options {
+          &.active {margin-right: -47px;}
           button {
             width: 40px;
             height: 40px;
