@@ -1293,7 +1293,7 @@ export default {
 
       const loadTexture = new Promise((resolve, reject) => {
         reader.onload = function (e) {
-          resolve(e.target?.result || ""); // 💡 Приводим к строке, чтобы избежать ошибки
+          resolve(e.target?.result || "");
         };
         reader.onerror = function (error) {
           reject(error);
@@ -1304,105 +1304,100 @@ export default {
       try {
         const imageData = await loadTexture;
         const brandImage = new Image();
-        brandImage.src = String(imageData); // 💡 Явное приведение к строке
+        brandImage.src = String(imageData);
 
         brandImage.onload = () => {
+          let chestMesh = null;
+          let maxSize = 0;
+
+          // 🔍 Находим передний меш (грудь)
           model.traverse((child) => {
             if (child instanceof THREE.Mesh) {
-              const material = child.material;
+              const boundingBox = new THREE.Box3().setFromObject(child);
+              const size = boundingBox.max.y - boundingBox.min.y;
 
-              if (material instanceof THREE.MeshStandardMaterial && material.map) {
-                console.log('🔍 Исходная текстура:', material.map);
-
-                // 📌 Определяем Bounding Box модели
-                const boundingBox = new THREE.Box3().setFromObject(child);
-                const modelCenter = boundingBox.getCenter(new THREE.Vector3());
-
-                // 📌 Определяем переднюю часть футболки (убираем рукава, воротник, спину)
-                const frontVertices = [];
-                const position = child.geometry.attributes.position;
-                for (let i = 0; i < position.count; i++) {
-                  const vertex = new THREE.Vector3();
-                  vertex.fromBufferAttribute(position, i);
-                  child.localToWorld(vertex); // Переводим в мировые координаты
-
-                  // 📌 Фильтруем только передние вершины ГРУДИ (без рукавов, спины, воротника)
-                  if (
-                    vertex.z < modelCenter.z - 0.02 && // Передние точки
-                    Math.abs(vertex.x) < boundingBox.max.x * 0.3 && // Центр (убираем рукава)
-                    vertex.y < modelCenter.y + boundingBox.max.y * 0.15 && // Ограничиваем верх (воротник)
-                    vertex.y > boundingBox.min.y + boundingBox.max.y * 0.45 // Ограничиваем низ (живот)
-                  ) {
-                    frontVertices.push(vertex);
-                  }
-                }
-
-                // 📌 Средний X и Y передней части футболки (центр груди)
-                let avgX = 0, avgY = 0;
-                frontVertices.forEach((v) => {
-                  avgX += v.x;
-                  avgY += v.y;
-                });
-                avgX /= frontVertices.length;
-                avgY /= frontVertices.length;
-
-                // ✅ Сдвигаем логотип ВНИЗ на 10-15% (ближе к груди, дальше от воротника)
-                avgY -= boundingBox.max.y * 0.05;
-
-                console.log(`📌 Новый центр логотипа: X=${avgX}, Y=${avgY}`);
-
-                // 🎨 Создаём canvas для объединения логотипа с текстурой
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-
-                // 📌 Используем размеры оригинальной текстуры
-                const originalTexture = material.map.image;
-                canvas.width = originalTexture.width;
-                canvas.height = originalTexture.height;
-
-                // 🖌 Рисуем оригинальную текстуру
-                ctx.drawImage(originalTexture, 0, 0, canvas.width, canvas.height);
-
-                // ✅ Масштабируем логотип
-                const logoAspect = brandImage.width / brandImage.height;
-                let logoWidth = canvas.width * 0.28; // 28% ширины текстуры
-                let logoHeight = logoWidth / logoAspect;
-                if (logoHeight > canvas.height * 0.28) {
-                  logoHeight = canvas.height * 0.28;
-                  logoWidth = logoHeight * logoAspect;
-                }
-
-                // ✅ Центрируем логотип (с учётом boundingBox)
-                const x = (avgX - boundingBox.min.x) / (boundingBox.max.x - boundingBox.min.x) * canvas.width - logoWidth / 2;
-                const y = (boundingBox.max.y - avgY) / (boundingBox.max.y - boundingBox.min.y) * canvas.height - logoHeight / 2;
-
-                // 🔄 Переворачиваем логотип
-                ctx.save();
-                ctx.translate(x + logoWidth / 2, y + logoHeight / 2);
-                ctx.rotate(Math.PI);
-                ctx.drawImage(brandImage, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
-                ctx.restore();
-
-                // 📸 Создаём новую текстуру из canvas
-                const newTexture = new THREE.CanvasTexture(canvas);
-                newTexture.needsUpdate = true;
-
-                // ✅ Заменяем текстуру у материала
-                material.map = newTexture;
-                material.needsUpdate = true;
-
-                console.log('✅ Логотип нанесён корректно на материал:', child);
+              if (boundingBox.max.z > 0 && size > maxSize) {
+                chestMesh = child;
+                maxSize = size;
               }
             }
           });
+
+          if (!chestMesh) {
+            console.warn("❌ Не найден основной меш для груди!");
+            return;
+          }
+
+          const material = chestMesh.material;
+          if (!(material instanceof THREE.MeshStandardMaterial) || !material.map) {
+            console.warn("❌ У материала нет текстуры!");
+            return;
+          }
+
+          console.log("✅ Найден меш для груди:", chestMesh);
+
+          // 📌 Определяем центр груди
+          const boundingBox = new THREE.Box3().setFromObject(chestMesh);
+          const center = boundingBox.getCenter(new THREE.Vector3());
+
+          // 📌 Финальные корректировки смещения логотипа
+          center.y += boundingBox.max.y * 0.32;  // Сейчас логотип находится по центру футболки!
+          center.x -= boundingBox.max.x * 0.32;  // Сейчас логотип находится по центру футболки!
+
+          console.log(`📌 Новый центр логотипа: X=${center.x}, Y=${center.y}`);
+
+          // 🎨 Создаём canvas для объединения логотипа с текстурой
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          // 📌 Используем размеры оригинальной текстуры
+          const originalTexture = material.map.image;
+          canvas.width = originalTexture.width;
+          canvas.height = originalTexture.height;
+
+          // 🖌 Рисуем оригинальную текстуру
+          ctx.drawImage(originalTexture, 0, 0, canvas.width, canvas.height);
+
+          // ✅ Размер логотипа - 15%
+          const logoAspect = brandImage.width / brandImage.height;
+          let logoWidth = canvas.width * 0.15;
+          let logoHeight = logoWidth / logoAspect;
+          if (logoHeight > canvas.height * 0.15) {
+            logoHeight = canvas.height * 0.15;
+            logoWidth = logoHeight * logoAspect;
+          }
+
+          // ✅ Центрируем логотип на груди (учитываем сдвиг)
+          const x = (center.x - boundingBox.min.x) / (boundingBox.max.x - boundingBox.min.x) * canvas.width - logoWidth / 2;
+          const y = (boundingBox.max.y - center.y) / (boundingBox.max.y - boundingBox.min.y) * canvas.height - logoHeight / 2;
+
+          // 🔄 Переворачиваем логотип
+          ctx.save();
+          ctx.translate(x + logoWidth / 2, y + logoHeight / 2);
+          ctx.rotate(Math.PI);
+          ctx.drawImage(brandImage, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
+          ctx.restore();
+
+          // 📸 Создаём новую текстуру из canvas
+          const newTexture = new THREE.CanvasTexture(canvas);
+          newTexture.needsUpdate = true;
+
+          // ✅ Заменяем текстуру у материала
+          material.map = newTexture;
+          material.needsUpdate = true;
+
+          console.log("✅ Логотип нанесён корректно на грудь:", chestMesh);
 
           // Обновляем рендер
           renderer.render(scene, camera);
         };
       } catch (error) {
-        console.error('❌ Ошибка при загрузке изображения бренда:', error);
+        console.error("❌ Ошибка при загрузке изображения бренда:", error);
       }
     };
+
+
+
 
 
 
