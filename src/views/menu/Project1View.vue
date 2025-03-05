@@ -3,6 +3,7 @@ import {onMounted, onUnmounted, ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 import jsPDF from "jspdf";
 import * as THREE from 'three';
+import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry.js';
 import {TextureLoader} from 'three';
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
@@ -1272,37 +1273,136 @@ export default {
       console.log("💾 Видео сохранено!");
     };
 
-    // Брендирование
+    // Открыть или закрыть меню "Брендирование"
     const toggleBranding = () => {
       isBrandingOpen.value = !isBrandingOpen.value;
     };
 
-    const loadBrandImage = (event) => {
+    // Нанесение логотипа на модель и сохранение логотипа в localStorage
+    const loadBrandImage = async (event) => {
       const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          brandImage.value = e.target.result;
-          localStorage.setItem("brandImage", brandImage.value);
+      if (!file || !model) return;
+
+      const modelKey = model.userData.modelKey;
+      if (!modelKey) return;
+
+      const reader = new FileReader();
+
+      const loadTexture = new Promise((resolve, reject) => {
+        reader.onload = function (e) {
+          resolve(e.target.result);
+        };
+        reader.onerror = function (error) {
+          reject(error);
         };
         reader.readAsDataURL(file);
+      });
+
+      try {
+        const imageData = await loadTexture;
+        const brandTexture = new THREE.TextureLoader().load(imageData);
+        brandTexture.needsUpdate = true;
+
+        console.log('🔍 Загруженная текстура:', brandTexture);
+
+        // 📌 Определяем переднюю часть модели по границам (Box3)
+        const boundingBox = new THREE.Box3().setFromObject(model);
+        const center = boundingBox.getCenter(new THREE.Vector3());
+
+        const frontPosition = new THREE.Vector3(
+          center.x,
+          center.y + boundingBox.max.y * 0.2, // Смещаем чуть выше центра груди
+          boundingBox.max.z + 0.05 // Немного вперёд
+        );
+
+        console.log('📌 Передняя точка:', frontPosition);
+
+        // Создаём материал логотипа
+        const brandMaterial = new THREE.MeshBasicMaterial({
+          map: brandTexture,
+          transparent: true,
+          depthTest: false, // Логотип всегда сверху
+          polygonOffset: true,
+          polygonOffsetFactor: -1, // Избегаем конфликтов слоёв
+        });
+
+        // **Используем BufferGeometry (фикс для Decal)**
+        const decalSize = new THREE.Vector3(1, 1, 0.1);
+        const decalGeometry = new DecalGeometry(model, frontPosition, new THREE.Euler(0, 0, 0), decalSize);
+        const decalMesh = new THREE.Mesh(decalGeometry, brandMaterial);
+
+        // Добавляем логотип в сцену
+        scene.add(decalMesh);
+        console.log('✅ Decal добавлен в сцену:', decalMesh);
+
+        // Перерисовываем
+        renderer.render(scene, camera);
+      } catch (error) {
+        console.error('❌ Ошибка при загрузке изображения бренда:', error);
       }
     };
 
+    // **Функция для поиска передней центральной точки модели**
+    const findFrontCenter = (model) => {
+      let frontVertex = null;
+      let minZ = Infinity;
+
+      model.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          const geometry = child.geometry;
+          geometry.computeBoundingBox();
+
+          if (!geometry.boundingBox) return;
+
+          // Выбираем точку с минимальным Z (самая передняя точка)
+          if (geometry.boundingBox.min.z < minZ) {
+            minZ = geometry.boundingBox.min.z;
+            frontVertex = {
+              position: new THREE.Vector3(0, (geometry.boundingBox.min.y + geometry.boundingBox.max.y) / 2, geometry.boundingBox.min.z),
+              rotation: new THREE.Euler(0, 0, 0),
+            };
+          }
+        }
+      });
+
+      return frontVertex;
+    };
+
+    // Двигаем и сохраняем настройки расположения логотипа в localStorage
     const applyBrand = () => {
       // Логика нанесения изображения на модель (Three.js)
       localStorage.setItem("brandSettings", JSON.stringify({ scale: scale.value, x: positionX.value, y: positionY.value }));
     };
 
+    // Удаляем картинку логотипа
     const removeBrand = () => {
       brandImage.value = null;
       localStorage.removeItem("brandImage");
     };
 
+    // Удаляем картинку логотипа + настройки расположения картинки
     const removeAllBrands = () => {
-      brandImage.value = null;
-      localStorage.removeItem("brandImage");
-      localStorage.removeItem("brandSettings");
+      // Проверяем, есть ли данные с ключом 'brandImage' и 'brandSettings' в localStorage
+      const brandImage = localStorage.getItem('brandImage');
+      const brandSettings = localStorage.getItem('brandSettings');
+
+      if (brandImage || brandSettings !== null) {
+        // Если данные есть, запрашиваем подтверждение
+        const confirmed = confirm(t('special.branding.confirm'));
+
+        if (confirmed) {
+          // Если пользователь нажал "ОК", удаляем данные
+          localStorage.removeItem('brandImage');
+          localStorage.removeItem("brandSettings");
+          alert(t('special.branding.alertYes'));
+        } else {
+          // Если пользователь нажал "Отмена", ничего не делаем
+          alert(t('special.branding.alertNo'));
+        }
+      } else {
+        // Если данных нет, уведомляем пользователя
+        alert(t('special.branding.noData'));
+      }
     };
 
     const onWindowResize = () => {

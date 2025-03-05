@@ -93,7 +93,11 @@
       "positionY": "Vertical",
       "positionX": "Horizontal",
       "removeBrand": "Remove current brand image",
-      "removeAllBrands": "Remove all branded images"
+      "removeAllBrands": "Remove all branded images",
+      "confirm": "Are you sure you want to delete the logo image and/or its settings? \uD83E\uDDD0\uD83D\uDE27",
+      "alertYes": "The logo image and/or its settings have been deleted from local storage! ☹\uFE0F\uD83D\uDE2D",
+      "alertNo": "The deletion of the logo image and/or its settings has been canceled! \uD83D\uDE01\uD83D\uDE0A",
+      "noData": "The logo image and/or its settings were not found in the local storage! \uD83D\uDE44\uD83E\uDEE4"
     }
   },
   "about": {
