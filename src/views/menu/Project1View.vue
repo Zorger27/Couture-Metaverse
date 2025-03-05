@@ -1277,10 +1277,6 @@ export default {
       isBrandingOpen.value = !isBrandingOpen.value;
     };
 
-
-
-
-
     // Нанесение логотипа на модель и сохранение логотипа в localStorage
     const loadBrandImage = async (event) => {
       const file = event.target.files[0];
@@ -1340,9 +1336,9 @@ export default {
           const boundingBox = new THREE.Box3().setFromObject(chestMesh);
           const center = boundingBox.getCenter(new THREE.Vector3());
 
-          // 📌 Финальные корректировки смещения логотипа
-          center.y += boundingBox.max.y * 0.32;  // Сейчас логотип находится по центру футболки!
-          center.x -= boundingBox.max.x * 0.32;  // Сейчас логотип находится по центру футболки!
+          // Корректировка смещения логотипа
+          center.y += boundingBox.max.y * 0.25;  // Сейчас логотип находится по центру груди футболки!
+          center.x -= boundingBox.max.x * 0.35;  // Сейчас логотип находится по центру груди футболки!
 
           console.log(`📌 Новый центр логотипа: X=${center.x}, Y=${center.y}`);
 
@@ -1358,7 +1354,7 @@ export default {
           // 🖌 Рисуем оригинальную текстуру
           ctx.drawImage(originalTexture, 0, 0, canvas.width, canvas.height);
 
-          // ✅ Размер логотипа - 15%
+          // Размер логотипа - 15%
           const logoAspect = brandImage.width / brandImage.height;
           let logoWidth = canvas.width * 0.15;
           let logoHeight = logoWidth / logoAspect;
@@ -1371,10 +1367,11 @@ export default {
           const x = (center.x - boundingBox.min.x) / (boundingBox.max.x - boundingBox.min.x) * canvas.width - logoWidth / 2;
           const y = (boundingBox.max.y - center.y) / (boundingBox.max.y - boundingBox.min.y) * canvas.height - logoHeight / 2;
 
-          // 🔄 Переворачиваем логотип
+          // Переворачиваем логотип
           ctx.save();
           ctx.translate(x + logoWidth / 2, y + logoHeight / 2);
-          ctx.rotate(Math.PI);
+          // ctx.rotate(Math.PI);
+          ctx.scale(1, -1); // Отразить по вертикали
           ctx.drawImage(brandImage, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
           ctx.restore();
 
@@ -1395,14 +1392,6 @@ export default {
         console.error("❌ Ошибка при загрузке изображения бренда:", error);
       }
     };
-
-
-
-
-
-
-
-
 
     // Двигаем и сохраняем настройки расположения логотипа в localStorage
     const applyBrand = () => {
