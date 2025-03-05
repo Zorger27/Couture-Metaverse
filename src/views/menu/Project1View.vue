@@ -1293,7 +1293,7 @@ export default {
 
       const loadTexture = new Promise((resolve, reject) => {
         reader.onload = function (e) {
-          resolve(e.target.result);
+          resolve(e.target?.result || ""); // 💡 Приводим к строке, чтобы избежать ошибки
         };
         reader.onerror = function (error) {
           reject(error);
@@ -1304,7 +1304,7 @@ export default {
       try {
         const imageData = await loadTexture;
         const brandImage = new Image();
-        brandImage.src = imageData;
+        brandImage.src = String(imageData); // 💡 Явное приведение к строке
 
         brandImage.onload = () => {
           model.traverse((child) => {
@@ -1314,11 +1314,48 @@ export default {
               if (material instanceof THREE.MeshStandardMaterial && material.map) {
                 console.log('🔍 Исходная текстура:', material.map);
 
-                // 🎨 Создаём новый canvas для объединения текстур
+                // 📌 Определяем Bounding Box модели
+                const boundingBox = new THREE.Box3().setFromObject(child);
+                const modelCenter = boundingBox.getCenter(new THREE.Vector3());
+
+                // 📌 Определяем переднюю часть футболки (убираем рукава, воротник, спину)
+                const frontVertices = [];
+                const position = child.geometry.attributes.position;
+                for (let i = 0; i < position.count; i++) {
+                  const vertex = new THREE.Vector3();
+                  vertex.fromBufferAttribute(position, i);
+                  child.localToWorld(vertex); // Переводим в мировые координаты
+
+                  // 📌 Фильтруем только передние вершины ГРУДИ (без рукавов, спины, воротника)
+                  if (
+                    vertex.z < modelCenter.z - 0.02 && // Передние точки
+                    Math.abs(vertex.x) < boundingBox.max.x * 0.3 && // Центр (убираем рукава)
+                    vertex.y < modelCenter.y + boundingBox.max.y * 0.15 && // Ограничиваем верх (воротник)
+                    vertex.y > boundingBox.min.y + boundingBox.max.y * 0.45 // Ограничиваем низ (живот)
+                  ) {
+                    frontVertices.push(vertex);
+                  }
+                }
+
+                // 📌 Средний X и Y передней части футболки (центр груди)
+                let avgX = 0, avgY = 0;
+                frontVertices.forEach((v) => {
+                  avgX += v.x;
+                  avgY += v.y;
+                });
+                avgX /= frontVertices.length;
+                avgY /= frontVertices.length;
+
+                // ✅ Сдвигаем логотип ВНИЗ на 10-15% (ближе к груди, дальше от воротника)
+                avgY -= boundingBox.max.y * 0.05;
+
+                console.log(`📌 Новый центр логотипа: X=${avgX}, Y=${avgY}`);
+
+                // 🎨 Создаём canvas для объединения логотипа с текстурой
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
 
-                // Используем размеры оригинальной текстуры
+                // 📌 Используем размеры оригинальной текстуры
                 const originalTexture = material.map.image;
                 canvas.width = originalTexture.width;
                 canvas.height = originalTexture.height;
@@ -1326,11 +1363,25 @@ export default {
                 // 🖌 Рисуем оригинальную текстуру
                 ctx.drawImage(originalTexture, 0, 0, canvas.width, canvas.height);
 
-                // 📌 Рисуем логотип по центру
-                const logoSize = canvas.width * 0.4; // Логотип 40% ширины модели
-                const x = (canvas.width - logoSize) / 2;
-                const y = (canvas.height - logoSize) / 2;
-                ctx.drawImage(brandImage, x, y, logoSize, logoSize);
+                // ✅ Масштабируем логотип
+                const logoAspect = brandImage.width / brandImage.height;
+                let logoWidth = canvas.width * 0.28; // 28% ширины текстуры
+                let logoHeight = logoWidth / logoAspect;
+                if (logoHeight > canvas.height * 0.28) {
+                  logoHeight = canvas.height * 0.28;
+                  logoWidth = logoHeight * logoAspect;
+                }
+
+                // ✅ Центрируем логотип (с учётом boundingBox)
+                const x = (avgX - boundingBox.min.x) / (boundingBox.max.x - boundingBox.min.x) * canvas.width - logoWidth / 2;
+                const y = (boundingBox.max.y - avgY) / (boundingBox.max.y - boundingBox.min.y) * canvas.height - logoHeight / 2;
+
+                // 🔄 Переворачиваем логотип
+                ctx.save();
+                ctx.translate(x + logoWidth / 2, y + logoHeight / 2);
+                ctx.rotate(Math.PI);
+                ctx.drawImage(brandImage, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
+                ctx.restore();
 
                 // 📸 Создаём новую текстуру из canvas
                 const newTexture = new THREE.CanvasTexture(canvas);
@@ -1352,6 +1403,10 @@ export default {
         console.error('❌ Ошибка при загрузке изображения бренда:', error);
       }
     };
+
+
+
+
 
 
 
