@@ -64,11 +64,14 @@ export default {
     // Загрузка данных из localStorage
     const loadStoredModels = () => {
       try {
+        // Получаем данные из localStorage
         const storedModels = localStorage.getItem('modelsSettings');
-        return storedModels ? JSON.parse(storedModels) : null;
+        if (!storedModels) return null; // Если данных нет, возвращаем null
+
+        return JSON.parse(storedModels); // Парсим и сразу возвращаем объект
       } catch (error) {
         console.error("Ошибка при загрузке настроек моделей:", error);
-        return null;
+        return null; // В случае ошибки возвращаем null
       }
     };
 
@@ -155,24 +158,6 @@ export default {
         settings: {},
       },
     };
-
-    const storedModels = localStorage.getItem('modelsSettings');
-
-    if (storedModels) {
-      const parsedModels = JSON.parse(storedModels); // Парсим данные из localStorage
-      for (const key in models) {
-        if (parsedModels[key]) {
-          models[key].settings = parsedModels[key].settings; // Восстанавливаем настройки
-        } else {
-          models[key].settings = { ...models[key].originalSettings }; // Если данных нет - сбрасываем
-        }
-      }
-    } else {
-      // Копируем оригинальные настройки в текущие настройки
-      for (const key in models) {
-        models[key].settings = { ...models[key].originalSettings };
-      }
-    }
 
     // Функция загрузки одной модели
     const loadModel = async (modelKey) => {
