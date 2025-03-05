@@ -3,7 +3,6 @@ import {onMounted, onUnmounted, ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 import jsPDF from "jspdf";
 import * as THREE from 'three';
-import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry.js';
 import {TextureLoader} from 'three';
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
@@ -1278,6 +1277,10 @@ export default {
       isBrandingOpen.value = !isBrandingOpen.value;
     };
 
+
+
+
+
     // Нанесение логотипа на модель и сохранение логотипа в localStorage
     const loadBrandImage = async (event) => {
       const file = event.target.files[0];
@@ -1300,73 +1303,59 @@ export default {
 
       try {
         const imageData = await loadTexture;
-        const brandTexture = new THREE.TextureLoader().load(imageData);
-        brandTexture.needsUpdate = true;
+        const brandImage = new Image();
+        brandImage.src = imageData;
 
-        console.log('🔍 Загруженная текстура:', brandTexture);
+        brandImage.onload = () => {
+          model.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              const material = child.material;
 
-        // 📌 Определяем переднюю часть модели по границам (Box3)
-        const boundingBox = new THREE.Box3().setFromObject(model);
-        const center = boundingBox.getCenter(new THREE.Vector3());
+              if (material instanceof THREE.MeshStandardMaterial && material.map) {
+                console.log('🔍 Исходная текстура:', material.map);
 
-        const frontPosition = new THREE.Vector3(
-          center.x,
-          center.y + boundingBox.max.y * 0.2, // Смещаем чуть выше центра груди
-          boundingBox.max.z + 0.05 // Немного вперёд
-        );
+                // 🎨 Создаём новый canvas для объединения текстур
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
 
-        console.log('📌 Передняя точка:', frontPosition);
+                // Используем размеры оригинальной текстуры
+                const originalTexture = material.map.image;
+                canvas.width = originalTexture.width;
+                canvas.height = originalTexture.height;
 
-        // Создаём материал логотипа
-        const brandMaterial = new THREE.MeshBasicMaterial({
-          map: brandTexture,
-          transparent: true,
-          depthTest: false, // Логотип всегда сверху
-          polygonOffset: true,
-          polygonOffsetFactor: -1, // Избегаем конфликтов слоёв
-        });
+                // 🖌 Рисуем оригинальную текстуру
+                ctx.drawImage(originalTexture, 0, 0, canvas.width, canvas.height);
 
-        // **Используем BufferGeometry (фикс для Decal)**
-        const decalSize = new THREE.Vector3(1, 1, 0.1);
-        const decalGeometry = new DecalGeometry(model, frontPosition, new THREE.Euler(0, 0, 0), decalSize);
-        const decalMesh = new THREE.Mesh(decalGeometry, brandMaterial);
+                // 📌 Рисуем логотип по центру
+                const logoSize = canvas.width * 0.4; // Логотип 40% ширины модели
+                const x = (canvas.width - logoSize) / 2;
+                const y = (canvas.height - logoSize) / 2;
+                ctx.drawImage(brandImage, x, y, logoSize, logoSize);
 
-        // Добавляем логотип в сцену
-        scene.add(decalMesh);
-        console.log('✅ Decal добавлен в сцену:', decalMesh);
+                // 📸 Создаём новую текстуру из canvas
+                const newTexture = new THREE.CanvasTexture(canvas);
+                newTexture.needsUpdate = true;
 
-        // Перерисовываем
-        renderer.render(scene, camera);
+                // ✅ Заменяем текстуру у материала
+                material.map = newTexture;
+                material.needsUpdate = true;
+
+                console.log('✅ Логотип нанесён корректно на материал:', child);
+              }
+            }
+          });
+
+          // Обновляем рендер
+          renderer.render(scene, camera);
+        };
       } catch (error) {
         console.error('❌ Ошибка при загрузке изображения бренда:', error);
       }
     };
 
-    // **Функция для поиска передней центральной точки модели**
-    const findFrontCenter = (model) => {
-      let frontVertex = null;
-      let minZ = Infinity;
 
-      model.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          const geometry = child.geometry;
-          geometry.computeBoundingBox();
 
-          if (!geometry.boundingBox) return;
 
-          // Выбираем точку с минимальным Z (самая передняя точка)
-          if (geometry.boundingBox.min.z < minZ) {
-            minZ = geometry.boundingBox.min.z;
-            frontVertex = {
-              position: new THREE.Vector3(0, (geometry.boundingBox.min.y + geometry.boundingBox.max.y) / 2, geometry.boundingBox.min.z),
-              rotation: new THREE.Euler(0, 0, 0),
-            };
-          }
-        }
-      });
-
-      return frontVertex;
-    };
 
     // Двигаем и сохраняем настройки расположения логотипа в localStorage
     const applyBrand = () => {
