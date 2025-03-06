@@ -40,7 +40,6 @@ export default {
     const isMultiModelView = ref(false); // 🏷 Флаг для обычного режима "1x4 модели"
     const isThreeDView = ref(false); // 🏷 Флаг для режима "2x2 модели"
     const isBrandingOpen = ref(false);
-    const brandImage = ref(null);
     const scale = ref(1);
     const positionX = ref(0);
     const positionY = ref(0);
@@ -1393,43 +1392,6 @@ export default {
       }
     };
 
-    // Двигаем и сохраняем настройки расположения логотипа в localStorage
-    const applyBrand = () => {
-      // Логика нанесения изображения на модель (Three.js)
-      localStorage.setItem("brandSettings", JSON.stringify({ scale: scale.value, x: positionX.value, y: positionY.value }));
-    };
-
-    // Удаляем картинку логотипа
-    const removeBrand = () => {
-      brandImage.value = null;
-      localStorage.removeItem("brandImage");
-    };
-
-    // Удаляем картинку логотипа + настройки расположения картинки
-    const removeAllBrands = () => {
-      // Проверяем, есть ли данные с ключом 'brandImage' и 'brandSettings' в localStorage
-      const brandImage = localStorage.getItem('brandImage');
-      const brandSettings = localStorage.getItem('brandSettings');
-
-      if (brandImage || brandSettings !== null) {
-        // Если данные есть, запрашиваем подтверждение
-        const confirmed = confirm(t('special.branding.confirm'));
-
-        if (confirmed) {
-          // Если пользователь нажал "ОК", удаляем данные
-          localStorage.removeItem('brandImage');
-          localStorage.removeItem("brandSettings");
-          alert(t('special.branding.alertYes'));
-        } else {
-          // Если пользователь нажал "Отмена", ничего не делаем
-          alert(t('special.branding.alertNo'));
-        }
-      } else {
-        // Если данных нет, уведомляем пользователя
-        alert(t('special.branding.noData'));
-      }
-    };
-
     const onWindowResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -1522,9 +1484,6 @@ export default {
       scale,
       positionX,
       positionY,
-      applyBrand,
-      removeBrand,
-      removeAllBrands,
     };
   },
 }
@@ -1607,51 +1566,36 @@ export default {
     <div class="special-controls">
 
       <div class="branding-container" v-if="!isMultiModelView && !isThreeDView">
-        <!-- Кнопка "Брендировать" и раскрывающееся меню -->
-        <button @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
-
         <transition name="fade">
           <div v-if="isBrandingOpen" class="branding-controls">
             <div class="select-brand">
               <!-- Кнопка для загрузки картинки бренда с диска -->
               <input type="file" @change="loadBrandImage" id="brand-input" class="brand-input" accept="image/*" />
               <label for="brand-input" class="upload" :title="t('special.branding.upload')"><i class="fa-solid fa-upload"></i></label>
-
-              <!-- Кнопка "Применить" -->
-              <button @click="applyBrand" class="apply" :title="t('special.branding.applyBrand')"><i class="fas fa-check-circle"></i></button>
             </div>
 
             <div class="position">
               <!-- Кнопка-ползунок "Масштаб" -->
               <label for="scale">{{ t('special.branding.scale') }}</label>
-              <input type="range" v-model="scale" @input="applyBrand" id="scale" min="0.5" max="2" step="0.1" />
+              <input type="range" v-model="scale" @input="brandImageUpdate" id="scale" min="0.5" max="2" step="0.1" />
 
               <!-- Кнопка-ползунок "Вертикаль" -->
               <label for="positionY">{{ t('special.branding.positionY') }}</label>
-              <input type="range" v-model="positionY" @input="applyBrand" id="positionY" min="-1" max="1" step="0.1" />
+              <input type="range" v-model="positionY" @input="brandImageUpdate" id="positionY" min="-1" max="1" step="0.1" />
 
               <!-- Кнопка-ползунок "Горизонталь" -->
               <label for="positionX">{{ t('special.branding.positionX') }}</label>
-              <input type="range" v-model="positionX" @input="applyBrand" id="positionX" min="-1" max="1" step="0.1" />
+              <input type="range" v-model="positionX" @input="brandImageUpdate" id="positionX" min="-1" max="1" step="0.1" />
             </div>
-
-            <div class="remove">
-              <!-- Кнопка "Удалить" -->
-              <button @click="removeBrand" class="remove-one" :title="t('special.branding.removeBrand')"><i class="fas fa-eraser"></i></button>
-
-              <!-- Кнопка "Удалить ВСЕ" -->
-              <button @click="removeAllBrands" class="remove-all" :title="t('special.branding.removeAllBrands')"><i class="fas fa-trash-alt"></i></button>
-            </div>
-
           </div>
         </transition>
+        <!-- Кнопка "Брендировать" и раскрывающееся меню -->
+        <button @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
       </div>
 
       <div class="saving-container">
         <!-- Кнопка "Сохранить" и раскрывающееся меню -->
-        <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.saving.closeSaveData') : t('special.saving.saveData')" class="save-button" :class="{'open': showSaveOptions}">
-          <i class="fas fa-save"></i>
-        </button>
+        <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.saving.closeSaveData') : t('special.saving.saveData')" class="save-button" :class="{'open': showSaveOptions}"><i class="fas fa-save"></i></button>
         <!-- Меню с анимацией -->
         <transition name="slide">
           <div v-show="showSaveOptions" class="save-options" :class="{'show': showSaveOptions, 'active': isBrandingOpen}">
@@ -2153,7 +2097,6 @@ export default {
             width: 46px;
             height: 46px;
             font-size: 24px;
-            margin-right: 10px;
             border: 2px solid transparent;
             border-radius: 5px;
             display: flex;
@@ -2161,7 +2104,6 @@ export default {
             align-items: center;
             margin-bottom: 10px;
             background-color: lightgoldenrodyellow;
-            //background: linear-gradient(to bottom, rgb(229, 255, 229), rgb(250, 247, 234)) no-repeat center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
             transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
 
@@ -2371,7 +2313,6 @@ export default {
               width: 41px;
               height: 41px;
               font-size: 22px;
-              margin-right: 9px;
               margin-bottom: 9px;
             }
           }
@@ -2525,7 +2466,6 @@ export default {
               width: 36px;
               height: 36px;
               font-size: 18px;
-              margin-right: 8px;
               margin-bottom: 8px;
             }
           }
