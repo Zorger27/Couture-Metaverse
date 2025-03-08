@@ -1988,6 +1988,7 @@ export default {
         &.active {
           //transform: translateX(40px);
           margin-right: -42px;
+
         }
 
         button {
