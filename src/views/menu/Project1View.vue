@@ -2115,18 +2115,6 @@ export default {
             }
           }
           .brand-input {display: none;} /* Скрываем оригинальный input */
-
-          .apply {
-            background-color: lightgoldenrodyellow;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-            transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
-            &:hover {
-              background-color: #ffffff;
-              color: purple;
-              border: 2px solid purple;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            }
-          }
         }
 
         .position {
@@ -2135,36 +2123,6 @@ export default {
           justify-content: center;
           font-size: 22px;
           margin-bottom: 10px;
-        }
-
-        .remove {
-          display: flex;
-          flex-direction: row;
-          justify-content: center;
-          .remove-one {
-            background-color: lightgoldenrodyellow;
-            margin-right: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-            transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
-            &:hover {
-              background-color: #ffffff; /* Более яркий цвет при наведении */
-              color: darkred;
-              border: 2px solid darkred;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            }
-          }
-          .remove-all {
-            background-color: lightgoldenrodyellow;
-            color: black;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-            transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
-            &:hover {
-              background-color: #ffffff; /* Более яркий цвет при наведении */
-              color: deeppink;
-              border: 2px solid deeppink;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            }
-          }
         }
       }
 
@@ -2320,9 +2278,6 @@ export default {
             margin-bottom: 9px;
             font-size: 20px;
           }
-          .remove {
-            .remove-one {margin-right: 9px;}
-          }
         }
       }
     }
@@ -2472,9 +2427,6 @@ export default {
           .position {
             font-size: 18px;
             margin-bottom: 8px;
-          }
-          .remove {
-            .remove-one {margin-right: 8px;}
           }
         }
       }
