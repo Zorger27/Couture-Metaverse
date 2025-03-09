@@ -1276,7 +1276,11 @@ export default {
       isBrandingOpen.value = !isBrandingOpen.value;
     };
 
-    // Нанесение логотипа на модель и сохранение логотипа в localStorage
+
+
+
+
+    // Нанесение логотипа на модель
     const loadBrandImage = async (event) => {
       const file = event.target.files[0];
       if (!file || !model) return;
@@ -1324,9 +1328,18 @@ export default {
           }
 
           const material = chestMesh.material;
+
+          // ✅ Если у материала нет текстуры, создаём пустую белую текстуру
           if (!(material instanceof THREE.MeshStandardMaterial) || !material.map) {
-            console.warn("❌ У материала нет текстуры!");
-            return;
+            const whiteCanvas = document.createElement("canvas");
+            whiteCanvas.width = 1024;
+            whiteCanvas.height = 1024;
+            const ctx = whiteCanvas.getContext("2d");
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, whiteCanvas.width, whiteCanvas.height);
+
+            material.map = new THREE.CanvasTexture(whiteCanvas);
+            material.needsUpdate = true;
           }
 
           console.log("✅ Найден меш для груди:", chestMesh);
@@ -1336,8 +1349,8 @@ export default {
           const center = boundingBox.getCenter(new THREE.Vector3());
 
           // Корректировка смещения логотипа
-          center.y += boundingBox.max.y * 0.25;  // Сейчас логотип находится по центру груди футболки!
-          center.x -= boundingBox.max.x * 0.35;  // Сейчас логотип находится по центру груди футболки!
+          center.y += boundingBox.max.y * 0.25;
+          center.x -= boundingBox.max.x * 0.35;
 
           console.log(`📌 Новый центр логотипа: X=${center.x}, Y=${center.y}`);
 
@@ -1353,25 +1366,27 @@ export default {
           // 🖌 Рисуем оригинальную текстуру
           ctx.drawImage(originalTexture, 0, 0, canvas.width, canvas.height);
 
-          // Размер логотипа - 15%
+          // Коррекция пропорций логотипа относительно оригинальной текстуры
+          const textureAspect = originalTexture.width / originalTexture.height;
           const logoAspect = brandImage.width / brandImage.height;
+
           let logoWidth = canvas.width * 0.15;
           let logoHeight = logoWidth / logoAspect;
-          if (logoHeight > canvas.height * 0.15) {
+
+          if (logoAspect > textureAspect) {
             logoHeight = canvas.height * 0.15;
             logoWidth = logoHeight * logoAspect;
           }
 
-          // ✅ Центрируем логотип на груди (учитываем сдвиг)
+          // ✅ Центрируем логотип на груди
           const x = (center.x - boundingBox.min.x) / (boundingBox.max.x - boundingBox.min.x) * canvas.width - logoWidth / 2;
           const y = (boundingBox.max.y - center.y) / (boundingBox.max.y - boundingBox.min.y) * canvas.height - logoHeight / 2;
 
-          // Переворачиваем логотип
+          // 📌 Переворачиваем логотип и корректируем масштаб
           ctx.save();
           ctx.translate(x + logoWidth / 2, y + logoHeight / 2);
-          // ctx.rotate(Math.PI);
-          ctx.scale(1, -1); // Отразить по вертикали
-          ctx.drawImage(brandImage, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
+          ctx.scale(1, -1); // Отражение по вертикали
+          ctx.drawImage(brandImage, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight * (originalTexture.height / canvas.height));
           ctx.restore();
 
           // 📸 Создаём новую текстуру из canvas
@@ -1391,6 +1406,13 @@ export default {
         console.error("❌ Ошибка при загрузке изображения бренда:", error);
       }
     };
+
+
+
+
+
+
+
 
     const onWindowResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
