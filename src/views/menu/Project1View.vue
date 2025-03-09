@@ -1280,6 +1280,7 @@ export default {
 
 
 
+
     // Нанесение логотипа на модель
     const loadBrandImage = async (event) => {
       const file = event.target.files[0];
@@ -1309,7 +1310,6 @@ export default {
           let chestMesh = null;
           let maxSize = 0;
 
-          // 🔍 Находим передний меш (грудь)
           model.traverse((child) => {
             if (child instanceof THREE.Mesh) {
               const boundingBox = new THREE.Box3().setFromObject(child);
@@ -1327,77 +1327,106 @@ export default {
             return;
           }
 
-          const material = chestMesh.material;
+          const originalMaterial = chestMesh.material;
 
-          // ✅ Если у материала нет текстуры, создаём пустую белую текстуру
-          if (!(material instanceof THREE.MeshStandardMaterial) || !material.map) {
-            const whiteCanvas = document.createElement("canvas");
-            whiteCanvas.width = 1024;
-            whiteCanvas.height = 1024;
-            const ctx = whiteCanvas.getContext("2d");
-            ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(0, 0, whiteCanvas.width, whiteCanvas.height);
+          // Функция для создания цветного фона
+          const createColoredBackground = (width, height, color) => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = width;
+            canvas.height = height;
 
-            material.map = new THREE.CanvasTexture(whiteCanvas);
-            material.needsUpdate = true;
+            // Преобразуем цвет THREE.Color в строку RGB
+            const r = Math.floor(color.r * 255);
+            const g = Math.floor(color.g * 255);
+            const b = Math.floor(color.b * 255);
+
+            ctx.fillStyle = `rgb(${r},${g},${b})`;
+            ctx.fillRect(0, 0, width, height);
+
+            return canvas;
+          };
+
+          const createNewTexture = () => {
+            const textureWidth = 1024;  // Фиксированный размер для консистентности
+            const textureHeight = 1024;
+
+            // Создаем основной канвас
+            const baseCanvas = document.createElement("canvas");
+            const baseCtx = baseCanvas.getContext("2d");
+            baseCanvas.width = textureWidth;
+            baseCanvas.height = textureHeight;
+
+            // Если есть существующая текстура - используем её
+            if (originalMaterial.map?.image) {
+              baseCtx.drawImage(originalMaterial.map.image, 0, 0, textureWidth, textureHeight);
+            }
+            // Если есть только цвет - создаем цветной фон
+            else if (originalMaterial.color) {
+              const colorCanvas = createColoredBackground(textureWidth, textureHeight, originalMaterial.color);
+              baseCtx.drawImage(colorCanvas, 0, 0);
+            }
+
+            // Подготавливаем логотип
+            const logoCanvas = document.createElement("canvas");
+            const logoCtx = logoCanvas.getContext("2d");
+
+            // Рассчитываем размеры логотипа с сохранением пропорций
+            const maxLogoWidth = Math.floor(textureWidth * 0.15);
+            const aspectRatio = brandImage.width / brandImage.height;
+            const logoWidth = maxLogoWidth;
+            const logoHeight = Math.floor(maxLogoWidth / aspectRatio);
+
+            logoCanvas.width = logoWidth;
+            logoCanvas.height = logoHeight;
+
+            // Рисуем логотип с поворотом
+            logoCtx.save();
+            logoCtx.translate(logoWidth, logoHeight);
+            logoCtx.rotate(Math.PI);
+            logoCtx.drawImage(brandImage, 0, 0, logoWidth, logoHeight);
+            logoCtx.restore();
+
+            // Накладываем логотип
+            const x = Math.floor(textureWidth * 0.25);
+            const y = Math.floor(textureHeight * 0.30);
+
+            baseCtx.save();
+            baseCtx.scale(-1, 1);
+            baseCtx.globalCompositeOperation = 'source-over';
+            baseCtx.drawImage(logoCanvas, -x - logoWidth, y);
+            baseCtx.restore();
+
+            // Создаем текстуру
+            const texture = new THREE.Texture(baseCanvas);
+            texture.flipY = true;
+            texture.needsUpdate = true;
+
+            return texture;
+          };
+
+          // Клонируем материал с сохранением всех свойств
+          const newMaterial = new THREE.MeshStandardMaterial();
+
+          // Копируем базовые свойства
+          newMaterial.map = createNewTexture();
+          newMaterial.color = originalMaterial.color.clone();
+          newMaterial.roughness = originalMaterial.roughness;
+          newMaterial.metalness = originalMaterial.metalness;
+          newMaterial.side = originalMaterial.side;
+
+          // Копируем дополнительные свойства
+          if (originalMaterial.normalMap) {
+            newMaterial.normalMap = originalMaterial.normalMap;
+            newMaterial.normalScale = originalMaterial.normalScale?.clone();
+          }
+          if (originalMaterial.envMap) {
+            newMaterial.envMap = originalMaterial.envMap;
+            newMaterial.envMapIntensity = originalMaterial.envMapIntensity;
           }
 
-          console.log("✅ Найден меш для груди:", chestMesh);
-
-          // 📌 Определяем центр груди
-          const boundingBox = new THREE.Box3().setFromObject(chestMesh);
-          const center = boundingBox.getCenter(new THREE.Vector3());
-
-          // Корректировка смещения логотипа
-          center.y += boundingBox.max.y * 0.25;
-          center.x -= boundingBox.max.x * 0.35;
-
-          console.log(`📌 Новый центр логотипа: X=${center.x}, Y=${center.y}`);
-
-          // 🎨 Создаём canvas для объединения логотипа с текстурой
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-
-          // 📌 Используем размеры оригинальной текстуры
-          const originalTexture = material.map.image;
-          canvas.width = originalTexture.width;
-          canvas.height = originalTexture.height;
-
-          // 🖌 Рисуем оригинальную текстуру
-          ctx.drawImage(originalTexture, 0, 0, canvas.width, canvas.height);
-
-          // Коррекция пропорций логотипа относительно оригинальной текстуры
-          const textureAspect = originalTexture.width / originalTexture.height;
-          const logoAspect = brandImage.width / brandImage.height;
-
-          let logoWidth = canvas.width * 0.15;
-          let logoHeight = logoWidth / logoAspect;
-
-          if (logoAspect > textureAspect) {
-            logoHeight = canvas.height * 0.15;
-            logoWidth = logoHeight * logoAspect;
-          }
-
-          // ✅ Центрируем логотип на груди
-          const x = (center.x - boundingBox.min.x) / (boundingBox.max.x - boundingBox.min.x) * canvas.width - logoWidth / 2;
-          const y = (boundingBox.max.y - center.y) / (boundingBox.max.y - boundingBox.min.y) * canvas.height - logoHeight / 2;
-
-          // 📌 Переворачиваем логотип и корректируем масштаб
-          ctx.save();
-          ctx.translate(x + logoWidth / 2, y + logoHeight / 2);
-          ctx.scale(1, -1); // Отражение по вертикали
-          ctx.drawImage(brandImage, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight * (originalTexture.height / canvas.height));
-          ctx.restore();
-
-          // 📸 Создаём новую текстуру из canvas
-          const newTexture = new THREE.CanvasTexture(canvas);
-          newTexture.needsUpdate = true;
-
-          // ✅ Заменяем текстуру у материала
-          material.map = newTexture;
-          material.needsUpdate = true;
-
-          console.log("✅ Логотип нанесён корректно на грудь:", chestMesh);
+          // Применяем материал
+          chestMesh.material = newMaterial;
 
           // Обновляем рендер
           renderer.render(scene, camera);
@@ -1406,8 +1435,6 @@ export default {
         console.error("❌ Ошибка при загрузке изображения бренда:", error);
       }
     };
-
-
 
 
 
