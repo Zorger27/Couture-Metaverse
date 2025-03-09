@@ -1440,7 +1440,6 @@ export default {
 
 
 
-
     const onWindowResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
