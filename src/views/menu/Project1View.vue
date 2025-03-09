@@ -1281,6 +1281,7 @@ export default {
 
 
 
+
     // Нанесение логотипа на модель
     const loadBrandImage = async (event) => {
       const file = event.target.files[0];
@@ -1435,6 +1436,7 @@ export default {
         console.error("❌ Ошибка при загрузке изображения бренда:", error);
       }
     };
+
 
 
 
