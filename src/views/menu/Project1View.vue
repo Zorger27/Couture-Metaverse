@@ -94,7 +94,7 @@ export default {
     };
 
     // Удаление данных из localStorage с подтверждением и восстановлением оригинальных настроек
-    const clearLocalStorage = () => {
+    const clearLocalStorage = async () => {
       const modelsSettings = localStorage.getItem('modelsSettings');
 
       if (modelsSettings) {
@@ -104,17 +104,10 @@ export default {
           // Удаляем данные из localStorage
           localStorage.removeItem('modelsSettings');
 
-          // Очищаем логотип
-          if (logoMesh) {
-            logoMesh.parent?.remove(logoMesh);
-            if (logoMesh.material.map) {
-              logoMesh.material.map.dispose();
-            }
-            logoMesh.material.dispose();
-            logoMesh.geometry.dispose();
-            logoMesh = null;
-          }
-          lastLoadedImage = null;
+          // Очищаем логотип используя нашу функцию clearLogo
+          clearLogo();
+
+          // Сбрасываем значения позиции и масштаба
           positionX.value = 0;
           positionY.value = 0;
           scale.value = 1;
@@ -128,43 +121,41 @@ export default {
                 imageData: null,
                 positionX: 0,
                 positionY: 0,
-                scale: 1
+                scale: 1,
+                lastModified: '2025-03-10 05:25:43',
+                modifiedBy: 'Zorger27'
               }
             };
           }
 
-          // Если текущая модель загружена, применяем к ней настройки
+          // Если текущая модель загружена, перезагружаем её
           if (model && model.userData.modelKey) {
             const currentModelKey = model.userData.modelKey;
+
+            // Очищаем сцену
+            clearScene();
+
+            // Перезагружаем модель с оригинальными настройками
+            await loadModel(currentModelKey);
+
+            // Обновляем метаданные
             model.traverse((child) => {
-              if (child.isMesh && child.material) {
-                const material = child.material;
-                const settings = models[currentModelKey].originalSettings;
-
-                // Восстанавливаем основные свойства материала
-                material.color.copy(settings.color);
-                material.metalness = settings.metalness;
-                material.roughness = settings.roughness;
-
-                // Восстанавливаем текстуру если она есть
-                if (settings.texture) {
-                  material.map = getTexture(settings.texture);
-                } else {
-                  material.map = null;
-                }
-
-                material.needsUpdate = true;
-
-                // Обновляем время и пользователя
-                child.userData.lastModified = '2025-03-10 03:21:31';
+              if (child.isMesh) {
+                child.userData.lastModified = '2025-03-10 05:25:43';
                 child.userData.modifiedBy = 'Zorger27';
               }
             });
           }
 
-          // Обновляем рендер
+          // Принудительно обновляем рендер несколько раз
           if (renderer && scene && camera) {
+            // Первый рендер
             renderer.render(scene, camera);
+
+            // Дополнительный рендер через небольшую задержку
+            setTimeout(() => {
+              renderer.render(scene, camera);
+            }, 100);
           }
 
           alert(t('special.alertYes'));
@@ -1853,9 +1844,12 @@ export default {
 
       // Обновляем текстуру в материале
       if (logoMesh.material) {
-        if (logoMesh.material.map) {
+        // Освобождаем старую текстуру, если она существует
+        if (logoMesh.material.map && typeof logoMesh.material.map.dispose === 'function') {
           logoMesh.material.map.dispose();
         }
+
+        // Присваиваем новую текстуру
         logoMesh.material.map = texture;
         logoMesh.material.needsUpdate = true;
       }
