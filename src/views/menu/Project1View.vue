@@ -43,6 +43,8 @@ export default {
     const scale = ref(1);
     const positionX = ref(0);
     const positionY = ref(0);
+    const textureLoader = new TextureLoader();
+    const textureCache = {};
     const logoCache = new Map(); // Добавляем кеш для логотипов
 
     // Храним последнее загруженное изображение и меш логотипа
@@ -64,6 +66,13 @@ export default {
 
     let mediaRecorder;
     let recordedChunks = [];
+
+    const getTexture = (path) => {
+      if (!textureCache[path]) {
+        textureCache[path] = textureLoader.load(path);
+      }
+      return textureCache[path];
+    };
 
     // Загрузка данных из localStorage
     const loadStoredModels = () => {
@@ -313,32 +322,10 @@ export default {
         model = gltf.scene;
 
         model.userData.modelKey = modelKey;
-        model.userData.lastModified = '2025-03-10 03:45:00';
+        model.userData.lastModified = '2025-03-10 04:41:55';
         model.userData.modifiedBy = 'Zorger27';
 
-        // Сохраняем оригинальные настройки материалов
-        model.traverse((child) => {
-          if (child instanceof THREE.Mesh && child.material) {
-            const originalMaterial = child.material.clone();
-            child.userData.originalSettings = {
-              material: originalMaterial,
-              color: models[modelKey].originalSettings.color,
-              metalness: models[modelKey].originalSettings.metalness,
-              roughness: models[modelKey].originalSettings.roughness,
-              opacity: originalMaterial.opacity,
-              transparent: originalMaterial.transparent,
-              lastModified: '2025-03-10 03:45:00',
-              modifiedBy: 'Zorger27'
-            };
-          }
-        });
-
-        model.position.set(0, 0, 0);
-        model.scale.set(4, 4, 4);
-
-        sceneGroup.add(model);
-        rotationStates.set(modelKey, { clockwise: false, counterClockwise: false });
-
+        // Применяем материалы к модели
         const materialPromises = [];
         model.traverse((child) => {
           if (child instanceof THREE.Mesh && child.material) {
@@ -348,53 +335,103 @@ export default {
 
         await Promise.all(materialPromises);
 
+        model.position.set(0, 0, 0);
+        model.scale.set(4, 4, 4);
+
+        sceneGroup.add(model);
+        rotationStates.set(modelKey, { clockwise: false, counterClockwise: false });
+
         const boundingBox = new THREE.Box3().setFromObject(model);
         const height = boundingBox.max.y - boundingBox.min.y;
         model.position.y = -height / 2;
 
-        // Восстанавливаем логотип если есть, используя кеш
+        // Если есть логотип в настройках
         if (models[modelKey].settings?.logo?.imageData) {
-          if (logoMesh) {
-            logoMesh.parent?.remove(logoMesh);
-            if (logoMesh.material.map) {
-              logoMesh.material.map.dispose();
+          try {
+            // Используем getCachedLogo для загрузки логотипа
+            lastLoadedImage = await getCachedLogo(models[modelKey].settings.logo.imageData);
+
+            // Находим меш груди
+            let chestMesh = null;
+            let maxSize = 0;
+            model.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                const bbox = new THREE.Box3().setFromObject(child);
+                const size = bbox.max.y - bbox.min.y;
+                if (bbox.max.z > 0 && size > maxSize) {
+                  chestMesh = child;
+                  maxSize = size;
+                }
+              }
+            });
+
+            if (chestMesh) {
+              // Создаем меш для логотипа
+              logoMesh = new THREE.Mesh(
+                chestMesh.geometry.clone(),
+                new THREE.MeshBasicMaterial({
+                  map: null,
+                  transparent: true,
+                  opacity: 1,
+                  depthTest: true,
+                  depthWrite: false,
+                  side: THREE.DoubleSide,
+                  blending: THREE.CustomBlending,
+                  blendEquation: THREE.AddEquation,
+                  blendSrc: THREE.SrcAlphaFactor,
+                  blendDst: THREE.OneMinusSrcAlphaFactor,
+                  premultipliedAlpha: true
+                })
+              );
+
+              // Копируем трансформации
+              logoMesh.position.copy(chestMesh.position);
+              logoMesh.rotation.copy(chestMesh.rotation);
+              logoMesh.scale.copy(chestMesh.scale);
+              logoMesh.position.z += 0.001;
+
+              logoMesh.userData = {
+                isLogo: true,
+                modelKey: modelKey,
+                lastModified: '2025-03-10 04:45:54',
+                modifiedBy: 'Zorger27'
+              };
+
+              chestMesh.parent.add(logoMesh);
+
+              // Устанавливаем значения из настроек
+              positionX.value = models[modelKey].settings.logo.positionX;
+              positionY.value = models[modelKey].settings.logo.positionY;
+              scale.value = models[modelKey].settings.logo.scale;
+
+              // Обновляем текстуру логотипа
+              updateLogoTexture();
             }
-            logoMesh.material.dispose();
-            logoMesh.geometry.dispose();
-            logoMesh = null;
+          } catch (error) {
+            console.error(`❌ Ошибка при добавлении логотипа для модели ${modelKey}:`, error);
           }
-
-          // Используем кеш для загрузки логотипа
-          lastLoadedImage = await getCachedLogo(models[modelKey].settings.logo.imageData);
-          positionX.value = models[modelKey].settings.logo.positionX;
-          positionY.value = models[modelKey].settings.logo.positionY;
-          scale.value = models[modelKey].settings.logo.scale;
-
-          await createLogoMesh();
         }
 
         renderer.render(scene, camera);
 
       } catch (error) {
-        console.error(`Ошибка загрузки модели ${modelKey}:`, error);
+        console.error(`❌ Ошибка загрузки модели ${modelKey}:`, error);
       }
     };
 
     // Функция загрузки всех моделей
     const loadAllModels = async () => {
-      isMultiModelView.value = true; // 📌 Скрываем панель
-      isThreeDView.value = false; // Выключаем 2x2 режим
+      isMultiModelView.value = true;
+      isThreeDView.value = false;
       currentModelKey.value = null;
 
-      clearScene(); // Очистка сцены перед загрузкой
+      clearScene();
       const loader = new GLTFLoader();
       const totalModels = Object.keys(models).length;
 
-      // Создаём группу для моделей
       sceneGroup = new THREE.Group();
       scene.add(sceneGroup);
 
-      // Определяем максимальные размеры для нормализации
       let maxModelHeight = 0;
       let maxModelWidth = 0;
       let modelsArray = [];
@@ -405,8 +442,9 @@ export default {
           const gltf = await loader.loadAsync(models[key].path);
           const model = gltf.scene;
           model.userData.modelKey = key;
+          model.userData.lastModified = '2025-03-10 04:10:31';
+          model.userData.modifiedBy = 'Zorger27';
 
-          // Вычисляем boundingBox
           let boundingBox = new THREE.Box3().setFromObject(model);
           const modelWidth = boundingBox.max.x - boundingBox.min.x;
           const modelHeight = boundingBox.max.y - boundingBox.min.y;
@@ -416,9 +454,7 @@ export default {
 
           console.log(`✅ ${key}: Высота = ${modelHeight}, Ширина = ${modelWidth}`);
 
-          modelsArray[index] = model; // **Сохраняем порядок моделей**
-
-          // 📌 Добавляем модель в rotationStates (по умолчанию остановлена)
+          modelsArray[index] = model;
           rotationStates.set(key, { clockwise: false, counterClockwise: false });
 
         } catch (error) {
@@ -426,73 +462,147 @@ export default {
         }
       });
 
-      // Ждём, пока все модели загрузятся
       await Promise.all(modelPromises);
       console.log(`📏 Максимальная высота: ${maxModelHeight}, максимальная ширина: ${maxModelWidth}`);
 
       // 2️⃣ Второй проход — нормализация размеров и позиционирование
       let materialPromises = [];
-      const spacing = maxModelWidth * 3.2; // БОЛЬШЕ отступов между моделями
+      let logoPromises = [];
+      const spacing = maxModelWidth * 3.2;
       let startX = -(totalModels - 1) * spacing / 2;
 
       modelsArray.forEach((model, index) => {
         const modelKey = model.userData.modelKey;
-
-        // 1. Пересчитываем boundingBox до масштабирования
         let boundingBox = new THREE.Box3().setFromObject(model);
 
-        // 2. Масштабируем модели так, чтобы их высота ≈ 1.8 (уменьшаем!)
         const scaleFactor = 1.8 / maxModelHeight;
         model.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
-        // 3. Пересчитываем boundingBox после масштабирования
         boundingBox.setFromObject(model);
-
-        // 4. Размещаем модели по оси X, равномерно
         model.position.x = startX + index * spacing;
 
         console.log(`📍 ${modelKey} -> X: ${model.position.x}, Y: ${model.position.y}, Масштаб: ${scaleFactor}`);
 
-        // 5. Применяем материалы и текстуры
+        // Применяем материалы и текстуры
         model.traverse((child) => {
           if (child instanceof THREE.Mesh && child.material) {
             materialPromises.push(applyMaterialSettings(child.material, modelKey));
           }
         });
 
-        // Добавляем модель в сцену (в правильном порядке!)
+        // Добавляем логотип, если он есть в настройках модели
+        if (models[modelKey].settings?.logo?.imageData) {
+          logoPromises.push((async () => {
+            try {
+              // Используем кеш для логотипа
+              let modelLogo;
+              if (logoCache.has(models[modelKey].settings.logo.imageData)) {
+                modelLogo = logoCache.get(models[modelKey].settings.logo.imageData);
+              } else {
+                modelLogo = new Image();
+                modelLogo.src = models[modelKey].settings.logo.imageData;
+                await new Promise((resolve, reject) => {
+                  modelLogo.onload = resolve;
+                  modelLogo.onerror = reject;
+                });
+                logoCache.set(models[modelKey].settings.logo.imageData, modelLogo);
+              }
+
+              // Находим меш груди для текущей модели
+              let chestMesh = null;
+              let maxSize = 0;
+              model.traverse((child) => {
+                if (child instanceof THREE.Mesh) {
+                  const bbox = new THREE.Box3().setFromObject(child);
+                  const size = bbox.max.y - bbox.min.y;
+                  if (bbox.max.z > 0 && size > maxSize) {
+                    chestMesh = child;
+                    maxSize = size;
+                  }
+                }
+              });
+
+              if (chestMesh) {
+                // Создаем новый меш для логотипа
+                const modelLogoMesh = new THREE.Mesh(
+                  chestMesh.geometry.clone(),
+                  new THREE.MeshBasicMaterial({
+                    map: createLogoTexture(
+                      models[modelKey].settings.logo.positionX,
+                      models[modelKey].settings.logo.positionY,
+                      models[modelKey].settings.logo.scale,
+                      modelLogo
+                    ),
+                    transparent: true,
+                    opacity: 1,
+                    depthTest: true,
+                    depthWrite: false,
+                    side: THREE.DoubleSide,
+                    blending: THREE.CustomBlending,
+                    blendEquation: THREE.AddEquation,
+                    blendSrc: THREE.SrcAlphaFactor,
+                    blendDst: THREE.OneMinusSrcAlphaFactor,
+                    premultipliedAlpha: true
+                  })
+                );
+
+                // Копируем трансформации
+                modelLogoMesh.position.copy(chestMesh.position);
+                modelLogoMesh.rotation.copy(chestMesh.rotation);
+                modelLogoMesh.scale.copy(chestMesh.scale);
+                modelLogoMesh.position.z += 0.001; // Слегка смещаем вперед
+
+                // Добавляем метаданные
+                modelLogoMesh.userData = {
+                  isLogo: true, // Флаг для идентификации меша логотипа
+                  modelKey: modelKey,
+                  lastModified: '2025-03-10 04:19:40',
+                  modifiedBy: 'Zorger27'
+                };
+
+                // Добавляем меш логотипа как отдельный объект
+                chestMesh.parent.add(modelLogoMesh);
+
+                // Сохраняем ссылку на оригинальный материал в userData
+                if (chestMesh.material) {
+                  modelLogoMesh.userData.originalMaterial = chestMesh.material.clone();
+                }
+              }
+            } catch (error) {
+              console.error(`❌ Ошибка при добавлении логотипа для модели ${modelKey}:`, error);
+            }
+          })());
+        }
+
         sceneGroup.add(model);
       });
 
-      // Ждём, пока все материалы обновятся
-      await Promise.all(materialPromises);
+      // Ждём загрузки всех материалов и логотипов
+      await Promise.all([...materialPromises, ...logoPromises]);
 
-      // 6️⃣ Сдвигаем всю группу вниз, чтобы она стояла на "полу"
+      // Корректируем позицию группы
       const groupBoundingBox = new THREE.Box3().setFromObject(sceneGroup);
       const groupHeight = groupBoundingBox.max.y - groupBoundingBox.min.y;
       sceneGroup.position.y = -groupBoundingBox.min.y - groupHeight * 0.5;
 
       console.log(`🎯 Группа -> X: ${sceneGroup.position.x}, Y: ${sceneGroup.position.y}`);
 
-      // Перерисовываем сцену после всех изменений
-      requestAnimationFrame(() => renderer.render(scene, camera));
-      console.log("🎉 Все модели загружены, панель скрыта!");
+      renderer.render(scene, camera);
+      console.log("🎉 Все модели и логотипы загружены!");
     };
 
     // Функция загрузки всех моделей (2 спереди, 2 сзади)
     const loadAllModels3d = async () => {
-      isThreeDView.value = true; // Указываем, что это 2x2 компоновка
+      isThreeDView.value = true;
       isMultiModelView.value = false;
       currentModelKey.value = null;
 
-      clearScene(); // Очистка сцены перед загрузкой
+      clearScene();
       const loader = new GLTFLoader();
 
-      // Создаём группу для моделей
       sceneGroup = new THREE.Group();
       scene.add(sceneGroup);
 
-      // Определяем максимальные размеры для нормализации
       let maxModelHeight = 0;
       let maxModelWidth = 0;
       let modelsArray = [];
@@ -503,8 +613,9 @@ export default {
           const gltf = await loader.loadAsync(models[key].path);
           const model = gltf.scene;
           model.userData.modelKey = key;
+          model.userData.lastModified = '2025-03-10 04:11:39';
+          model.userData.modifiedBy = 'Zorger27';
 
-          // Вычисляем boundingBox
           let boundingBox = new THREE.Box3().setFromObject(model);
           const modelWidth = boundingBox.max.x - boundingBox.min.x;
           const modelHeight = boundingBox.max.y - boundingBox.min.y;
@@ -514,9 +625,7 @@ export default {
 
           console.log(`✅ ${key}: Высота = ${modelHeight}, Ширина = ${modelWidth}`);
 
-          modelsArray[index] = model; // **Сохраняем порядок моделей**
-
-          // 📌 Добавляем модель в rotationStates (по умолчанию остановлена)
+          modelsArray[index] = model;
           rotationStates.set(key, { clockwise: false, counterClockwise: false });
 
         } catch (error) {
@@ -524,114 +633,184 @@ export default {
         }
       });
 
-      // Ждём, пока все модели загрузятся
       await Promise.all(modelPromises);
       console.log(`📏 Максимальная высота: ${maxModelHeight}, максимальная ширина: ${maxModelWidth}`);
 
       // 2️⃣ Второй проход — нормализация размеров и позиционирование
       let materialPromises = [];
+      let logoPromises = [];
       const frontScale = 1.8 / maxModelHeight;
-      const backScale = frontScale * 0.8; // Задние модели меньше
-      const spacingX = maxModelWidth * 4.0; // Отступы по X
-      const spacingZ = maxModelWidth * 2.5; // Отступы по Z (глубина)
+      const backScale = frontScale * 0.8;
+      const spacingX = maxModelWidth * 4.0;
+      const spacingZ = maxModelWidth * 2.5;
 
       modelsArray.forEach((model, index) => {
         const modelKey = model.userData.modelKey;
         const isBackRow = index >= 2;
 
-        // 1. Устанавливаем разные масштабы для переднего и заднего ряда
         const scaleFactor = isBackRow ? backScale : frontScale;
         model.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
-        // 2. Пересчитываем boundingBox после масштабирования
         let boundingBox = new THREE.Box3().setFromObject(model);
 
-        // 3. Центрируем модели в ряду
         const xOffset = isBackRow ? -spacingX / 2 : 0;
         model.position.x = xOffset + (index % 2 === 0 ? -spacingX / 2 : spacingX / 2);
-        model.position.z = isBackRow ? -spacingZ : 0; // Отодвигаем задний ряд
-
-        // 4. Выравниваем модели по полу
+        model.position.z = isBackRow ? -spacingZ : 0;
         model.position.y = -boundingBox.min.y;
 
         console.log(`📍 ${modelKey} -> X: ${model.position.x}, Z: ${model.position.z}, Y: ${model.position.y}, Масштаб: ${scaleFactor}`);
 
-        // 5. Применяем материалы и текстуры
+        // Применяем материалы и текстуры
         model.traverse((child) => {
           if (child instanceof THREE.Mesh && child.material) {
             materialPromises.push(applyMaterialSettings(child.material, modelKey));
           }
         });
 
-        // Добавляем модель в сцену (в правильном порядке!)
+        // Добавляем логотип, если он есть в настройках модели
+        if (models[modelKey].settings?.logo?.imageData) {
+          logoPromises.push((async () => {
+            try {
+              // Используем кеш для логотипа
+              let modelLogo;
+              if (logoCache.has(models[modelKey].settings.logo.imageData)) {
+                modelLogo = logoCache.get(models[modelKey].settings.logo.imageData);
+              } else {
+                modelLogo = new Image();
+                modelLogo.src = models[modelKey].settings.logo.imageData;
+                await new Promise((resolve, reject) => {
+                  modelLogo.onload = resolve;
+                  modelLogo.onerror = reject;
+                });
+                logoCache.set(models[modelKey].settings.logo.imageData, modelLogo);
+              }
+
+              // Находим меш груди для текущей модели
+              let chestMesh = null;
+              let maxSize = 0;
+              model.traverse((child) => {
+                if (child instanceof THREE.Mesh) {
+                  const bbox = new THREE.Box3().setFromObject(child);
+                  const size = bbox.max.y - bbox.min.y;
+                  if (bbox.max.z > 0 && size > maxSize) {
+                    chestMesh = child;
+                    maxSize = size;
+                  }
+                }
+              });
+
+              if (chestMesh) {
+                // Создаем новый меш для логотипа
+                const modelLogoMesh = new THREE.Mesh(
+                  chestMesh.geometry.clone(),
+                  new THREE.MeshBasicMaterial({
+                    map: createLogoTexture(
+                      models[modelKey].settings.logo.positionX,
+                      models[modelKey].settings.logo.positionY,
+                      models[modelKey].settings.logo.scale,
+                      modelLogo
+                    ),
+                    transparent: true,
+                    opacity: 1,
+                    depthTest: true,
+                    depthWrite: false,
+                    side: THREE.DoubleSide,
+                    blending: THREE.CustomBlending,
+                    blendEquation: THREE.AddEquation,
+                    blendSrc: THREE.SrcAlphaFactor,
+                    blendDst: THREE.OneMinusSrcAlphaFactor,
+                    premultipliedAlpha: true
+                  })
+                );
+
+                // Копируем трансформации
+                modelLogoMesh.position.copy(chestMesh.position);
+                modelLogoMesh.rotation.copy(chestMesh.rotation);
+                modelLogoMesh.scale.copy(chestMesh.scale);
+                modelLogoMesh.position.z += 0.001; // Слегка смещаем вперед
+
+                // Добавляем метаданные
+                modelLogoMesh.userData = {
+                  isLogo: true, // Флаг для идентификации меша логотипа
+                  modelKey: modelKey,
+                  lastModified: '2025-03-10 04:19:40',
+                  modifiedBy: 'Zorger27'
+                };
+
+                // Добавляем меш логотипа как отдельный объект
+                chestMesh.parent.add(modelLogoMesh);
+
+                // Сохраняем ссылку на оригинальный материал в userData
+                if (chestMesh.material) {
+                  modelLogoMesh.userData.originalMaterial = chestMesh.material.clone();
+                }
+              }
+            } catch (error) {
+              console.error(`❌ Ошибка при добавлении логотипа для модели ${modelKey}:`, error);
+            }
+          })());
+        }
+
         sceneGroup.add(model);
       });
 
-      // Ждём, пока все материалы обновятся
-      await Promise.all(materialPromises);
+      // Ждём загрузки всех материалов и логотипов
+      await Promise.all([...materialPromises, ...logoPromises]);
 
-      // 6️⃣ Сдвигаем всю группу вниз, чтобы она стояла на "полу"
+      // Корректируем позицию группы
       const groupBoundingBox = new THREE.Box3().setFromObject(sceneGroup);
       const groupHeight = groupBoundingBox.max.y - groupBoundingBox.min.y;
       sceneGroup.position.y = -groupBoundingBox.min.y - groupHeight * 0.5;
 
       console.log(`🎯 Группа -> X: ${sceneGroup.position.x}, Y: ${sceneGroup.position.y}`);
 
-      // Перерисовываем сцену после всех изменений
-      requestAnimationFrame(() => renderer.render(scene, camera));
-      console.log("🎉 Все модели загружены (2 спереди, 2 сзади) и выровнены!");
+      renderer.render(scene, camera);
+      console.log("🎉 Все модели и логотипы загружены (2 спереди, 2 сзади)!");
     };
 
     // Функция очистки сцены
     const clearScene = () => {
-      // Удаляем группу с моделями, если она существует
       if (sceneGroup) {
-        scene.remove(sceneGroup); // Убираем группу
-        sceneGroup.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            if (child.material) {
-              if (Array.isArray(child.material)) {
-                child.material.forEach((mat) => mat.dispose());
-              } else {
-                child.material.dispose();
-              }
+        sceneGroup.traverse((object) => {
+          if (object instanceof THREE.Mesh) {
+            if (object.geometry) {
+              object.geometry.dispose();
             }
-            if (child.geometry) {
-              child.geometry.dispose();
+            if (object.material) {
+              if (Array.isArray(object.material)) {
+                object.material.forEach(material => {
+                  if (material.map) material.map.dispose();
+                  material.dispose();
+                });
+              } else {
+                if (object.material.map) object.material.map.dispose();
+                object.material.dispose();
+              }
             }
           }
         });
-        sceneGroup = null; // Обнуляем ссылку на группу
+        scene.remove(sceneGroup);
+        sceneGroup = null;
       }
 
-      // Если загружена одна модель
-      if (model) {
-        scene.remove(model); // Убираем текущую модель
-        model.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            if (child.material) {
-              if (Array.isArray(child.material)) {
-                child.material.forEach((mat) => mat.dispose());
-              } else {
-                child.material.dispose();
-              }
-            }
-            if (child.geometry) {
-              child.geometry.dispose();
-            }
+      // Очищаем все меши логотипов
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh && object.userData.isLogo) {
+          if (object.material && object.material.map) {
+            object.material.map.dispose();
           }
-        });
-        model = null; // Обнуляем текущую модель
-      }
-    };
+          if (object.material) {
+            object.material.dispose();
+          }
+          if (object.geometry) {
+            object.geometry.dispose();
+          }
+          object.parent?.remove(object);
+        }
+      });
 
-    const textureLoader = new TextureLoader();
-    const textureCache = {};
-    const getTexture = (path) => {
-      if (!textureCache[path]) {
-        textureCache[path] = textureLoader.load(path);
-      }
-      return textureCache[path];
+      // Запускаем сборщик мусора
+      renderer.renderLists.dispose();
     };
 
     // Функция применяет настройки материала
@@ -1464,13 +1643,14 @@ export default {
       isBrandingOpen.value = !isBrandingOpen.value;
     };
 
-    // Функция для получения логотипа из кеша
+    // Функция для работы с кешем логотипов
     const getCachedLogo = async (imageData) => {
       if (!logoCache.has(imageData)) {
         const image = new Image();
         image.src = imageData;
-        await new Promise((resolve) => {
+        await new Promise((resolve, reject) => {
           image.onload = resolve;
+          image.onerror = reject;
         });
         logoCache.set(imageData, image);
       }
@@ -1548,8 +1728,9 @@ export default {
       updateLogoTexture();
     };
 
-    const createLogoTexture = (positionX, positionY, scale) => {
-      if (!lastLoadedImage) return null;
+    // Обновляем функцию createLogoTexture, чтобы она принимала изображение напрямую
+    const createLogoTexture = (positionX, positionY, scale, image) => {
+      if (!image) return null;
 
       const textureWidth = 2048;
       const textureHeight = 2048;
@@ -1563,30 +1744,24 @@ export default {
       logoCtx.imageSmoothingEnabled = true;
       logoCtx.imageSmoothingQuality = 'high';
 
-      // Модифицируем расчет размера с учетом масштаба
-      const baseLogoWidth = Math.floor(textureWidth * 0.15); // Базовый размер
-      const maxLogoWidth = Math.floor(baseLogoWidth * scale); // Применяем масштаб
-      const aspectRatio = lastLoadedImage.width / lastLoadedImage.height;
+      const baseLogoWidth = Math.floor(textureWidth * 0.15);
+      const maxLogoWidth = Math.floor(baseLogoWidth * scale);
+      const aspectRatio = image.width / image.height;
       const logoWidth = maxLogoWidth;
       const logoHeight = Math.floor(maxLogoWidth / aspectRatio);
 
-      // Вычисляем позицию с учетом ограничений
       const x = Math.floor(textureWidth * (0.33 + positionX * 0.3));
       const y = Math.floor(textureHeight * (0.39 + positionY * 0.3));
 
-      // Рисуем логотип
       logoCtx.save();
       logoCtx.translate(x, y);
-      logoCtx.rotate(Math.PI);
-      logoCtx.scale(-1, 1);
+      logoCtx.scale(1, -1); // Отражаем только по вертикали
       logoCtx.translate(-logoWidth/2, -logoHeight/2);
-      logoCtx.drawImage(lastLoadedImage, 0, 0, logoWidth, logoHeight);
+      logoCtx.drawImage(image, 0, 0, logoWidth, logoHeight);
       logoCtx.restore();
 
-      // Создаем текстуру
       const texture = new THREE.Texture(logoCanvas);
       texture.transparent = true;
-      texture.flipY = true;
       texture.needsUpdate = true;
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
@@ -1646,20 +1821,26 @@ export default {
     };
 
     const updateLogoTexture = () => {
-      if (!logoMesh || !lastLoadedImage) return;
+      if (!lastLoadedImage || !logoMesh) return;
 
-      // Обновляем только текстуру в существующем материале
-      const newTexture = createLogoTexture(positionX.value, positionY.value, scale.value);
-      if (newTexture) {
-        // Удаляем старую текстуру для освобождения памяти
+      // Создаем новую текстуру
+      const texture = createLogoTexture(
+        positionX.value,
+        positionY.value,
+        scale.value,
+        lastLoadedImage
+      );
+
+      // Обновляем текстуру в материале
+      if (logoMesh.material && texture) {
         if (logoMesh.material.map) {
           logoMesh.material.map.dispose();
         }
-        logoMesh.material.map = newTexture;
+        logoMesh.material.map = texture;
         logoMesh.material.needsUpdate = true;
       }
 
-      // Обновляем рендер
+      // Перерисовываем сцену
       renderer.render(scene, camera);
     };
 
