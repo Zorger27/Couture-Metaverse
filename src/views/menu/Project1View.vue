@@ -1368,7 +1368,7 @@ export default {
       updateLogoTexture();
     };
 
-    const createLogoTexture = (positionX, positionY) => {
+    const createLogoTexture = (positionX, positionY, scale) => {
       if (!lastLoadedImage) return null;
 
       const textureWidth = 2048;
@@ -1383,7 +1383,9 @@ export default {
       logoCtx.imageSmoothingEnabled = true;
       logoCtx.imageSmoothingQuality = 'high';
 
-      const maxLogoWidth = Math.floor(textureWidth * 0.15);
+      // Модифицируем расчет размера с учетом масштаба
+      const baseLogoWidth = Math.floor(textureWidth * 0.15); // Базовый размер
+      const maxLogoWidth = Math.floor(baseLogoWidth * scale); // Применяем масштаб
       const aspectRatio = lastLoadedImage.width / lastLoadedImage.height;
       const logoWidth = maxLogoWidth;
       const logoHeight = Math.floor(maxLogoWidth / aspectRatio);
@@ -1438,7 +1440,7 @@ export default {
 
       // Создаем материал логотипа
       const logoMaterial = new THREE.MeshBasicMaterial({
-        map: createLogoTexture(positionX.value, positionY.value),
+        map: createLogoTexture(positionX.value, positionY.value, scale.value),
         transparent: true,
         opacity: 1,
         depthTest: true,
@@ -1468,7 +1470,7 @@ export default {
       if (!logoMesh || !lastLoadedImage) return;
 
       // Обновляем только текстуру в существующем материале
-      const newTexture = createLogoTexture(positionX.value, positionY.value);
+      const newTexture = createLogoTexture(positionX.value, positionY.value, scale.value);
       if (newTexture) {
         // Удаляем старую текстуру для освобождения памяти
         if (logoMesh.material.map) {
