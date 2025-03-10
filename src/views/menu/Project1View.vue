@@ -1,5 +1,5 @@
 <script>
-import {onMounted, onUnmounted, ref} from 'vue';
+import {onMounted, onUnmounted, ref, watch} from 'vue';
 import {useI18n} from 'vue-i18n';
 import jsPDF from "jspdf";
 import * as THREE from 'three';
@@ -83,25 +83,85 @@ export default {
       localStorage.setItem('modelsSettings', JSON.stringify(models));
     };
 
-    // Удаление данных из localStorage с подтверждением
+    // Удаление данных из localStorage с подтверждением и восстановлением оригинальных настроек
     const clearLocalStorage = () => {
-      // Проверяем, есть ли данные с ключом 'modelsSettings' в localStorage
       const modelsSettings = localStorage.getItem('modelsSettings');
 
       if (modelsSettings) {
-        // Если данные есть, запрашиваем подтверждение
         const confirmed = confirm(t('special.confirm'));
 
         if (confirmed) {
-          // Если пользователь нажал "ОК", удаляем данные
+          // Удаляем данные из localStorage
           localStorage.removeItem('modelsSettings');
+
+          // Очищаем логотип
+          if (logoMesh) {
+            logoMesh.parent?.remove(logoMesh);
+            if (logoMesh.material.map) {
+              logoMesh.material.map.dispose();
+            }
+            logoMesh.material.dispose();
+            logoMesh.geometry.dispose();
+            logoMesh = null;
+          }
+          lastLoadedImage = null;
+          positionX.value = 0;
+          positionY.value = 0;
+          scale.value = 1;
+
+          // Восстанавливаем оригинальные настройки для всех моделей
+          for (const key in models) {
+            // Восстанавливаем настройки и добавляем пустые настройки логотипа
+            models[key].settings = {
+              ...models[key].originalSettings,
+              logo: {
+                imageData: null,
+                positionX: 0,
+                positionY: 0,
+                scale: 1
+              }
+            };
+          }
+
+          // Если текущая модель загружена, применяем к ней настройки
+          if (model && model.userData.modelKey) {
+            const currentModelKey = model.userData.modelKey;
+            model.traverse((child) => {
+              if (child.isMesh && child.material) {
+                const material = child.material;
+                const settings = models[currentModelKey].originalSettings;
+
+                // Восстанавливаем основные свойства материала
+                material.color.copy(settings.color);
+                material.metalness = settings.metalness;
+                material.roughness = settings.roughness;
+
+                // Восстанавливаем текстуру если она есть
+                if (settings.texture) {
+                  material.map = getTexture(settings.texture);
+                } else {
+                  material.map = null;
+                }
+
+                material.needsUpdate = true;
+
+                // Обновляем время и пользователя
+                child.userData.lastModified = '2025-03-10 03:21:31';
+                child.userData.modifiedBy = 'Zorger27';
+              }
+            });
+          }
+
+          // Обновляем рендер
+          if (renderer && scene && camera) {
+            renderer.render(scene, camera);
+          }
+
           alert(t('special.alertYes'));
         } else {
-          // Если пользователь нажал "Отмена", ничего не делаем
           alert(t('special.alertNo'));
         }
       } else {
-        // Если данных нет, уведомляем пользователя
         alert(t('special.noData'));
       }
     };
@@ -110,67 +170,139 @@ export default {
     const models = loadStoredModels() || {
       menShirt1: {
         path: '/assets/models/01_men_shirt.glb',
-        name: 'models.menShirt1', // Ключ для перевода
+        name: 'models.menShirt1',
         icon: '/assets/img/models/01_men_shirt.webp',
         originalSettings: {
-          texture: '/assets/textures/materialTexture1.webp', // Путь к начальной текстуре
-          color: new THREE.Color(0xffffff), // Начальный цвет
+          texture: '/assets/textures/materialTexture1.webp',
+          color: new THREE.Color(0xffffff),
           roughness: 0.1,
           metalness: 0.5,
-          brightnessMultiplier: 4.5, // Уникальное значение яркости для модели
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
         },
-        settings: {},
+        settings: {
+          // Копируем значения напрямую
+          texture: '/assets/textures/materialTexture1.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
+        },
       },
       womenShirt: {
         path: '/assets/models/02_women_shirt.glb',
-        name: 'models.womenShirt', // Ключ для перевода
+        name: 'models.womenShirt',
         icon: '/assets/img/models/02_women_shirt.webp',
         originalSettings: {
           texture: '/assets/textures/materialTexture2.webp',
-          color: new THREE.Color(0xffffff), // Начальный цвет
+          color: new THREE.Color(0xffffff),
           roughness: 0.1,
           metalness: 0.5,
           brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
         },
-        settings: {},
+        settings: {
+          texture: '/assets/textures/materialTexture2.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
+        },
       },
       menShirt2: {
         path: '/assets/models/03_men_shirt.glb',
-        name: 'models.menShirt2', // Ключ для перевода
+        name: 'models.menShirt2',
         icon: '/assets/img/models/03_men_shirt.webp',
         originalSettings: {
           texture: '/assets/textures/materialTexture3.webp',
-          color: new THREE.Color(0xffffff), // Начальный цвет
+          color: new THREE.Color(0xffffff),
           roughness: 0.1,
           metalness: 0.5,
           brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
         },
-        settings: {},
+        settings: {
+          texture: '/assets/textures/materialTexture3.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
+        },
       },
       womenDress: {
         path: '/assets/models/04_dress.glb',
-        name: 'models.womenDress', // Ключ для перевода
+        name: 'models.womenDress',
         icon: '/assets/img/models/04_dress.webp',
         originalSettings: {
           texture: '/assets/textures/materialTexture1.webp',
-          color: new THREE.Color(0xffffff), // Начальный цвет
+          color: new THREE.Color(0xffffff),
           roughness: 0.1,
           metalness: 0.5,
           brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
         },
-        settings: {},
+        settings: {
+          texture: '/assets/textures/materialTexture1.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
+        },
       },
     };
 
     // Функция загрузки одной модели
     const loadModel = async (modelKey) => {
-      isMultiModelView.value = false; // 📌 Показываем панель
-      isThreeDView.value = false; // Выключаем 2x2 режим
-      currentModelKey.value = modelKey; // Запоминаем ключ модели
+      isMultiModelView.value = false;
+      isThreeDView.value = false;
+      currentModelKey.value = modelKey;
 
-      clearScene(); // Очистка текущей сцены перед загрузкой новой модели
+      clearScene();
 
-      // Создаём `sceneGroup`, чтобы не ломалось вращение
       sceneGroup = new THREE.Group();
       scene.add(sceneGroup);
 
@@ -179,20 +311,36 @@ export default {
         const gltf = await loader.loadAsync(models[modelKey].path);
         model = gltf.scene;
 
-        // Запоминаем, какая модель загружена
         model.userData.modelKey = modelKey;
 
-        // Центрируем модель в сцене
+        // Сохраняем оригинальные настройки материалов
+        model.traverse((child) => {
+          if (child instanceof THREE.Mesh && child.material) {
+            // Создаем клон материала
+            const originalMaterial = child.material.clone();
+
+            // Сохраняем оригинальные настройки
+            child.userData.originalSettings = {
+              material: originalMaterial,
+              // Используем значения из models[modelKey].originalSettings
+              color: models[modelKey].originalSettings.color,
+              metalness: models[modelKey].originalSettings.metalness,
+              roughness: models[modelKey].originalSettings.roughness,
+              opacity: originalMaterial.opacity,
+              transparent: originalMaterial.transparent,
+              lastModified: '2025-03-10 03:25:09',
+              modifiedBy: 'Zorger27'
+            };
+          }
+        });
+
         model.position.set(0, 0, 0);
         model.scale.set(4, 4, 4);
 
-        // Добавляем модель в `sceneGroup`
         sceneGroup.add(model);
 
-        // Добавляем модель в rotationStates
         rotationStates.set(modelKey, { clockwise: false, counterClockwise: false });
 
-        // Применяем материалы и текстуры
         const materialPromises = [];
         model.traverse((child) => {
           if (child instanceof THREE.Mesh && child.material) {
@@ -202,13 +350,36 @@ export default {
 
         await Promise.all(materialPromises);
 
-        // Определяем границы модели (bounding box)
+        // Восстанавливаем логотип если есть
+        if (models[modelKey].settings?.logo?.imageData) {
+          // Очищаем старый логотип если он есть
+          if (logoMesh) {
+            logoMesh.parent?.remove(logoMesh);
+            if (logoMesh.material.map) {
+              logoMesh.material.map.dispose();
+            }
+            logoMesh.material.dispose();
+            logoMesh.geometry.dispose();
+            logoMesh = null;
+          }
+
+          lastLoadedImage = new Image();
+          lastLoadedImage.src = models[modelKey].settings.logo.imageData;
+          positionX.value = models[modelKey].settings.logo.positionX;
+          positionY.value = models[modelKey].settings.logo.positionY;
+          scale.value = models[modelKey].settings.logo.scale;
+
+          await new Promise((resolve) => {
+            lastLoadedImage.onload = resolve;
+          });
+
+          createLogoMesh();
+        }
+
         const boundingBox = new THREE.Box3().setFromObject(model);
         const height = boundingBox.max.y - boundingBox.min.y;
-        // Сдвигаем модель вниз
         model.position.y = -height / 2;
 
-        // Обновляем рендер, чтобы изменения сразу стали видны
         requestAnimationFrame(() => renderer.render(scene, camera));
       } catch (error) {
         console.error(`Ошибка загрузки модели ${modelKey}:`, error);
@@ -715,43 +886,35 @@ export default {
       const modelKey = model.userData.modelKey;
       if (!modelKey) return;
 
-      // Восстанавливаем настройки модели из оригинальных
-      const originalSettings = models[modelKey].originalSettings;
-      models[modelKey].settings = { ...originalSettings };
-
-      // Ищем и удаляем группу с логотипом
-      model.traverse((child) => {
-        if (child instanceof THREE.Group) {
-          const meshes = child.children;
-          // Проверяем, что это наша группа с логотипом (2 меша, где второй - логотип)
-          if (meshes && meshes.length === 2 && meshes[1] instanceof THREE.Mesh) {
-            const baseMesh = meshes[0];
-            const logoMesh = meshes[1];
-            const parent = child.parent;
-
-            if (baseMesh && logoMesh && parent) {
-              // Восстанавливаем оригинальный материал для базового меша
-              const newMaterial = new THREE.MeshStandardMaterial();
-              applyMaterialSettings(newMaterial, modelKey);
-              baseMesh.material = newMaterial;
-
-              // Удаляем группу и добавляем обратно базовый меш
-              parent.remove(child);
-              parent.add(baseMesh);
-            }
-          }
+      // Очищаем логотип
+      if (logoMesh) {
+        logoMesh.parent?.remove(logoMesh);
+        if (logoMesh.material.map) {
+          logoMesh.material.map.dispose();
         }
-      });
+        logoMesh.material.dispose();
+        logoMesh.geometry.dispose();
+        logoMesh = null;
+      }
+      lastLoadedImage = null;
+      positionX.value = 0;
+      positionY.value = 0;
+      scale.value = 1;
 
-      // Обновляем материалы для оставшихся мешей
-      await updateMaterials((mat) => {
-        applyMaterialSettings(mat, modelKey);
-      });
+      // Восстанавливаем настройки модели из оригинальных
+      models[modelKey].settings = {
+        ...models[modelKey].originalSettings,
+        logo: {
+          imageData: null,
+          positionX: 0,
+          positionY: 0,
+          scale: 1
+        }
+      };
 
-      // Сохраняем изменения в localStorage
+      await updateMaterials((material) => {applyMaterialSettings(material, modelKey);});
+
       saveModelsToStorage();
-
-      // Принудительная перерисовка сцены
       renderer.render(scene, camera);
     };
 
@@ -1307,12 +1470,6 @@ export default {
       isBrandingOpen.value = !isBrandingOpen.value;
     };
 
-
-
-
-
-
-
     // Нанесение логотипа на модель
     const loadBrandImage = async (event) => {
       // Проверяем базовые условия
@@ -1347,6 +1504,17 @@ export default {
           await new Promise((resolve) => {
             lastLoadedImage.onload = resolve;
           });
+
+          // Сохраняем настройки логотипа
+          if (modelKey && models[modelKey]) {
+            models[modelKey].settings.logo = {
+              imageData: lastLoadedImage.src,
+              positionX: positionX.value,
+              positionY: positionY.value,
+              scale: scale.value
+            };
+            saveModelsToStorage(); // Сохраняем в localStorage
+          }
 
           // При первой загрузке создаем меш логотипа
           if (!logoMesh) {
@@ -1484,10 +1652,6 @@ export default {
       renderer.render(scene, camera);
     };
 
-
-
-
-
     const onWindowResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -1497,6 +1661,24 @@ export default {
     };
 
     window.addEventListener('resize', onWindowResize);
+
+    watch([positionX, positionY, scale], () => {
+      try {
+        if (model?.userData?.modelKey && lastLoadedImage) {
+          const modelKey = model.userData.modelKey;
+          models[modelKey].settings.logo = {
+            imageData: lastLoadedImage.src,
+            positionX: positionX.value,
+            positionY: positionY.value,
+            scale: scale.value
+          };
+          saveModelsToStorage();
+          updateLogoTexture();
+        }
+      } catch (error) {
+        console.error('Ошибка при обновлении настроек логотипа:', error);
+      }
+    });
 
     onMounted(() => {
       init();
