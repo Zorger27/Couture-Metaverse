@@ -1371,7 +1371,7 @@ export default {
             logoCtx.imageSmoothingEnabled = true;
             logoCtx.imageSmoothingQuality = 'high';
 
-            // Размеры и позиция логотипа (увеличили размер)
+            // Используем оригинальный размер логотипа (15%)
             const maxLogoWidth = Math.floor(textureWidth * 0.15);
             const aspectRatio = brandImage.width / brandImage.height;
             const logoWidth = maxLogoWidth;
@@ -1399,7 +1399,7 @@ export default {
             texture.minFilter = THREE.LinearFilter;
             texture.magFilter = THREE.LinearFilter;
             texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-            texture.encoding = THREE.sRGBEncoding;
+            texture.colorSpace = THREE.SRGBColorSpace; // Заменили устаревший encoding на colorSpace
 
             return texture;
           };
