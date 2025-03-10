@@ -715,7 +715,34 @@ export default {
       const originalSettings = models[modelKey].originalSettings;
       models[modelKey].settings = { ...originalSettings };
 
-      await updateMaterials((material) => {applyMaterialSettings(material, modelKey);});
+      // Ищем и удаляем группу с логотипом
+      model.traverse((child) => {
+        if (child instanceof THREE.Group) {
+          const meshes = child.children;
+          // Проверяем, что это наша группа с логотипом (2 меша, где второй - логотип)
+          if (meshes && meshes.length === 2 && meshes[1] instanceof THREE.Mesh) {
+            const baseMesh = meshes[0];
+            const logoMesh = meshes[1];
+            const parent = child.parent;
+
+            if (baseMesh && logoMesh && parent) {
+              // Восстанавливаем оригинальный материал для базового меша
+              const newMaterial = new THREE.MeshStandardMaterial();
+              applyMaterialSettings(newMaterial, modelKey);
+              baseMesh.material = newMaterial;
+
+              // Удаляем группу и добавляем обратно базовый меш
+              parent.remove(child);
+              parent.add(baseMesh);
+            }
+          }
+        }
+      });
+
+      // Обновляем материалы для оставшихся мешей
+      await updateMaterials((mat) => {
+        applyMaterialSettings(mat, modelKey);
+      });
 
       // Сохраняем изменения в localStorage
       saveModelsToStorage();
@@ -1330,104 +1357,101 @@ export default {
 
           const originalMaterial = chestMesh.material;
 
-          // Функция для создания цветного фона
-          const createColoredBackground = (width, height, color) => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = width;
-            canvas.height = height;
+          const createLogoTexture = () => {
+            // Увеличиваем разрешение текстуры
+            const textureWidth = 2048;  // Увеличили с 1024 до 2048
+            const textureHeight = 2048; // Увеличили с 1024 до 2048
 
-            // Преобразуем цвет THREE.Color в строку RGB
-            const r = Math.floor(color.r * 255);
-            const g = Math.floor(color.g * 255);
-            const b = Math.floor(color.b * 255);
-
-            ctx.fillStyle = `rgb(${r},${g},${b})`;
-            ctx.fillRect(0, 0, width, height);
-
-            return canvas;
-          };
-
-          const createNewTexture = () => {
-            const textureWidth = 1024;  // Фиксированный размер для консистентности
-            const textureHeight = 1024;
-
-            // Создаем основной канвас
-            const baseCanvas = document.createElement("canvas");
-            const baseCtx = baseCanvas.getContext("2d");
-            baseCanvas.width = textureWidth;
-            baseCanvas.height = textureHeight;
-
-            // Если есть существующая текстура - используем её
-            if (originalMaterial.map?.image) {
-              baseCtx.drawImage(originalMaterial.map.image, 0, 0, textureWidth, textureHeight);
-            }
-            // Если есть только цвет - создаем цветной фон
-            else if (originalMaterial.color) {
-              const colorCanvas = createColoredBackground(textureWidth, textureHeight, originalMaterial.color);
-              baseCtx.drawImage(colorCanvas, 0, 0);
-            }
-
-            // Подготавливаем логотип
             const logoCanvas = document.createElement("canvas");
-            const logoCtx = logoCanvas.getContext("2d");
+            const logoCtx = logoCanvas.getContext("2d", { alpha: true });
+            logoCanvas.width = textureWidth;
+            logoCanvas.height = textureHeight;
 
-            // Рассчитываем размеры логотипа с сохранением пропорций
+            // Включаем сглаживание
+            logoCtx.imageSmoothingEnabled = true;
+            logoCtx.imageSmoothingQuality = 'high';
+
+            // Размеры и позиция логотипа (увеличили размер)
             const maxLogoWidth = Math.floor(textureWidth * 0.15);
             const aspectRatio = brandImage.width / brandImage.height;
             const logoWidth = maxLogoWidth;
             const logoHeight = Math.floor(maxLogoWidth / aspectRatio);
-
-            logoCanvas.width = logoWidth;
-            logoCanvas.height = logoHeight;
-
-            // Рисуем логотип с поворотом
-            logoCtx.save();
-            logoCtx.translate(logoWidth, logoHeight);
-            logoCtx.rotate(Math.PI);
-            logoCtx.drawImage(brandImage, 0, 0, logoWidth, logoHeight);
-            logoCtx.restore();
-
-            // Накладываем логотип
             const x = Math.floor(textureWidth * 0.25);
             const y = Math.floor(textureHeight * 0.30);
 
-            baseCtx.save();
-            baseCtx.scale(-1, 1);
-            baseCtx.globalCompositeOperation = 'source-over';
-            baseCtx.drawImage(logoCanvas, -x - logoWidth, y);
-            baseCtx.restore();
+            // Рисуем логотип с улучшенным качеством
+            logoCtx.save();
+            logoCtx.translate(x + logoWidth/2, y + logoHeight/2);
+            logoCtx.rotate(Math.PI);
+            logoCtx.scale(-1, 1);
+            logoCtx.translate(-logoWidth/2, -logoHeight/2);
 
-            // Создаем текстуру
-            const texture = new THREE.Texture(baseCanvas);
+            // Рисуем с повышенным разрешением
+            logoCtx.drawImage(brandImage, 0, 0, logoWidth, logoHeight);
+            logoCtx.restore();
+
+            const texture = new THREE.Texture(logoCanvas);
+            texture.transparent = true;
             texture.flipY = true;
             texture.needsUpdate = true;
+
+            // Улучшаем качество текстуры
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            texture.encoding = THREE.sRGBEncoding;
 
             return texture;
           };
 
-          // Клонируем материал с сохранением всех свойств
-          const newMaterial = new THREE.MeshStandardMaterial();
+          // Создаем базовый материал
+          const baseMaterial = originalMaterial.clone();
+          baseMaterial.transparent = false;
+          baseMaterial.opacity = 1;
 
-          // Копируем базовые свойства
-          newMaterial.map = createNewTexture();
-          newMaterial.color = originalMaterial.color.clone();
-          newMaterial.roughness = originalMaterial.roughness;
-          newMaterial.metalness = originalMaterial.metalness;
-          newMaterial.side = originalMaterial.side;
+          // Создаем материал для логотипа
+          const logoMaterial = new THREE.MeshBasicMaterial({
+            map: createLogoTexture(),
+            transparent: true,
+            opacity: 1,
+            depthTest: true,
+            depthWrite: false,
+            side: THREE.DoubleSide,
+            blending: THREE.CustomBlending,
+            blendEquation: THREE.AddEquation,
+            blendSrc: THREE.SrcAlphaFactor,
+            blendDst: THREE.OneMinusSrcAlphaFactor,
+            premultipliedAlpha: true // Добавили для лучшего качества прозрачности
+          });
 
-          // Копируем дополнительные свойства
-          if (originalMaterial.normalMap) {
-            newMaterial.normalMap = originalMaterial.normalMap;
-            newMaterial.normalScale = originalMaterial.normalScale?.clone();
-          }
-          if (originalMaterial.envMap) {
-            newMaterial.envMap = originalMaterial.envMap;
-            newMaterial.envMapIntensity = originalMaterial.envMapIntensity;
-          }
+          // Создаем геометрию для логотипа
+          const baseGeometry = chestMesh.geometry.clone();
+          const logoGeometry = chestMesh.geometry.clone();
 
-          // Применяем материал
-          chestMesh.material = newMaterial;
+          // Создаем меши
+          const baseMesh = new THREE.Mesh(baseGeometry, baseMaterial);
+          const logoMesh = new THREE.Mesh(logoGeometry, logoMaterial);
+
+          // Копируем трансформации
+          baseMesh.position.copy(chestMesh.position);
+          baseMesh.rotation.copy(chestMesh.rotation);
+          baseMesh.scale.copy(chestMesh.scale);
+
+          logoMesh.position.copy(chestMesh.position);
+          logoMesh.rotation.copy(chestMesh.rotation);
+          logoMesh.scale.copy(chestMesh.scale);
+
+          // Смещаем логотип немного вперед
+          logoMesh.position.z += 0.001;
+
+          // Заменяем оригинальный меш на группу из двух мешей
+          const parent = chestMesh.parent;
+          const meshGroup = new THREE.Group();
+          meshGroup.add(baseMesh);
+          meshGroup.add(logoMesh);
+
+          parent.remove(chestMesh);
+          parent.add(meshGroup);
 
           // Обновляем рендер
           renderer.render(scene, camera);
@@ -1436,7 +1460,6 @@ export default {
         console.error("❌ Ошибка при загрузке изображения бренда:", error);
       }
     };
-
 
 
 
