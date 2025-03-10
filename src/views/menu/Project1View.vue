@@ -312,6 +312,7 @@ export default {
       currentModelKey.value = modelKey;
 
       clearScene();
+      clearLogo(); // Используем функцию clearLogo вместо прямой очистки
 
       sceneGroup = new THREE.Group();
       scene.add(sceneGroup);
@@ -322,7 +323,7 @@ export default {
         model = gltf.scene;
 
         model.userData.modelKey = modelKey;
-        model.userData.lastModified = '2025-03-10 04:41:55';
+        model.userData.lastModified = '2025-03-10 04:57:41';
         model.userData.modifiedBy = 'Zorger27';
 
         // Применяем материалы к модели
@@ -393,7 +394,7 @@ export default {
               logoMesh.userData = {
                 isLogo: true,
                 modelKey: modelKey,
-                lastModified: '2025-03-10 04:45:54',
+                lastModified: '2025-03-10 04:57:41',
                 modifiedBy: 'Zorger27'
               };
 
@@ -1820,6 +1821,25 @@ export default {
       chestMesh.parent.add(logoMesh);
     };
 
+    // Функция очистки логотипа
+    const clearLogo = () => {
+      if (logoMesh) {
+        if (logoMesh.material) {
+          if (logoMesh.material.map) {
+            logoMesh.material.map.dispose();
+          }
+          logoMesh.material.dispose();
+        }
+        if (logoMesh.geometry) {
+          logoMesh.geometry.dispose();
+        }
+        logoMesh.parent?.remove(logoMesh);
+        logoMesh = null;
+      }
+      lastLoadedImage = null;
+      renderer.render(scene, camera);
+    };
+
     const updateLogoTexture = () => {
       if (!lastLoadedImage || !logoMesh) return;
 
@@ -1832,7 +1852,7 @@ export default {
       );
 
       // Обновляем текстуру в материале
-      if (logoMesh.material && texture) {
+      if (logoMesh.material) {
         if (logoMesh.material.map) {
           logoMesh.material.map.dispose();
         }
@@ -1840,7 +1860,7 @@ export default {
         logoMesh.material.needsUpdate = true;
       }
 
-      // Перерисовываем сцену
+      // Принудительно перерисовываем сцену
       renderer.render(scene, camera);
     };
 
