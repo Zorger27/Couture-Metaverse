@@ -305,6 +305,11 @@ export default {
       clearScene();
       clearLogo(); // Используем функцию clearLogo вместо прямой очистки
 
+      // Сбрасываем положения ползунков на значения по умолчанию при смене модели
+      positionX.value = 0;
+      positionY.value = 0;
+      scale.value = 1;
+
       sceneGroup = new THREE.Group();
       scene.add(sceneGroup);
 
@@ -385,7 +390,7 @@ export default {
               logoMesh.userData = {
                 isLogo: true,
                 modelKey: modelKey,
-                lastModified: '2025-03-10 04:57:41',
+                lastModified: '2025-03-11 04:57:41',
                 modifiedBy: 'Zorger27'
               };
 
@@ -1720,7 +1725,7 @@ export default {
       updateLogoTexture();
     };
 
-    // Обновляем функцию createLogoTexture, чтобы она принимала изображение напрямую
+    // Отображение логотипа
     const createLogoTexture = (positionX, positionY, scale, image) => {
       if (!image) return null;
 
@@ -1746,10 +1751,19 @@ export default {
       const y = Math.floor(textureHeight * (0.39 + positionY * 0.3));
 
       logoCtx.save();
+
+      // Перемещаем в точку отрисовки
       logoCtx.translate(x, y);
-      logoCtx.scale(1, -1); // Отражаем только по вертикали
+
+      // Отражаем для правильной ориентации
+      logoCtx.scale(-1, -1);
+
+      // Центрируем изображение
       logoCtx.translate(-logoWidth/2, -logoHeight/2);
+
+      // Рисуем изображение
       logoCtx.drawImage(image, 0, 0, logoWidth, logoHeight);
+
       logoCtx.restore();
 
       const texture = new THREE.Texture(logoCanvas);
@@ -1759,6 +1773,11 @@ export default {
       texture.magFilter = THREE.LinearFilter;
       texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
       texture.colorSpace = THREE.SRGBColorSpace;
+
+      texture.userData = {
+        lastModified: '2025-03-10 23:47:44',
+        modifiedBy: 'Zorger27'
+      };
 
       return texture;
     };
