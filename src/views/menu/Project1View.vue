@@ -44,6 +44,10 @@ export default {
     const positionX = ref(0);
     const positionY = ref(0);
 
+    // Храним последнее загруженное изображение и меш логотипа
+    let lastLoadedImage = null;
+    let logoMesh = null;
+
     // Определение текстур
     const textures = {
       texture1: '/assets/textures/texture1.webp',
@@ -1311,154 +1315,171 @@ export default {
 
     // Нанесение логотипа на модель
     const loadBrandImage = async (event) => {
-      const file = event.target.files[0];
-      if (!file || !model) return;
+      // Проверяем базовые условия
+      if (!model) {
+        console.warn("❌ Модель не найдена!");
+        return;
+      }
 
       const modelKey = model.userData.modelKey;
-      if (!modelKey) return;
+      if (!modelKey) {
+        console.warn("❌ ModelKey не найден!");
+        return;
+      }
 
-      const reader = new FileReader();
+      // Обработка нового файла
+      if (event?.target?.files?.[0]) {
+        try {
+          const file = event.target.files[0];
+          const reader = new FileReader();
 
-      const loadTexture = new Promise((resolve, reject) => {
-        reader.onload = function (e) {
-          resolve(e.target?.result || "");
-        };
-        reader.onerror = function (error) {
-          reject(error);
-        };
-        reader.readAsDataURL(file);
+          const imageData = await new Promise((resolve, reject) => {
+            reader.onload = (e) => resolve(e.target?.result);
+            reader.onerror = (error) => reject(error);
+            reader.readAsDataURL(file);
+          });
+
+          // Загружаем новое изображение
+          lastLoadedImage = new Image();
+          lastLoadedImage.src = String(imageData);
+
+          // Ждем загрузки изображения перед обновлением
+          await new Promise((resolve) => {
+            lastLoadedImage.onload = resolve;
+          });
+
+          // При первой загрузке создаем меш логотипа
+          if (!logoMesh) {
+            createLogoMesh();
+          }
+        } catch (error) {
+          console.error("❌ Ошибка при загрузке файла:", error);
+          return;
+        }
+      }
+
+      // Проверяем наличие загруженного изображения
+      if (!lastLoadedImage || !logoMesh) {
+        console.warn("❌ Изображение не загружено или меш логотипа не создан!");
+        return;
+      }
+
+      // Обновляем только текстуру логотипа
+      updateLogoTexture();
+    };
+
+    const createLogoTexture = (positionX, positionY) => {
+      if (!lastLoadedImage) return null;
+
+      const textureWidth = 2048;
+      const textureHeight = 2048;
+
+      const logoCanvas = document.createElement("canvas");
+      const logoCtx = logoCanvas.getContext("2d", { alpha: true });
+
+      logoCanvas.width = textureWidth;
+      logoCanvas.height = textureHeight;
+
+      logoCtx.imageSmoothingEnabled = true;
+      logoCtx.imageSmoothingQuality = 'high';
+
+      const maxLogoWidth = Math.floor(textureWidth * 0.15);
+      const aspectRatio = lastLoadedImage.width / lastLoadedImage.height;
+      const logoWidth = maxLogoWidth;
+      const logoHeight = Math.floor(maxLogoWidth / aspectRatio);
+
+      // Вычисляем позицию с учетом ограничений
+      const x = Math.floor(textureWidth * (0.33 + positionX * 0.3));
+      const y = Math.floor(textureHeight * (0.39 + positionY * 0.3));
+
+      // Рисуем логотип
+      logoCtx.save();
+      logoCtx.translate(x, y);
+      logoCtx.rotate(Math.PI);
+      logoCtx.scale(-1, 1);
+      logoCtx.translate(-logoWidth/2, -logoHeight/2);
+      logoCtx.drawImage(lastLoadedImage, 0, 0, logoWidth, logoHeight);
+      logoCtx.restore();
+
+      // Создаем текстуру
+      const texture = new THREE.Texture(logoCanvas);
+      texture.transparent = true;
+      texture.flipY = true;
+      texture.needsUpdate = true;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      texture.colorSpace = THREE.SRGBColorSpace;
+
+      return texture;
+    };
+
+    const createLogoMesh = () => {
+      // Находим меш груди
+      let chestMesh = null;
+      let maxSize = 0;
+
+      model.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          const boundingBox = new THREE.Box3().setFromObject(child);
+          const size = boundingBox.max.y - boundingBox.min.y;
+
+          if (boundingBox.max.z > 0 && size > maxSize) {
+            chestMesh = child;
+            maxSize = size;
+          }
+        }
       });
 
-      try {
-        const imageData = await loadTexture;
-        const brandImage = new Image();
-        brandImage.src = String(imageData);
-
-        brandImage.onload = () => {
-          let chestMesh = null;
-          let maxSize = 0;
-
-          model.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              const boundingBox = new THREE.Box3().setFromObject(child);
-              const size = boundingBox.max.y - boundingBox.min.y;
-
-              if (boundingBox.max.z > 0 && size > maxSize) {
-                chestMesh = child;
-                maxSize = size;
-              }
-            }
-          });
-
-          if (!chestMesh) {
-            console.warn("❌ Не найден основной меш для груди!");
-            return;
-          }
-
-          const originalMaterial = chestMesh.material;
-
-          const createLogoTexture = () => {
-            // Увеличиваем разрешение текстуры
-            const textureWidth = 2048;  // Увеличили с 1024 до 2048
-            const textureHeight = 2048; // Увеличили с 1024 до 2048
-
-            const logoCanvas = document.createElement("canvas");
-            const logoCtx = logoCanvas.getContext("2d", { alpha: true });
-            logoCanvas.width = textureWidth;
-            logoCanvas.height = textureHeight;
-
-            // Включаем сглаживание
-            logoCtx.imageSmoothingEnabled = true;
-            logoCtx.imageSmoothingQuality = 'high';
-
-            // Используем оригинальный размер логотипа (15%)
-            const maxLogoWidth = Math.floor(textureWidth * 0.15);
-            const aspectRatio = brandImage.width / brandImage.height;
-            const logoWidth = maxLogoWidth;
-            const logoHeight = Math.floor(maxLogoWidth / aspectRatio);
-            const x = Math.floor(textureWidth * 0.25);
-            const y = Math.floor(textureHeight * 0.30);
-
-            // Рисуем логотип с улучшенным качеством
-            logoCtx.save();
-            logoCtx.translate(x + logoWidth/2, y + logoHeight/2);
-            logoCtx.rotate(Math.PI);
-            logoCtx.scale(-1, 1);
-            logoCtx.translate(-logoWidth/2, -logoHeight/2);
-
-            // Рисуем с повышенным разрешением
-            logoCtx.drawImage(brandImage, 0, 0, logoWidth, logoHeight);
-            logoCtx.restore();
-
-            const texture = new THREE.Texture(logoCanvas);
-            texture.transparent = true;
-            texture.flipY = true;
-            texture.needsUpdate = true;
-
-            // Улучшаем качество текстуры
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-            texture.colorSpace = THREE.SRGBColorSpace; // Заменили устаревший encoding на colorSpace
-
-            return texture;
-          };
-
-          // Создаем базовый материал
-          const baseMaterial = originalMaterial.clone();
-          baseMaterial.transparent = false;
-          baseMaterial.opacity = 1;
-
-          // Создаем материал для логотипа
-          const logoMaterial = new THREE.MeshBasicMaterial({
-            map: createLogoTexture(),
-            transparent: true,
-            opacity: 1,
-            depthTest: true,
-            depthWrite: false,
-            side: THREE.DoubleSide,
-            blending: THREE.CustomBlending,
-            blendEquation: THREE.AddEquation,
-            blendSrc: THREE.SrcAlphaFactor,
-            blendDst: THREE.OneMinusSrcAlphaFactor,
-            premultipliedAlpha: true // Добавили для лучшего качества прозрачности
-          });
-
-          // Создаем геометрию для логотипа
-          const baseGeometry = chestMesh.geometry.clone();
-          const logoGeometry = chestMesh.geometry.clone();
-
-          // Создаем меши
-          const baseMesh = new THREE.Mesh(baseGeometry, baseMaterial);
-          const logoMesh = new THREE.Mesh(logoGeometry, logoMaterial);
-
-          // Копируем трансформации
-          baseMesh.position.copy(chestMesh.position);
-          baseMesh.rotation.copy(chestMesh.rotation);
-          baseMesh.scale.copy(chestMesh.scale);
-
-          logoMesh.position.copy(chestMesh.position);
-          logoMesh.rotation.copy(chestMesh.rotation);
-          logoMesh.scale.copy(chestMesh.scale);
-
-          // Смещаем логотип немного вперед
-          logoMesh.position.z += 0.001;
-
-          // Заменяем оригинальный меш на группу из двух мешей
-          const parent = chestMesh.parent;
-          const meshGroup = new THREE.Group();
-          meshGroup.add(baseMesh);
-          meshGroup.add(logoMesh);
-
-          parent.remove(chestMesh);
-          parent.add(meshGroup);
-
-          // Обновляем рендер
-          renderer.render(scene, camera);
-        };
-      } catch (error) {
-        console.error("❌ Ошибка при загрузке изображения бренда:", error);
+      if (!chestMesh) {
+        console.warn("❌ Не найден основной меш для груди!");
+        return;
       }
+
+      // Создаем материал логотипа
+      const logoMaterial = new THREE.MeshBasicMaterial({
+        map: createLogoTexture(positionX.value, positionY.value),
+        transparent: true,
+        opacity: 1,
+        depthTest: true,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        blending: THREE.CustomBlending,
+        blendEquation: THREE.AddEquation,
+        blendSrc: THREE.SrcAlphaFactor,
+        blendDst: THREE.OneMinusSrcAlphaFactor,
+        premultipliedAlpha: true
+      });
+
+      // Создаем меш логотипа
+      logoMesh = new THREE.Mesh(chestMesh.geometry.clone(), logoMaterial);
+
+      // Копируем трансформации
+      logoMesh.position.copy(chestMesh.position);
+      logoMesh.rotation.copy(chestMesh.rotation);
+      logoMesh.scale.copy(chestMesh.scale);
+      logoMesh.position.z += 0.001; // Смещаем логотип вперед
+
+      // Добавляем меш логотипа к модели
+      chestMesh.parent.add(logoMesh);
+    };
+
+    const updateLogoTexture = () => {
+      if (!logoMesh || !lastLoadedImage) return;
+
+      // Обновляем только текстуру в существующем материале
+      const newTexture = createLogoTexture(positionX.value, positionY.value);
+      if (newTexture) {
+        // Удаляем старую текстуру для освобождения памяти
+        if (logoMesh.material.map) {
+          logoMesh.material.map.dispose();
+        }
+        logoMesh.material.map = newTexture;
+        logoMesh.material.needsUpdate = true;
+      }
+
+      // Обновляем рендер
+      renderer.render(scene, camera);
     };
 
 
@@ -1650,15 +1671,15 @@ export default {
             <div class="position">
               <!-- Кнопка-ползунок "Масштаб" -->
               <label for="scale">{{ t('special.branding.scale') }}</label>
-              <input type="range" v-model="scale" @input="brandImageUpdate" id="scale" min="0.5" max="2" step="0.1" />
+              <input type="range" v-model="scale" @input="loadBrandImage" id="scale" min="0.5" max="2" step="0.1" />
 
               <!-- Кнопка-ползунок "Вертикаль" -->
               <label for="positionY">{{ t('special.branding.positionY') }}</label>
-              <input type="range" v-model="positionY" @input="brandImageUpdate" id="positionY" min="-1" max="1" step="0.1" />
+              <input type="range" v-model="positionY" @input="loadBrandImage" id="positionY" min="-1" max="1" step="0.1" />
 
               <!-- Кнопка-ползунок "Горизонталь" -->
               <label for="positionX">{{ t('special.branding.positionX') }}</label>
-              <input type="range" v-model="positionX" @input="brandImageUpdate" id="positionX" min="-1" max="1" step="0.1" />
+              <input type="range" v-model="positionX" @input="loadBrandImage" id="positionX" min="-1" max="1" step="0.1" />
             </div>
           </div>
         </transition>
