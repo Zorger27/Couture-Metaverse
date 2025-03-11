@@ -167,6 +167,20 @@ export default {
       }
     };
 
+    // Общие настройки по умолчанию для всех моделей
+    const defaultModelSettings = {
+      color: new THREE.Color(0xffffff),
+      roughness: 0.1,
+      metalness: 0.5,
+      brightnessMultiplier: 4.5,
+      logo: {
+        imageData: null,
+        positionX: 0,
+        positionY: 0,
+        scale: 1
+      }
+    };
+
     // Загружаем данные из localStorage, иначе используем стандартные настройки
     const models = loadStoredModels() || {
       menShirt1: {
@@ -174,62 +188,18 @@ export default {
         name: 'models.menShirt1',
         icon: '/assets/img/models/01_men_shirt.webp',
         originalSettings: {
+          ...defaultModelSettings,
           texture: '/assets/textures/materialTexture1.webp',
-          color: new THREE.Color(0xffffff),
-          roughness: 0.1,
-          metalness: 0.5,
-          brightnessMultiplier: 4.5,
-          logo: {
-            imageData: null,
-            positionX: 0,
-            positionY: 0,
-            scale: 1
-          }
         },
-        settings: {
-          // Копируем значения напрямую
-          texture: '/assets/textures/materialTexture1.webp',
-          color: new THREE.Color(0xffffff),
-          roughness: 0.1,
-          metalness: 0.5,
-          brightnessMultiplier: 4.5,
-          logo: {
-            imageData: null,
-            positionX: 0,
-            positionY: 0,
-            scale: 1
-          }
-        },
+        // settings будет создаваться динамически при инициализации
       },
       womenShirt: {
         path: '/assets/models/02_women_shirt.glb',
         name: 'models.womenShirt',
         icon: '/assets/img/models/02_women_shirt.webp',
         originalSettings: {
+          ...defaultModelSettings,
           texture: '/assets/textures/materialTexture2.webp',
-          color: new THREE.Color(0xffffff),
-          roughness: 0.1,
-          metalness: 0.5,
-          brightnessMultiplier: 4.5,
-          logo: {
-            imageData: null,
-            positionX: 0,
-            positionY: 0,
-            scale: 1
-          }
-        },
-        settings: {
-          texture: '/assets/textures/materialTexture2.webp',
-          color: new THREE.Color(0xffffff),
-          roughness: 0.1,
-          metalness: 0.5,
-          brightnessMultiplier: 4.5,
-          logo: {
-            imageData: null,
-            positionX: 0,
-            positionY: 0,
-            scale: 1
-          }
         },
       },
       menShirt2: {
@@ -237,30 +207,8 @@ export default {
         name: 'models.menShirt2',
         icon: '/assets/img/models/03_men_shirt.webp',
         originalSettings: {
+          ...defaultModelSettings,
           texture: '/assets/textures/materialTexture3.webp',
-          color: new THREE.Color(0xffffff),
-          roughness: 0.1,
-          metalness: 0.5,
-          brightnessMultiplier: 4.5,
-          logo: {
-            imageData: null,
-            positionX: 0,
-            positionY: 0,
-            scale: 1
-          }
-        },
-        settings: {
-          texture: '/assets/textures/materialTexture3.webp',
-          color: new THREE.Color(0xffffff),
-          roughness: 0.1,
-          metalness: 0.5,
-          brightnessMultiplier: 4.5,
-          logo: {
-            imageData: null,
-            positionX: 0,
-            positionY: 0,
-            scale: 1
-          }
         },
       },
       womenDress: {
@@ -268,33 +216,18 @@ export default {
         name: 'models.womenDress',
         icon: '/assets/img/models/04_dress.webp',
         originalSettings: {
+          ...defaultModelSettings,
           texture: '/assets/textures/materialTexture1.webp',
-          color: new THREE.Color(0xffffff),
-          roughness: 0.1,
-          metalness: 0.5,
-          brightnessMultiplier: 4.5,
-          logo: {
-            imageData: null,
-            positionX: 0,
-            positionY: 0,
-            scale: 1
-          }
-        },
-        settings: {
-          texture: '/assets/textures/materialTexture1.webp',
-          color: new THREE.Color(0xffffff),
-          roughness: 0.1,
-          metalness: 0.5,
-          brightnessMultiplier: 4.5,
-          logo: {
-            imageData: null,
-            positionX: 0,
-            positionY: 0,
-            scale: 1
-          }
         },
       },
     };
+
+    // Инициализация settings при первой загрузке
+    Object.keys(models).forEach(key => {
+      if (!models[key].settings) {
+        models[key].settings = JSON.parse(JSON.stringify(models[key].originalSettings));
+      }
+    });
 
     // Функция загрузки одной модели
     const loadModel = async (modelKey) => {
@@ -1654,7 +1587,7 @@ export default {
       return logoCache.get(imageData);
     };
 
-    // Нанесение логотипа на модель
+    // Нанесение логотипа на модель. Загружает изображение логотипа, обрабатывает его в формат base64 и создаёт меш для отображения на 3D модели - это основная входная точка для работы с логотипами
     const loadBrandImage = async (event) => {
       // Проверяем базовые условия
       if (!model) {
@@ -1725,7 +1658,7 @@ export default {
       updateLogoTexture();
     };
 
-    // Отображение логотипа
+    // Отображение логотипа. Создаёт текстуру из загруженного изображения с учётом позиционирования и масштаба; отвечает за правильное отображение логотипа на канвасе, включая все трансформации
     const createLogoTexture = (positionX, positionY, scale, image) => {
       if (!image) return null;
 
@@ -1782,6 +1715,7 @@ export default {
       return texture;
     };
 
+    // Создаёт 3D меш для логотипа и настраивает его материал; отвечает за создание геометрии и настройку материала для отображения логотипа в 3D сцене
     const createLogoMesh = async () => {
       // Находим меш груди
       let chestMesh = null;
@@ -1831,25 +1765,7 @@ export default {
       chestMesh.parent.add(logoMesh);
     };
 
-    // Функция очистки логотипа
-    const clearLogo = () => {
-      if (logoMesh) {
-        if (logoMesh.material) {
-          if (logoMesh.material.map) {
-            logoMesh.material.map.dispose();
-          }
-          logoMesh.material.dispose();
-        }
-        if (logoMesh.geometry) {
-          logoMesh.geometry.dispose();
-        }
-        logoMesh.parent?.remove(logoMesh);
-        logoMesh = null;
-      }
-      lastLoadedImage = null;
-      renderer.render(scene, camera);
-    };
-
+    // Обновляет текстуру логотипа при изменении его положения или масштаба; обрабатывает интерактивные изменения параметров логотипа в реальном времени
     const updateLogoTexture = () => {
       if (!lastLoadedImage || !logoMesh) return;
 
@@ -1874,6 +1790,25 @@ export default {
       }
 
       // Принудительно перерисовываем сцену
+      renderer.render(scene, camera);
+    };
+
+    // Функция очистки логотипа
+    const clearLogo = () => {
+      if (logoMesh) {
+        if (logoMesh.material) {
+          if (logoMesh.material.map) {
+            logoMesh.material.map.dispose();
+          }
+          logoMesh.material.dispose();
+        }
+        if (logoMesh.geometry) {
+          logoMesh.geometry.dispose();
+        }
+        logoMesh.parent?.remove(logoMesh);
+        logoMesh = null;
+      }
+      lastLoadedImage = null;
       renderer.render(scene, camera);
     };
 
