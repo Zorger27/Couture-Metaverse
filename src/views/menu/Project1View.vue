@@ -32,10 +32,11 @@ export default {
     let scene, camera, renderer, model;
     let sceneGroup = null; // Эта переменная будет использоваться для всех моделей
     const isMixingEnabled = ref(false); // Флаг для смешивания текстур и цветов
-    const showSaveOptions = ref(false);
     const isRecording = ref(false); // Показываем статус записи
+    const showSaveOptions = ref(false);
     const showColorMenu = ref(false);
     const showTextureMenu = ref(false);
+    const showLogoMenu = ref(false);
     const currentModelKey = ref(null);  // 🏷 Переменная для отслеживания текущей модели
     const isMultiModelView = ref(false); // 🏷 Флаг для обычного режима "1x4 модели"
     const isThreeDView = ref(false); // 🏷 Флаг для режима "2x2 модели"
@@ -58,6 +59,14 @@ export default {
       texture3: '/assets/textures/texture3.webp',
       texture4: '/assets/textures/texture4.webp',
       texture5: '/assets/textures/texture5.webp'
+    };
+
+    // Определение логотипов
+    const logos = {
+      logo1: '/assets/logos/logo1.webp',
+      logo2: '/assets/logos/logo2.webp',
+      logo3: '/assets/logos/logo3.webp',
+      logo4: '/assets/logos/logo4.webp'
     };
 
     // Фиксированная запись MP4 для Safari
@@ -167,20 +176,6 @@ export default {
       }
     };
 
-    // Общие настройки по умолчанию для всех моделей
-    const defaultModelSettings = {
-      color: new THREE.Color(0xffffff),
-      roughness: 0.1,
-      metalness: 0.5,
-      brightnessMultiplier: 4.5,
-      logo: {
-        imageData: null,
-        positionX: 0,
-        positionY: 0,
-        scale: 1
-      }
-    };
-
     // Загружаем данные из localStorage, иначе используем стандартные настройки
     const models = loadStoredModels() || {
       menShirt1: {
@@ -188,18 +183,61 @@ export default {
         name: 'models.menShirt1',
         icon: '/assets/img/models/01_men_shirt.webp',
         originalSettings: {
-          ...defaultModelSettings,
           texture: '/assets/textures/materialTexture1.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
         },
-        // settings будет создаваться динамически при инициализации
+        settings: {
+          texture: '/assets/textures/materialTexture1.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
+        },
       },
       womenShirt: {
         path: '/assets/models/02_women_shirt.glb',
         name: 'models.womenShirt',
         icon: '/assets/img/models/02_women_shirt.webp',
         originalSettings: {
-          ...defaultModelSettings,
           texture: '/assets/textures/materialTexture2.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
+        },
+        settings: {
+          texture: '/assets/textures/materialTexture2.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
         },
       },
       menShirt2: {
@@ -207,8 +245,30 @@ export default {
         name: 'models.menShirt2',
         icon: '/assets/img/models/03_men_shirt.webp',
         originalSettings: {
-          ...defaultModelSettings,
           texture: '/assets/textures/materialTexture3.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
+        },
+        settings: {
+          texture: '/assets/textures/materialTexture3.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
         },
       },
       womenDress: {
@@ -216,18 +276,33 @@ export default {
         name: 'models.womenDress',
         icon: '/assets/img/models/04_dress.webp',
         originalSettings: {
-          ...defaultModelSettings,
           texture: '/assets/textures/materialTexture1.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
+        },
+        settings: {
+          texture: '/assets/textures/materialTexture1.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
         },
       },
     };
-
-    // Инициализация settings при первой загрузке
-    Object.keys(models).forEach(key => {
-      if (!models[key].settings) {
-        models[key].settings = JSON.parse(JSON.stringify(models[key].originalSettings));
-      }
-    });
 
     // Функция загрузки одной модели
     const loadModel = async (modelKey) => {
@@ -453,6 +528,9 @@ export default {
               });
 
               if (chestMesh) {
+                const isMultiView = isMultiModelView.value || isThreeDView.value;
+                const isWomenModel = modelKey === 'womenShirt';
+
                 // Создаем новый меш для логотипа
                 const modelLogoMesh = new THREE.Mesh(
                   chestMesh.geometry.clone(),
@@ -480,23 +558,23 @@ export default {
                 modelLogoMesh.position.copy(chestMesh.position);
                 modelLogoMesh.rotation.copy(chestMesh.rotation);
                 modelLogoMesh.scale.copy(chestMesh.scale);
-                modelLogoMesh.position.z += 0.001; // Слегка смещаем вперед
 
-                // Добавляем метаданные
+                // Специальная обработка для женской модели в мульти-режиме
+                if (isWomenModel && isMultiView) {
+                  modelLogoMesh.scale.x *= -1;  // Отражаем по оси X
+                  // modelLogoMesh.position.x += 0.009; // Смещаем логотип влево
+                }
+
+                modelLogoMesh.position.z += 0.001;
+
                 modelLogoMesh.userData = {
-                  isLogo: true, // Флаг для идентификации меша логотипа
+                  isLogo: true,
                   modelKey: modelKey,
-                  lastModified: '2025-03-10 04:19:40',
-                  modifiedBy: 'Zorger27'
+                  lastUpdated: '2025-03-11 07:06:20',
+                  updatedBy: 'Zorger27'
                 };
 
-                // Добавляем меш логотипа как отдельный объект
                 chestMesh.parent.add(modelLogoMesh);
-
-                // Сохраняем ссылку на оригинальный материал в userData
-                if (chestMesh.material) {
-                  modelLogoMesh.userData.originalMaterial = chestMesh.material.clone();
-                }
               }
             } catch (error) {
               console.error(`❌ Ошибка при добавлении логотипа для модели ${modelKey}:`, error);
@@ -630,6 +708,9 @@ export default {
               });
 
               if (chestMesh) {
+                const isMultiView = isMultiModelView.value || isThreeDView.value;
+                const isWomenModel = modelKey === 'womenShirt';
+
                 // Создаем новый меш для логотипа
                 const modelLogoMesh = new THREE.Mesh(
                   chestMesh.geometry.clone(),
@@ -657,23 +738,23 @@ export default {
                 modelLogoMesh.position.copy(chestMesh.position);
                 modelLogoMesh.rotation.copy(chestMesh.rotation);
                 modelLogoMesh.scale.copy(chestMesh.scale);
-                modelLogoMesh.position.z += 0.001; // Слегка смещаем вперед
 
-                // Добавляем метаданные
+                // Специальная обработка для женской модели в мульти-режиме
+                if (isWomenModel && isMultiView) {
+                  modelLogoMesh.scale.x *= -1;  // Отражаем по оси X
+                  // modelLogoMesh.position.x += 0.15; // Смещаем логотип влево
+                }
+
+                modelLogoMesh.position.z += 0.001;
+
                 modelLogoMesh.userData = {
-                  isLogo: true, // Флаг для идентификации меша логотипа
+                  isLogo: true,
                   modelKey: modelKey,
-                  lastModified: '2025-03-10 04:19:40',
-                  modifiedBy: 'Zorger27'
+                  lastUpdated: '2025-03-11 07:06:20',
+                  updatedBy: 'Zorger27'
                 };
 
-                // Добавляем меш логотипа как отдельный объект
                 chestMesh.parent.add(modelLogoMesh);
-
-                // Сохраняем ссылку на оригинальный материал в userData
-                if (chestMesh.material) {
-                  modelLogoMesh.userData.originalMaterial = chestMesh.material.clone();
-                }
               }
             } catch (error) {
               console.error(`❌ Ошибка при добавлении логотипа для модели ${modelKey}:`, error);
@@ -867,8 +948,20 @@ export default {
     // Универсальная функция для изменения материалов модели
     const updateMaterials = (callback) => {
       return new Promise((resolve) => {
-        if (!model) return resolve();  // Если нет модели, сразу возвращаем Promise
+        if (!model) return resolve();
 
+        const modelKey = model.userData.modelKey;
+
+        // Сначала удаляем старый логотип ТОЛЬКО для текущей модели
+        model.traverse((child) => {
+          if (child.userData?.isLogo && child.userData?.modelKey === modelKey) {
+            child.parent.remove(child);
+            child.material.dispose();
+            child.geometry.dispose();
+          }
+        });
+
+        // Обновляем материалы
         model.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             const materials = Array.isArray(child.material) ? child.material : [child.material];
@@ -880,7 +973,82 @@ export default {
           }
         });
 
-        resolve(); // Когда traverse завершится, возвращаем Promise
+        // Если есть логотип, добавляем его заново ТОЛЬКО для текущей модели
+        if (models[modelKey]?.settings?.logo?.imageData) {
+          // Находим меш груди
+          let chestMesh = null;
+          let maxSize = 0;
+          model.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              const bbox = new THREE.Box3().setFromObject(child);
+              const size = bbox.max.y - bbox.min.y;
+              if (bbox.max.z > 0 && size > maxSize) {
+                chestMesh = child;
+                maxSize = size;
+              }
+            }
+          });
+
+          if (chestMesh) {
+            const modelLogo = logoCache.get(models[modelKey].settings.logo.imageData);
+            const isWomenMultiView = modelKey === 'womenShirt' && (isMultiModelView.value || isThreeDView.value);
+
+            // Создаем новый меш для логотипа
+            const modelLogoMesh = new THREE.Mesh(
+              chestMesh.geometry.clone(),
+              new THREE.MeshBasicMaterial({
+                map: createLogoTexture(
+                  models[modelKey].settings.logo.positionX,
+                  models[modelKey].settings.logo.positionY,
+                  models[modelKey].settings.logo.scale,
+                  modelLogo
+                ),
+                transparent: true,
+                opacity: 1,
+                depthTest: true,
+                depthWrite: false,
+                side: THREE.DoubleSide,
+                blending: THREE.CustomBlending,
+                blendEquation: THREE.AddEquation,
+                blendSrc: THREE.SrcAlphaFactor,
+                blendDst: THREE.OneMinusSrcAlphaFactor,
+                premultipliedAlpha: true
+              })
+            );
+
+            // Копируем трансформации
+            modelLogoMesh.position.copy(chestMesh.position);
+            modelLogoMesh.rotation.copy(chestMesh.rotation);
+            modelLogoMesh.scale.copy(chestMesh.scale);
+
+            // Специальная обработка для женской модели в мульти-режиме
+            if (isWomenMultiView) {
+              modelLogoMesh.scale.x *= -1;  // Отражаем по оси X
+              modelLogoMesh.position.x += 0.15;  // Смещаем логотип влево
+            }
+
+            modelLogoMesh.position.z += 0.001;
+
+            modelLogoMesh.userData = {
+              isLogo: true,
+              modelKey: modelKey,
+              lastUpdated: '2025-03-11 06:54:43',
+              updatedBy: 'Zorger27'
+            };
+
+            chestMesh.parent.add(modelLogoMesh);
+
+            // Добавляем отладочную информацию
+            console.log('Logo update:', {
+              modelKey,
+              isWomenMultiView,
+              operation: 'update materials',
+              timestamp: '2025-03-11 06:54:43'
+            });
+          }
+        }
+
+        resolve();
       });
     };
 
@@ -916,7 +1084,6 @@ export default {
       saveModelsToStorage();
       updateMaterials((material) => {applyMaterialSettings(material, modelKey);});
 
-      // setTimeout(() => renderer.render(scene, camera), 50); // Обновляем рендер после смены текстуры
       renderer.render(scene, camera);
     };
 
@@ -1101,18 +1268,30 @@ export default {
       if (showTextureMenu.value) showColorMenu.value = false; // Закрываем другое меню
     };
 
+    // Открыть или закрыть меню "Брендирование"
+    const toggleBranding = () => {
+      isBrandingOpen.value = !isBrandingOpen.value;
+      if (!isBrandingOpen.value) showLogoMenu.value = false;
+    };
+
     const closeTextureMenu = () => {showTextureMenu.value = false;};
+
+    const toggleLogoMenu = () => {showLogoMenu.value = !showLogoMenu.value;}
+
+    const closeLogoMenu = () => {showLogoMenu.value = false;};
 
     const closeAllMenus = () => {
       if (isRecording.value) {
         showSaveOptions.value = true;
         showColorMenu.value = false;
         showTextureMenu.value = false;
+        showLogoMenu.value = false;
         // isBrandingOpen.value = false;
       } else {
         showColorMenu.value = false;
         showTextureMenu.value = false;
         showSaveOptions.value = false;
+        showLogoMenu.value = false;
         // isBrandingOpen.value = true;
       }
     };
@@ -1568,11 +1747,6 @@ export default {
       console.log("💾 Видео сохранено!");
     };
 
-    // Открыть или закрыть меню "Брендирование"
-    const toggleBranding = () => {
-      isBrandingOpen.value = !isBrandingOpen.value;
-    };
-
     // Функция для работы с кешем логотипов
     const getCachedLogo = async (imageData) => {
       if (!logoCache.has(imageData)) {
@@ -1662,6 +1836,10 @@ export default {
     const createLogoTexture = (positionX, positionY, scale, image) => {
       if (!image) return null;
 
+      // Получаем текущую модель
+      const modelKey = model.userData.modelKey;
+      const isMultiView = isMultiModelView.value || isThreeDView.value;
+
       const textureWidth = 2048;
       const textureHeight = 2048;
 
@@ -1688,8 +1866,16 @@ export default {
       // Перемещаем в точку отрисовки
       logoCtx.translate(x, y);
 
-      // Отражаем для правильной ориентации
-      logoCtx.scale(-1, -1);
+      // Логика отражения в зависимости от модели и режима просмотра
+      if (modelKey === 'womenShirt') {
+        if (isMultiView) {
+          logoCtx.scale(1, -1);  // для женской в мульти-режиме
+        } else {
+          logoCtx.scale(-1, -1); // для женской в одиночном режиме
+        }
+      } else {
+        logoCtx.scale(1, -1);    // для мужских моделей всегда одинаково
+      }
 
       // Центрируем изображение
       logoCtx.translate(-logoWidth/2, -logoHeight/2);
@@ -1913,10 +2099,13 @@ export default {
       isRecording,
       toggleColorMenu,
       toggleTextureMenu,
+      toggleLogoMenu,
       showColorMenu,
       showTextureMenu,
+      showLogoMenu,
       closeColorMenu,
       closeTextureMenu,
+      closeLogoMenu,
       closeAllMenus,
       clearLocalStorage,
       isBrandingOpen,
@@ -2010,6 +2199,19 @@ export default {
         <transition name="fade">
           <div v-if="isBrandingOpen" class="branding-controls">
             <div class="select-brand">
+              <div class="logos-container">
+                <!-- Кнопка "Выбрать логотип" и раскрывающееся меню -->
+                <button @click="toggleLogoMenu" :title="showLogoMenu ? t('special.saving.closeSaveData') : t('special.saving.saveData')" class="logos-button" :class="{'open': showLogoMenu}"><i class="fas fa-registered"></i></button>
+                <!-- Меню с анимацией -->
+                <transition name="slide">
+                  <div v-show="showLogoMenu" class="logos-options" :class="{'show': showLogoMenu}">
+                    <img src="/assets/logos/logo1.webp" alt="logo1" @click="changeLogo('logo1'); closeLogoMenu()" class="logo" :title="t('special.branding.logo1')">
+                    <img src="/assets/logos/logo2.webp" alt="logo2" @click="changeLogo('logo2'); closeLogoMenu()" class="logo" :title="t('special.branding.logo2')">
+                    <img src="/assets/logos/logo3.webp" alt="logo3" @click="changeLogo('logo3'); closeLogoMenu()" class="logo" :title="t('special.branding.logo3')">
+                    <img src="/assets/logos/logo4.webp" alt="logo4" @click="changeLogo('logo4'); closeLogoMenu()" class="logo" :title="t('special.branding.logo4')">
+                  </div>
+                </transition>
+              </div>
               <!-- Кнопка для загрузки картинки бренда с диска -->
               <input type="file" @change="loadBrandImage" id="brand-input" class="brand-input" accept="image/*" />
               <label for="brand-input" class="upload" :title="t('special.branding.upload')"><i class="fa-solid fa-upload"></i></label>
@@ -2018,11 +2220,11 @@ export default {
             <div class="position">
               <!-- Кнопка-ползунок "Масштаб" -->
               <label for="scale">{{ t('special.branding.scale') }}</label>
-              <input type="range" v-model="scale" @input="loadBrandImage" id="scale" min="0.5" max="2" step="0.1" />
+              <input type="range" v-model="scale" @input="loadBrandImage" id="scale" min="0.3" max="2" step="0.1" />
 
               <!-- Кнопка-ползунок "Вертикаль" -->
               <label for="positionY">{{ t('special.branding.positionY') }}</label>
-              <input type="range" v-model="positionY" @input="loadBrandImage" id="positionY" min="-1" max="1" step="0.1" />
+              <input type="range" v-model="positionY" @input="loadBrandImage" id="positionY" min="-1.5" max="1.5" step="0.1" />
 
               <!-- Кнопка-ползунок "Горизонталь" -->
               <label for="positionX">{{ t('special.branding.positionX') }}</label>
@@ -2535,6 +2737,102 @@ export default {
           flex-direction: row;
           justify-content: center;
 
+          .logos-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            .logos-button {
+              width: 50px;
+              height: 50px;
+              font-size: 24px;
+              margin-right: 10px;
+              border: none;
+              border-radius: 5px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              background: lightgoldenrodyellow;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+              transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
+
+              &:hover {
+                background-color: #ffffff;
+                color: dodgerblue;
+                border: 2px solid dodgerblue;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+              }
+              &.open {
+                color: white;
+                border-color: transparent;
+                background-color: darkblue;
+              }
+            }
+
+            .logos-options {
+              display: flex;
+              flex-direction: row; /* Меню горизонтальное */
+              position: absolute;
+              right: 100%; /* Меню появляется слева от кнопки */
+              top: 0;
+              opacity: 0;
+              transform: translateX(20px); /* Начальная позиция для анимации (справа) */
+              transition: opacity 0.4s ease, transform 0.4s ease;
+
+              &.show {
+                opacity: 1;
+                transform: translateX(0); /* Меню появляется в центре */
+              }
+
+              .logo {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+                margin-right: 10px; /* Расстояние между кнопками */
+                //border: 2px solid transparent;
+                border-radius: 5px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                overflow: hidden; /* Скрываем части изображения, выходящие за границы контейнера */
+                background: white;
+                //background: lightgoldenrodyellow;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+                transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
+
+                img {
+                  width: 100%; /* Ширина изображения соответствует ширине контейнера */
+                  height: 100%; /* Высота изображения соответствует высоте контейнера */
+                  object-fit: cover; /* Сохраняет пропорции изображения и заполняет контейнер */
+                  display: block; /* Убирает нижний отступ у изображений */
+                }
+
+                &:hover {
+                  background-color: #ffffff;
+                  color: darkgreen;
+                  //border: 2px solid darkgreen;
+                  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                }
+              }
+            }
+
+            /* 🎯 Анимация для Vue Transition */
+            .slide-enter-from, .slide-leave-to {
+              opacity: 0;
+              transform: translateX(20px); /* Меню уезжает вправо, начиная с центра */
+            }
+
+            .slide-enter-to, .slide-leave-from {
+              opacity: 1;
+              transform: translateX(0); /* Меню появляется или возвращается в нормальное положение */
+            }
+
+            .slide-enter-active, .slide-leave-active {
+              transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            }
+          }
+
           .upload {
             width: 46px;
             height: 46px;
@@ -2709,6 +3007,24 @@ export default {
           }
 
           .select-brand {
+            .logos-container {
+              .logos-button {
+                width: 45px;
+                height: 45px;
+                font-size: 22px;
+                margin-right: 9px;
+              }
+
+              .logos-options {
+                .logo {
+                  width: 45px;
+                  height: 45px;
+                  font-size: 22px;
+                  margin-right: 9px; /* Расстояние между кнопками */
+                }
+              }
+            }
+
             .upload {
               width: 41px;
               height: 41px;
@@ -2859,6 +3175,24 @@ export default {
           }
 
           .select-brand {
+            .logos-container {
+              .logos-button {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+                margin-right: 8px;
+              }
+
+              .logos-options {
+                .logo {
+                  width: 40px;
+                  height: 40px;
+                  font-size: 18px;
+                  margin-right: 8px; /* Расстояние между кнопками */
+                }
+              }
+            }
+
             .upload {
               width: 36px;
               height: 36px;
