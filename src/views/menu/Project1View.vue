@@ -1314,7 +1314,7 @@ export default {
       if (!modelKey || !logos[logoKey]) return;
 
       try {
-        // Загружаем и кешируем изображение логотипа, если его еще нет в кеше
+        // Загружаем и кешируем изображение логотипа
         if (!logoCache.has(logos[logoKey])) {
           lastLoadedImage = new Image();
           lastLoadedImage.src = logos[logoKey];
@@ -1327,32 +1327,53 @@ export default {
           lastLoadedImage = logoCache.get(logos[logoKey]);
         }
 
+        // Удаляем существующий меш логотипа, если он есть
+        if (logoMesh) {
+          logoMesh.parent.remove(logoMesh);
+          if (logoMesh.material) {
+            if (logoMesh.material.map) {
+              logoMesh.material.map.dispose();
+            }
+            logoMesh.material.dispose();
+          }
+          if (logoMesh.geometry) {
+            logoMesh.geometry.dispose();
+          }
+          logoMesh = null;
+        }
+
         // Обновляем настройки логотипа в модели
         models[modelKey].settings.logo = {
           imageData: logos[logoKey],
           positionX: positionX.value,
           positionY: positionY.value,
           scale: scale.value,
-          lastModified: '2025-03-11 07:51:15',
+          lastModified: '2025-03-11 23:20:55',
           modifiedBy: 'Zorger27'
         };
 
-        // Если меш логотипа еще не создан, создаем его
-        if (!logoMesh) {
-          await createLogoMesh();
-        } else {
-          // Иначе просто обновляем текстуру
+        // Создаем новый меш логотипа
+        await createLogoMesh();
+
+        // Обновляем текстуру логотипа
+        if (logoMesh) {
           updateLogoTexture();
         }
 
         // Сохраняем изменения
         saveModelsToStorage();
 
+        // Принудительно перерисовываем сцену
+        requestAnimationFrame(() => {
+          renderer.render(scene, camera);
+        });
+
         console.log('Logo changed successfully:', {
-          timestamp: '2025-03-11 07:51:15',
+          timestamp: '2025-03-11 23:20:55',
           user: 'Zorger27',
           logoKey,
-          modelKey
+          modelKey,
+          hasLogoMesh: !!logoMesh
         });
       } catch (error) {
         console.error('Error changing logo:', error);
@@ -1977,9 +1998,24 @@ export default {
         return;
       }
 
+      // Удаляем существующий меш логотипа, если он есть
+      if (logoMesh) {
+        logoMesh.parent.remove(logoMesh);
+        if (logoMesh.material) {
+          if (logoMesh.material.map) {
+            logoMesh.material.map.dispose();
+          }
+          logoMesh.material.dispose();
+        }
+        if (logoMesh.geometry) {
+          logoMesh.geometry.dispose();
+        }
+        logoMesh = null;
+      }
+
       // Создаем материал логотипа
       const logoMaterial = new THREE.MeshBasicMaterial({
-        map: createLogoTexture(positionX.value, positionY.value, scale.value),
+        map: createLogoTexture(positionX.value, positionY.value, scale.value, lastLoadedImage),
         transparent: true,
         opacity: 1,
         depthTest: true,
@@ -1995,10 +2031,18 @@ export default {
       // Создаем меш логотипа
       logoMesh = new THREE.Mesh(chestMesh.geometry.clone(), logoMaterial);
 
-      // Копируем трансформации в правильном порядке
+      // Копируем трансформации
       logoMesh.matrix.copy(chestMesh.matrix);
       logoMesh.matrix.decompose(logoMesh.position, logoMesh.quaternion, logoMesh.scale);
       logoMesh.position.z += 0.001;
+
+      // Добавляем метаданные
+      logoMesh.userData = {
+        isLogo: true,
+        modelKey: model.userData.modelKey,
+        lastModified: '2025-03-11 23:20:55',
+        modifiedBy: 'Zorger27'
+      };
 
       // Добавляем меш логотипа
       chestMesh.parent.add(logoMesh);
@@ -2006,30 +2050,48 @@ export default {
 
     // Обновление позиции логотипа
     const updateLogoTexture = () => {
-      if (!lastLoadedImage || !logoMesh) return;
+      if (!lastLoadedImage || !logoMesh) {
+        console.warn("❌ No image or logo mesh available!");
+        return;
+      }
 
-      // Создаем новую текстуру
-      const texture = createLogoTexture(
-        positionX.value,
-        positionY.value,
-        scale.value,
-        lastLoadedImage
-      );
+      try {
+        // Создаем новую текстуру
+        const texture = createLogoTexture(
+          positionX.value,
+          positionY.value,
+          scale.value,
+          lastLoadedImage
+        );
 
-      // Обновляем текстуру в материале
-      if (logoMesh.material) {
-        // Освобождаем старую текстуру, если она существует
-        if (logoMesh.material.map && typeof logoMesh.material.map.dispose === 'function') {
+        if (!texture) {
+          console.warn("❌ Failed to create texture!");
+          return;
+        }
+
+        // Если старая текстура существует, удаляем её
+        if (logoMesh.material.map) {
           logoMesh.material.map.dispose();
         }
 
-        // Присваиваем новую текстуру
+        // Обновляем текстуру в материале
         logoMesh.material.map = texture;
         logoMesh.material.needsUpdate = true;
-      }
 
-      // Принудительно перерисовываем сцену
-      renderer.render(scene, camera);
+        // Принудительно перерисовываем сцену
+        requestAnimationFrame(() => {
+          renderer.render(scene, camera);
+        });
+
+        console.log('Texture updated successfully:', {
+          timestamp: '2025-03-11 23:20:55',
+          user: 'Zorger27',
+          position: { x: positionX.value, y: positionY.value },
+          scale: scale.value
+        });
+      } catch (error) {
+        console.error("❌ Error updating texture:", error);
+      }
     };
 
     // Функция очистки логотипа
