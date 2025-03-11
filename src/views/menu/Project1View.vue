@@ -1306,6 +1306,59 @@ export default {
       }
     };
 
+    // Функция для изменения логотипов из заранее загруженных
+    const changeLogo = async (logoKey) => {
+      if (!model) return;
+
+      const modelKey = model.userData.modelKey;
+      if (!modelKey || !logos[logoKey]) return;
+
+      try {
+        // Загружаем и кешируем изображение логотипа, если его еще нет в кеше
+        if (!logoCache.has(logos[logoKey])) {
+          lastLoadedImage = new Image();
+          lastLoadedImage.src = logos[logoKey];
+          await new Promise((resolve, reject) => {
+            lastLoadedImage.onload = resolve;
+            lastLoadedImage.onerror = reject;
+          });
+          logoCache.set(logos[logoKey], lastLoadedImage);
+        } else {
+          lastLoadedImage = logoCache.get(logos[logoKey]);
+        }
+
+        // Обновляем настройки логотипа в модели
+        models[modelKey].settings.logo = {
+          imageData: logos[logoKey],
+          positionX: positionX.value,
+          positionY: positionY.value,
+          scale: scale.value,
+          lastModified: '2025-03-11 07:51:15',
+          modifiedBy: 'Zorger27'
+        };
+
+        // Если меш логотипа еще не создан, создаем его
+        if (!logoMesh) {
+          await createLogoMesh();
+        } else {
+          // Иначе просто обновляем текстуру
+          updateLogoTexture();
+        }
+
+        // Сохраняем изменения
+        saveModelsToStorage();
+
+        console.log('Logo changed successfully:', {
+          timestamp: '2025-03-11 07:51:15',
+          user: 'Zorger27',
+          logoKey,
+          modelKey
+        });
+      } catch (error) {
+        console.error('Error changing logo:', error);
+      }
+    };
+
     // 📌 Функция получения данных для сохранения
     const getSaveMetadata = () => {
       let title = "Unknown Model";
@@ -2081,6 +2134,7 @@ export default {
       changeColor,
       changeColorFromPicker,
       changeTexture,
+      changeLogo,
       toggleMixing, // Возвращаем функцию для переключения смешивания
       isMixingEnabled, // Возвращаем состояние смешивания
       resetModelSettings,
