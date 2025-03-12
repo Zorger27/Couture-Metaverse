@@ -57,11 +57,11 @@
     "closeColorMenu": "Close color selection menu"
   },
   "texture": {
-    "texture1": "Loading texture #1",
-    "texture2": "Loading texture #2",
-    "texture3": "Loading texture #3",
-    "texture4": "Loading texture #4",
-    "texture5": "Loading texture #5",
+    "texture1": "Apply the Texture № 1",
+    "texture2": "Apply the Texture № 2",
+    "texture3": "Apply the Texture № 3",
+    "texture4": "Apply the Texture № 4",
+    "texture5": "Apply the Texture № 5",
     "upload": "Load texture...",
     "reset": "Return to the initial texture",
     "resetAll": "Return to original settings",
@@ -87,17 +87,16 @@
     "branding": {
       "openBranding": "Open menu for model branding",
       "closeBranding": "Close menu for model branding",
+      "logo1": "Apply the Logo № 1",
+      "logo2": "Apply the Logo № 2",
+      "logo3": "Apply the Logo № 3",
+      "logo4": "Apply the Logo № 4",
+      "openLogoMenu": "Open the logo selection menu",
+      "closeLogoMenu": "Close the logo selection menu",
       "upload": "Load brand image from disk",
-      "applyBrand": "Apply a brand image to the model",
       "scale": "Scale",
       "positionY": "Vertical",
-      "positionX": "Horizontal",
-      "removeBrand": "Remove current brand image",
-      "removeAllBrands": "Remove all branded images",
-      "confirm": "Are you sure you want to delete the logo image and/or its settings? \uD83E\uDDD0\uD83D\uDE27",
-      "alertYes": "The logo image and/or its settings have been deleted from local storage! ☹\uFE0F\uD83D\uDE2D",
-      "alertNo": "The deletion of the logo image and/or its settings has been canceled! \uD83D\uDE01\uD83D\uDE0A",
-      "noData": "The logo image and/or its settings were not found in the local storage! \uD83D\uDE44\uD83E\uDEE4"
+      "positionX": "Horizontal"
     }
   },
   "about": {

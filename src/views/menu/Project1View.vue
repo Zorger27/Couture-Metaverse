@@ -2355,7 +2355,7 @@ export default {
             <div class="select-brand">
               <div class="logos-container">
                 <!-- Кнопка "Выбрать логотип" и раскрывающееся меню -->
-                <button @click="toggleLogoMenu" :title="showLogoMenu ? t('special.saving.closeSaveData') : t('special.saving.saveData')" class="logos-button" :class="{'open': showLogoMenu}"><i class="fas fa-registered"></i></button>
+                <button @click="toggleLogoMenu" :title="showLogoMenu ? t('special.branding.closeLogoMenu') : t('special.branding.openLogoMenu')" class="logos-button" :class="{'open': showLogoMenu}"><i class="fas fa-registered"></i></button>
                 <!-- Меню с анимацией -->
                 <transition name="slide">
                   <div v-show="showLogoMenu" class="logos-options" :class="{'show': showLogoMenu}">

@@ -57,11 +57,11 @@
     "closeColorMenu": "Cerrar el menú de selección de colores"
   },
   "texture": {
-    "texture1": "Cargando textura #1",
-    "texture2": "Cargando textura #2",
-    "texture3": "Cargando textura #3",
-    "texture4": "Cargando textura #4",
-    "texture5": "Cargando textura #5",
+    "texture1": "Aplicar la textura № 1",
+    "texture2": "Aplicar la textura № 2",
+    "texture3": "Aplicar la textura № 3",
+    "texture4": "Aplicar la textura № 4",
+    "texture5": "Aplicar la textura № 5",
     "upload": "Cargar textura...",
     "reset": "Volver a la textura inicial",
     "resetAll": "Volver a la configuración original",
@@ -87,17 +87,16 @@
     "branding": {
       "openBranding": "Abrir menú para la marca del modelo",
       "closeBranding": "Cerrar el menú para la marca del modelo",
+      "logo1": "Aplicar el logotipo № 1",
+      "logo2": "Aplicar el logotipo № 2",
+      "logo3": "Aplicar el logotipo № 3",
+      "logo4": "Aplicar el logotipo № 4",
+      "openLogoMenu": "Abrir el menú de selección de logotipos",
+      "closeLogoMenu": "Cerrar el menú de selección de logotipos",
       "upload": "Cargar imagen de marca desde el disco",
-      "applyBrand": "Aplicar una imagen de marca al modelo",
       "scale": "Escala",
       "positionY": "Vertical",
-      "positionX": "Horizontal",
-      "removeBrand": "Eliminar la imagen de marca actual",
-      "removeAllBrands": "Eliminar todas las imágenes de marca",
-      "confirm": "¿Está seguro de que desea eliminar la imagen del logotipo y/o sus configuraciónes? \uD83E\uDDD0\uD83D\uDE27",
-      "alertYes": "¡La imagen del logotipo y/o sus configuraciones se han eliminado del almacenamiento local! ☹\uFE0F\uD83D\uDE2D",
-      "alertNo": "¡Se ha cancelado la eliminación de la imagen del logotipo y/o sus configuraciónes! \uD83D\uDE01\uD83D\uDE0A",
-      "noData": "¡La imagen del logotipo y/o sus configuraciones no se encontraron en el almacenamiento local! \uD83D\uDE44\uD83E\uDEE4"
+      "positionX": "Horizontal"
     }
   },
   "about": {
