@@ -480,6 +480,7 @@ export default {
     const loadAllModels = async () => {
       isMultiModelView.value = true;
       isThreeDView.value = false;
+      isBrandingOpen.value = false;
       currentModelKey.value = null;
 
       clearScene();
@@ -655,6 +656,7 @@ export default {
     const loadAllModels3d = async () => {
       isThreeDView.value = true;
       isMultiModelView.value = false;
+      isBrandingOpen.value = false;
       currentModelKey.value = null;
 
       clearScene();
@@ -2396,7 +2398,6 @@ export default {
         <!-- Меню с анимацией -->
         <transition name="slide">
           <div v-show="showSaveOptions" class="save-options" :class="{'show': showSaveOptions, 'active': isBrandingOpen}">
-<!--          <div v-show="showSaveOptions" class="save-options" :class="{'show': showSaveOptions}">-->
             <button @click="saveAsJPG" :title="t('special.saving.saveJPG')"><i class="fas fa-camera"></i></button>
             <button @click="saveAsPNG" :title="t('special.saving.savePNG')"><i class="fas fa-file-image"></i></button>
             <button @click="saveAsPDF" :title="t('special.saving.savePDF')"><i class="fas fa-file-pdf"></i></button>
