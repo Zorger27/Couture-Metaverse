@@ -1,5 +1,5 @@
 <script>
-import {onMounted, onUnmounted, ref, watch} from 'vue';
+import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
 import {useI18n} from 'vue-i18n';
 import jsPDF from "jspdf";
 import * as THREE from 'three';
@@ -1312,17 +1312,15 @@ export default {
       if (!modelKey || !logos[logoKey]) return;
 
       try {
-        // Сохраняем предыдущие настройки или берем значения по умолчанию
         const previousSettings = models[modelKey].settings?.logo ?? {
           positionX: 0.5,
           positionY: 0.5,
           scale: 1.0
         };
 
-        // Очищаем старый логотип
         clearLogo();
 
-        // Загружаем новый логотип
+        // Загружаем логотип
         if (!logoCache.has(logos[logoKey])) {
           lastLoadedImage = new Image();
           lastLoadedImage.src = logos[logoKey];
@@ -1341,25 +1339,17 @@ export default {
           positionX: Number(previousSettings.positionX),
           positionY: Number(previousSettings.positionY),
           scale: Number(previousSettings.scale),
-          lastModified: '2025-03-12 02:20:05',
+          lastModified: '2025-03-12 03:33:58',
           modifiedBy: 'Zorger27'
         };
 
-        // Обновляем слайдеры
-        positionX.value = Number(previousSettings.positionX);
-        positionY.value = Number(previousSettings.positionY);
-        scale.value = Number(previousSettings.scale);
+        // Синхронизируем значения ползунков
+        syncSliderValues(modelKey);
 
-        // Создаем новый меш логотипа
         await createLogoMesh();
-
-        // Сохраняем состояние
         saveModelsToStorage();
-
-        // Обновляем материалы
         await updateMaterials();
 
-        // Обновляем рендер
         renderer.render(scene, camera);
 
       } catch (error) {
@@ -1833,63 +1823,56 @@ export default {
         const file = event.target.files[0];
         if (!file) return;
 
-        // Очищаем старый логотип
         clearLogo();
 
-        // Создаем URL для изображения
-        const imageUrl = URL.createObjectURL(file);
+        // Конвертируем файл в base64 для сохранения
+        const base64Image = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+        });
 
-        // Загружаем изображение
+        // Создаем временный URL для загрузки изображения
+        const imageUrl = URL.createObjectURL(file);
         lastLoadedImage = new Image();
         lastLoadedImage.src = imageUrl;
+
         await new Promise((resolve, reject) => {
           lastLoadedImage.onload = resolve;
           lastLoadedImage.onerror = reject;
         });
 
-        // Получаем предыдущие настройки или устанавливаем значения по умолчанию
+        // Получаем предыдущие настройки или значения по умолчанию
         const previousSettings = models[modelKey].settings?.logo ?? {
           positionX: 0.5,
           positionY: 0.5,
           scale: 1.0
         };
 
-        // Обновляем настройки логотипа в модели
+        // Обновляем настройки, сохраняя base64 вместо URL
         models[modelKey].settings.logo = {
-          imageData: imageUrl,
+          imageData: base64Image, // Сохраняем base64 строку
           positionX: Number(previousSettings.positionX),
           positionY: Number(previousSettings.positionY),
           scale: Number(previousSettings.scale),
-          lastModified: '2025-03-12 02:52:35',
+          lastModified: '2025-03-12 03:33:58',
           modifiedBy: 'Zorger27'
         };
 
-        // Устанавливаем значения слайдеров
-        positionX.value = Number(previousSettings.positionX);
-        positionY.value = Number(previousSettings.positionY);
-        scale.value = Number(previousSettings.scale);
+        // Синхронизируем значения ползунков
+        syncSliderValues(modelKey);
 
-        // Создаем новый меш логотипа
         await createLogoMesh();
-
-        // Сохраняем состояние
         saveModelsToStorage();
 
-        // Обновляем материалы
-        await updateMaterials();
-
-        // Очищаем input файла
+        // Очищаем input и освобождаем URL
         event.target.value = '';
-
-        // Обновляем рендер
-        renderer.render(scene, camera);
-
-        // Освобождаем URL
         URL.revokeObjectURL(imageUrl);
+
+        renderer.render(scene, camera);
 
       } catch (error) {
         console.error('Error loading brand image:', error);
-        // Очищаем input файла в случае ошибки
         if (event.target) {
           event.target.value = '';
         }
@@ -2080,12 +2063,19 @@ export default {
       if (!modelKey || !models[modelKey].settings?.logo) return;
 
       try {
+        // Получаем текущие значения ползунков
+        const currentX = Number(positionX.value);
+        const currentY = Number(positionY.value);
+        const currentScale = Number(scale.value);
+
         const texture = createLogoTexture(
-          positionX.value,
-          positionY.value,
-          scale.value,
+          currentX,
+          currentY,
+          currentScale,
           lastLoadedImage
         );
+
+        if (!texture) return;
 
         // Правильное освобождение старой текстуры
         if (logoMesh.material && logoMesh.material.map) {
@@ -2098,13 +2088,13 @@ export default {
         logoMesh.material.map = texture;
         logoMesh.material.needsUpdate = true;
 
-        // Обновляем настройки в модели
+        // Синхронизируем значения в модели
         models[modelKey].settings.logo = {
           ...models[modelKey].settings.logo,
-          positionX: positionX.value,
-          positionY: positionY.value,
-          scale: scale.value,
-          lastModified: '2025-03-12 02:41:52',
+          positionX: currentX,
+          positionY: currentY,
+          scale: currentScale,
+          lastModified: '2025-03-12 03:11:26',
           modifiedBy: 'Zorger27'
         };
 
@@ -2142,6 +2132,20 @@ export default {
       renderer.render(scene, camera);
     };
 
+    // Функция синхронизации ползунков
+    const syncSliderValues = (modelKey) => {
+      if (!models[modelKey]?.settings?.logo) return;
+
+      const logoSettings = models[modelKey].settings.logo;
+
+      // Используем nextTick для обеспечения корректного обновления UI
+      nextTick(() => {
+        positionX.value = Number(logoSettings.positionX);
+        positionY.value = Number(logoSettings.positionY);
+        scale.value = Number(logoSettings.scale);
+      });
+    };
+
     const onWindowResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -2153,24 +2157,26 @@ export default {
     window.addEventListener('resize', onWindowResize);
 
     // Наблюдение за изменениями слайдеров
-    watch([positionX, positionY, scale], async ([newX, newY, newScale]) => {
+    watch([positionX, positionY, scale], ([newX, newY, newScale]) => {
       if (!model || !model.userData.modelKey) return;
 
       const modelKey = model.userData.modelKey;
       if (!models[modelKey].settings?.logo) return;
 
+      // Обновляем настройки в модели
       models[modelKey].settings.logo = {
         ...models[modelKey].settings.logo,
         positionX: Number(newX),
         positionY: Number(newY),
         scale: Number(newScale),
-        lastModified: '2025-03-12 02:20:05',
+        lastModified: '2025-03-12 03:33:58',
         modifiedBy: 'Zorger27'
       };
 
-      await updateLogoTexture();
-      saveModelsToStorage();
-
+      requestAnimationFrame(() => {
+        updateLogoTexture();
+        saveModelsToStorage();
+      });
     }, { deep: true });
 
     onMounted(() => {
