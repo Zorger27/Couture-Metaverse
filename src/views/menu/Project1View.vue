@@ -2365,7 +2365,7 @@ export default {
 
     <div class="special-controls">
 
-      <div class="branding-container" v-if="!isMultiModelView && !isThreeDView">
+      <div class="branding-container">
         <transition name="fade">
           <div v-if="isBrandingOpen" class="branding-controls">
             <div class="select-brand">
@@ -2417,7 +2417,7 @@ export default {
         </transition>
         <div class="right-menu" :class="{'active': isBrandingOpen}">
           <!-- Кнопка "Брендировать" и раскрывающееся меню -->
-          <button @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
+          <button v-if="!isMultiModelView && !isThreeDView" @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
           <div class="saving-container">
             <!-- Кнопка "Сохранить" и раскрывающееся меню -->
             <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.saving.closeSaveData') : t('special.saving.saveData')" class="save-button" :class="{'open': showSaveOptions}"><i class="fas fa-save"></i></button>
