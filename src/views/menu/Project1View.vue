@@ -48,6 +48,14 @@ export default {
     const textureCache = {};
     const logoCache = new Map(); // Добавляем кеш для логотипов
 
+    // Кнопки-ползунки
+    const incrementX = () => {positionX.value = Math.min(1, Number(positionX.value) + 0.01);};
+    const decrementX = () => {positionX.value = Math.max(0, Number(positionX.value) - 0.01);};
+    const incrementY = () => {positionY.value = Math.min(1, Number(positionY.value) + 0.01);};
+    const decrementY = () => {positionY.value = Math.max(0, Number(positionY.value) - 0.01);};
+    const incrementScale = () => {scale.value = Math.min(2, Number(scale.value) + 0.01);};
+    const decrementScale = () => {scale.value = Math.max(0.1, Number(scale.value) - 0.01);};
+
     // Храним последнее загруженное изображение и меш логотипа
     let lastLoadedImage = null;
     let logoMesh = null;
@@ -2270,6 +2278,12 @@ export default {
       scale,
       positionX,
       positionY,
+      incrementX,
+      decrementX,
+      incrementY,
+      decrementY,
+      incrementScale,
+      decrementScale
     };
   },
 }
@@ -2375,16 +2389,28 @@ export default {
 
             <div class="position">
               <!-- Кнопка-ползунок "Масштаб" -->
-              <label for="scale">{{ t('special.branding.scale') }}</label>
-              <input type="range" v-model="scale" @input="loadBrandImage" id="scale" min="0.3" max="2" step="0.1" />
+              <label for="scale" style="margin-top: 5px">{{ t('special.branding.scale') }}</label>
+              <div class="slider-wrapper">
+                <button class="slider-button minus" @click="decrementScale">-</button>
+                <input type="range" v-model="scale" @input="loadBrandImage" id="scale" min="0.3" max="2" step="0.1" class="slider" />
+                <button class="slider-button plus" @click="incrementScale">+</button>
+              </div>
 
               <!-- Кнопка-ползунок "Вертикаль" -->
               <label for="positionY">{{ t('special.branding.positionY') }}</label>
-              <input type="range" v-model="positionY" @input="loadBrandImage" id="positionY" min="-1.5" max="1.5" step="0.1" />
+              <div class="slider-wrapper">
+                <button class="slider-button minus" @click="decrementY">-</button>
+                <input type="range" v-model="positionY" @input="loadBrandImage" id="positionY" min="-1.5" max="1.5" step="0.1" class="slider" />
+                <button class="slider-button plus" @click="incrementY">+</button>
+              </div>
 
               <!-- Кнопка-ползунок "Горизонталь" -->
               <label for="positionX">{{ t('special.branding.positionX') }}</label>
-              <input type="range" v-model="positionX" @input="loadBrandImage" id="positionX" min="-1" max="1" step="0.1" />
+              <div class="slider-wrapper">
+                <button class="slider-button minus" @click="decrementX">-</button>
+                <input type="range" v-model="positionX" @input="loadBrandImage" id="positionX" min="-1" max="1" step="0.1" class="slider" />
+                <button class="slider-button plus" @click="incrementX">+</button>
+              </div>
             </div>
           </div>
         </transition>
@@ -3018,6 +3044,45 @@ export default {
           justify-content: center;
           font-size: 22px;
           margin-bottom: 10px;
+
+          label {
+            margin: 0;
+            padding: 0;
+            color: black;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px white;
+          }
+
+          .slider-wrapper {
+            display: flex;
+            align-items: center;
+            margin-top: -5px;
+            gap: 5px;
+
+            .slider {flex: 1; margin: 0; padding: 0}
+
+            .slider-button {
+              width: 24px;
+              height: 24px;
+              border: none;
+              border-radius: 50%;
+              background-color: #4CAF50;
+              color: white;
+              font-size: 16px;
+              font-weight: bold;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: background-color 0.3s;
+            }
+
+            .slider-button:hover {background-color: #45a049;}
+            .slider-button:active {background-color: #3d8b40;}
+            .minus {background-color: #f44336;}
+            .minus:hover {background-color: #da190b;}
+            .minus:active {background-color: #b71c1c;}
+          }
         }
       }
 
@@ -3190,6 +3255,17 @@ export default {
           .position {
             margin-bottom: 9px;
             font-size: 20px;
+
+            .slider-wrapper {
+              margin-top: -4px;
+              gap: 4px;
+
+              .slider-button {
+                width: 20px;
+                height: 20px;
+                font-size: 14px;
+              }
+            }
           }
         }
       }
@@ -3358,6 +3434,17 @@ export default {
           .position {
             font-size: 18px;
             margin-bottom: 8px;
+
+            .slider-wrapper {
+              margin-top: -3px;
+              gap: 3px;
+
+              .slider-button {
+                width: 18px;
+                height: 18px;
+                font-size: 12px;
+              }
+            }
           }
         }
       }
