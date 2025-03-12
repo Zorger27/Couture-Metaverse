@@ -2391,6 +2391,7 @@ export default {
               <!-- Кнопка-ползунок "Масштаб" -->
               <label for="scale" style="margin-top: 5px">{{ t('special.branding.scale') }}</label>
               <div class="slider-wrapper">
+<!--                <button class="slider-button minus" @click="decrementScale"><i class="fa-solid fa-chevron-left"></i></button>-->
                 <button class="slider-button minus" @click="decrementScale">-</button>
                 <input type="range" v-model="scale" @input="loadBrandImage" id="scale" min="0.3" max="2" step="0.1" class="slider" />
                 <button class="slider-button plus" @click="incrementScale">+</button>
@@ -2414,25 +2415,26 @@ export default {
             </div>
           </div>
         </transition>
-        <!-- Кнопка "Брендировать" и раскрывающееся меню -->
-        <button @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
-      </div>
-
-      <div class="saving-container">
-        <!-- Кнопка "Сохранить" и раскрывающееся меню -->
-        <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.saving.closeSaveData') : t('special.saving.saveData')" class="save-button" :class="{'open': showSaveOptions}"><i class="fas fa-save"></i></button>
-        <!-- Меню с анимацией -->
-        <transition name="slide">
-          <div v-show="showSaveOptions" class="save-options" :class="{'show': showSaveOptions, 'active': isBrandingOpen}">
-            <button @click="saveAsJPG" :title="t('special.saving.saveJPG')"><i class="fas fa-camera"></i></button>
-            <button @click="saveAsPNG" :title="t('special.saving.savePNG')"><i class="fas fa-file-image"></i></button>
-            <button @click="saveAsPDF" :title="t('special.saving.savePDF')"><i class="fas fa-file-pdf"></i></button>
-            <button v-show="!isRecording" @click="startRecording" :title="t('special.saving.startVideo')" class="film-start"><i class="fas fa-film"></i></button>
-            <button v-show="isRecording" @click="stopRecording" :title="t('special.saving.stopVideo')" class="film-stop"><i class="fas fa-stop-circle"></i></button>
+        <div class="right-menu" :class="{'active': isBrandingOpen}">
+          <!-- Кнопка "Брендировать" и раскрывающееся меню -->
+          <button @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
+          <div class="saving-container">
+            <!-- Кнопка "Сохранить" и раскрывающееся меню -->
+            <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.saving.closeSaveData') : t('special.saving.saveData')" class="save-button" :class="{'open': showSaveOptions}"><i class="fas fa-save"></i></button>
+            <!-- Меню с анимацией -->
+            <transition name="slide">
+              <div v-show="showSaveOptions" class="save-options" :class="{'show': showSaveOptions, 'active': isBrandingOpen}">
+                <button @click="saveAsJPG" :title="t('special.saving.saveJPG')"><i class="fas fa-camera"></i></button>
+                <button @click="saveAsPNG" :title="t('special.saving.savePNG')"><i class="fas fa-file-image"></i></button>
+                <button @click="saveAsPDF" :title="t('special.saving.savePDF')"><i class="fas fa-file-pdf"></i></button>
+                <button v-show="!isRecording" @click="startRecording" :title="t('special.saving.startVideo')" class="film-start"><i class="fas fa-film"></i></button>
+                <button v-show="isRecording" @click="stopRecording" :title="t('special.saving.stopVideo')" class="film-stop"><i class="fas fa-stop-circle"></i></button>
+              </div>
+            </transition>
           </div>
-        </transition>
-      </div>
 
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -2766,130 +2768,141 @@ export default {
     display: flex;
     flex-direction: column;
 
-    .saving-container {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-
-      .save-button {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-        margin-bottom: 10px;
-        border: none;
-        border-radius: 5px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: dodgerblue;
-        color: white;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-        transition: background-color 0.2s, box-shadow 0.2s;
-
-        &:hover {
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        &.open {
-          background-color: darkgreen;
-        }
-      }
-
-      .save-options {
-        display: flex;
-        flex-direction: row; /* Меню горизонтальное */
-        position: absolute;
-        right: 100%; /* Меню появляется слева от кнопки */
-        top: 0;
-        opacity: 0;
-        transform: translateX(20px); /* Начальная позиция для анимации (справа) */
-        transition: opacity 0.4s ease, transform 0.4s ease;
-
-        &.show {
-          opacity: 1;
-          transform: translateX(0); /* Меню появляется в центре */
-        }
-        &.active {
-          //transform: translateX(40px);
-          margin-right: -42px;
-
-        }
-
-        button {
-          width: 50px;
-          height: 50px;
-          font-size: 24px;
-          margin-right: 10px; /* Расстояние между кнопками */
-          border: none;
-          border-radius: 5px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          background: lightgoldenrodyellow;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-          transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
-
-          &:hover {
-            background-color: #ffffff;
-            color: darkgreen;
-            border: 2px solid darkgreen;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          }
-
-          &.film-start:hover {
-            color: purple;
-            border-color: purple;
-          }
-
-          &.film-stop:hover {
-            color: red;
-            border-color: red;
-          }
-        }
-      }
-
-      /* 🎯 Анимация для Vue Transition */
-      .slide-enter-from, .slide-leave-to {
-        opacity: 0;
-        transform: translateX(20px); /* Меню уезжает вправо, начиная с центра */
-      }
-
-      .slide-enter-to, .slide-leave-from {
-        opacity: 1;
-        transform: translateX(0); /* Меню появляется или возвращается в нормальное положение */
-      }
-
-      .slide-enter-active, .slide-leave-active {
-        transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-      }
-    }
-
     .branding-container {
       position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
 
-      .branding {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-        border: none;
-        border-radius: 5px;
-        margin-bottom: 10px;
+      .right-menu {
         display: flex;
-        justify-content: center;
-        align-items: center;
-        background: mediumvioletred;
-        color: white;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-        transition: background-color 0.2s, box-shadow 0.2s;
+        flex-direction: column;
 
-        &:hover {
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        .saving-container {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+
+          .save-button {
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: dodgerblue;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+            transition: background-color 0.2s, box-shadow 0.2s;
+
+            &:hover {
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+            &.open {
+              background-color: darkgreen;
+            }
+          }
+
+          .save-options {
+            display: flex;
+            flex-direction: row; /* Меню горизонтальное */
+            position: absolute;
+            right: 100%; /* Меню появляется слева от кнопки */
+            top: 0;
+            opacity: 0;
+            transform: translateX(20px); /* Начальная позиция для анимации (справа) */
+            transition: opacity 0.4s ease, transform 0.4s ease;
+
+            &.show {
+              opacity: 1;
+              transform: translateX(0); /* Меню появляется в центре */
+            }
+            &.active {
+              //transform: translateX(40px);
+              margin-right: -2px;
+
+            }
+
+            button {
+              width: 50px;
+              height: 50px;
+              font-size: 24px;
+              margin-right: 10px; /* Расстояние между кнопками */
+              border: none;
+              border-radius: 5px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              background: lightgoldenrodyellow;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+              transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
+
+              &:hover {
+                background-color: #ffffff;
+                color: darkgreen;
+                border: 2px solid darkgreen;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+              }
+
+              &.film-start:hover {
+                color: purple;
+                border-color: purple;
+              }
+
+              &.film-stop:hover {
+                color: red;
+                border-color: red;
+              }
+            }
+          }
+
+          /* 🎯 Анимация для Vue Transition */
+          .slide-enter-from, .slide-leave-to {
+            opacity: 0;
+            transform: translateX(20px); /* Меню уезжает вправо, начиная с центра */
+          }
+
+          .slide-enter-to, .slide-leave-from {
+            opacity: 1;
+            transform: translateX(0); /* Меню появляется или возвращается в нормальное положение */
+          }
+
+          .slide-enter-active, .slide-leave-active {
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+          }
         }
+
+        .branding {
+          width: 50px;
+          height: 50px;
+          font-size: 24px;
+          border: none;
+          border-radius: 5px;
+          margin-bottom: 10px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background: mediumvioletred;
+          color: white;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+          transition: background-color 0.2s, box-shadow 0.2s;
+
+          &:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          }
+          &.active {
+            background-color: darkgreen;
+          }
+        }
+
         &.active {
-          background-color: darkgreen;
+          display: flex;
+          flex-direction: row-reverse;
+          column-gap: 10px;
         }
       }
 
@@ -3192,30 +3205,34 @@ export default {
       right: 22px; /* Размещение кнопок справа */
       top: 54%;
 
-      .saving-container {
-        .save-button {
-          width: 45px;
-          height: 45px;
-          font-size: 22px;
-        }
+      .branding-container {
 
-        .save-options {
-          &.active {margin-right: -45px;}
-          button {
+        .right-menu {
+
+          .saving-container {
+            .save-button {
+              width: 45px;
+              height: 45px;
+              font-size: 22px;
+            }
+
+            .save-options {
+              //&.active {margin-right: -2px;}
+              button {
+                width: 45px;
+                height: 45px;
+                font-size: 22px;
+                margin-right: 9px;
+              }
+            }
+          }
+
+          .branding {
             width: 45px;
             height: 45px;
             font-size: 22px;
-            margin-right: 9px;
+            margin-bottom: 9px;
           }
-        }
-      }
-
-      .branding-container {
-        .branding {
-          width: 45px;
-          height: 45px;
-          font-size: 22px;
-          margin-bottom: 9px;
         }
 
         .branding-controls {
@@ -3369,32 +3386,36 @@ export default {
       right: 20px; /* Размещение кнопок справа */
       top: 59%;
 
-      .saving-container {
-        .save-button {
-          width: 40px;
-          height: 40px;
-          font-size: 18px;
-        }
+      .branding-container {
 
-        .save-options {
-          &.active {margin-right: -47px;}
-          button {
+        .right-menu {
+
+          .saving-container {
+            .save-button {
+              width: 40px;
+              height: 40px;
+              font-size: 18px;
+            }
+
+            .save-options {
+              //&.active {margin-right: -2px;}
+              button {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+                margin-right: 8px;
+              }
+              .film-start {display: none;}
+              .film-stop {display: none;}
+            }
+          }
+
+          .branding {
             width: 40px;
             height: 40px;
             font-size: 18px;
-            margin-right: 8px;
+            margin-bottom: 8px;
           }
-          .film-start {display: none;}
-          .film-stop {display: none;}
-        }
-      }
-
-      .branding-container {
-        .branding {
-          width: 40px;
-          height: 40px;
-          font-size: 18px;
-          margin-bottom: 8px;
         }
 
         .branding-controls {
@@ -3432,17 +3453,23 @@ export default {
             }
           }
           .position {
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 8px;
 
+            label {font-weight: normal;}
+
             .slider-wrapper {
-              margin-top: -3px;
-              gap: 3px;
+              display: flex;
+              justify-content: center;
+              gap: 10px;
+
+              input {display: none;}
 
               .slider-button {
-                width: 18px;
-                height: 18px;
-                font-size: 12px;
+                width: 30px;
+                height: 30px;
+                font-size: 18px;
+                margin-top: 5px;
               }
             }
           }
