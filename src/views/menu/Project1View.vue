@@ -3140,6 +3140,8 @@ export default {
     h1 {
       font-size: 2.3rem;
       margin: 0.6rem auto;
+
+      .toggle-footer-btn {font-size: 2.3rem;}
     }
 
     .model-selection {
@@ -3319,8 +3321,10 @@ export default {
 @media (max-width: 768px) {
   .container {
     h1 {
-      font-size: 2rem;
+      font-size: 1.9rem;
       margin: 0.5rem auto;
+
+      .toggle-footer-btn {font-size: 1.9rem;}
     }
 
     .model-selection {
