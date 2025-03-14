@@ -69,6 +69,8 @@
     "closeTextureMenu": "Close texture selection menu"
   },
   "special": {
+    "closeFooter": "Hide footer",
+    "openFooter": "Show footer",
     "delete": "Deleting models settings from local storage",
     "confirm": "Are you sure you want to delete model settings from local storage? \uD83E\uDDD0\uD83D\uDE27",
     "alertYes": "Model settings were deleted from local memory! ☹\uFE0F\uD83D\uDE2D",

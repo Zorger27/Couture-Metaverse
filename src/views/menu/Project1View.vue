@@ -1,5 +1,5 @@
 <script>
-import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
+import {inject, nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
 import {useI18n} from 'vue-i18n';
 import jsPDF from "jspdf";
 import * as THREE from 'three';
@@ -28,6 +28,8 @@ export default {
   methods: {},
   setup() {
     const { t } = useI18n();
+    const toggleFooter = inject('toggleFooter');
+    const isFooterHidden = inject('isFooterHidden');
     const canvasContainer = ref(null);
     let scene, camera, renderer, model;
     let sceneGroup = null; // Эта переменная будет использоваться для всех моделей
@@ -2233,6 +2235,8 @@ export default {
 
     return {
       t,
+      isFooterHidden,
+      toggleFooter,
       canvasContainer,
       models,
       loadModel,
@@ -2291,7 +2295,13 @@ export default {
 
 <template>
   <div class="container">
-    <h1>{{ t('project1.name') }} <CanvasFullScreen :canvasContainer="canvasContainer"></CanvasFullScreen> <ToggleFullScreen></ToggleFullScreen></h1>
+    <h1>
+      {{ t('project1.name') }}
+      <CanvasFullScreen :canvasContainer="canvasContainer" /> <ToggleFullScreen /> <button
+      @click="toggleFooter" class="toggle-footer-btn" :title="isFooterHidden ? t('special.openFooter') : t('special.closeFooter')"><i
+      :class="isFooterHidden ? 'fas fa-toggle-on' : 'fas fa-toggle-off'"></i>
+    </button>
+    </h1>
     <line></line>
     <div class="scene-container" ref="canvasContainer"></div>
 
@@ -2418,6 +2428,7 @@ export default {
         <div class="right-menu" :class="{'active': isBrandingOpen}">
           <!-- Кнопка "Брендировать" и раскрывающееся меню -->
           <button v-if="!isMultiModelView && !isThreeDView" @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
+
           <div class="saving-container">
             <!-- Кнопка "Сохранить" и раскрывающееся меню -->
             <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.saving.closeSaveData') : t('special.saving.saveData')" class="save-button" :class="{'open': showSaveOptions}"><i class="fas fa-save"></i></button>
@@ -2443,7 +2454,22 @@ export default {
 .container {
   flex: 1 0 auto;
   background: linear-gradient(to bottom, rgb(255, 249, 229), rgb(255, 240, 244)) no-repeat center;
-  h1 {font-size: 2.5rem;margin: 0.7rem auto;color: black;}
+  h1 {
+    font-size: 2.5rem;
+    margin: 0.7rem auto;
+    color: black;
+    .toggle-footer-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      font-size: 2.5rem;
+      color: mediumseagreen;
+    }
+    .toggle-footer-btn:hover {
+      color: goldenrod;
+    }
+  }
 
   .scene-container {
     max-height: 70vh;

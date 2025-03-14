@@ -69,6 +69,8 @@
     "closeTextureMenu": "Cerrar el menú de selección de textura"
   },
   "special": {
+    "closeFooter": "Ocultar pie de página",
+    "openFooter": "Mostrar pie de página",
     "delete": "Eliminar configuraciones de modelos del almacenamiento local",
     "confirm": "¿Está seguro de que desea eliminar la configuración del modelo de la memoria local? \uD83E\uDDD0\uD83D\uDE27",
     "alertYes": "¡Las configuraciones del modelo se han eliminado de la memoria local! ☹\uFE0F\uD83D\uDE2D",
