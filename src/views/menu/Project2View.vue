@@ -1,5 +1,5 @@
 <script>
-import {onMounted, onUnmounted, ref} from 'vue';
+import {inject, onMounted, onUnmounted, ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 import jsPDF from "jspdf";
 import * as THREE from 'three';
@@ -27,6 +27,8 @@ export default {
   },
   setup() {
     const { t } = useI18n();
+    const toggleFooter = inject('toggleFooter');
+    const isFooterHidden = inject('isFooterHidden');
     const canvasContainer = ref(null);
     let scene, camera, renderer, model;
     let sceneGroup = null; // Эта переменная будет использоваться для всех моделей
@@ -1352,6 +1354,8 @@ export default {
 
     return {
       t,
+      isFooterHidden,
+      toggleFooter,
       canvasContainer,
       models,
       loadModel,
@@ -1394,7 +1398,12 @@ export default {
 
 <template>
   <div class="container">
-    <h1>{{ $t('project2.name') }} <CanvasFullScreen :canvasContainer="canvasContainer"></CanvasFullScreen> <ToggleFullScreen></ToggleFullScreen></h1>
+    <h1>
+      {{ $t('project2.name') }}
+      <CanvasFullScreen :canvasContainer="canvasContainer"></CanvasFullScreen> <ToggleFullScreen></ToggleFullScreen> <button
+      @click="toggleFooter" class="toggle-footer-btn" :title="isFooterHidden ? t('special.openFooter') : t('special.closeFooter')"><i
+      :class="isFooterHidden ? 'fas fa-toggle-on' : 'fas fa-toggle-off'"></i></button>
+    </h1>
     <line></line>
     <div class="scene-container" ref="canvasContainer"></div>
 
@@ -1494,6 +1503,17 @@ export default {
     font-size: 2.5rem;
     margin: 0.7rem auto;
     color: black;
+    .toggle-footer-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      font-size: 2.5rem;
+      color: mediumseagreen;
+    }
+    .toggle-footer-btn:hover {
+      color: goldenrod;
+    }
   }
 
   .scene-container {
@@ -1924,6 +1944,8 @@ export default {
     h1 {
       font-size: 2.3rem;
       margin: 0.6rem auto;
+
+      .toggle-footer-btn {font-size: 2.3rem;}
     }
 
     .model-selection {
@@ -2037,8 +2059,10 @@ export default {
 @media (max-width: 768px) {
   .container {
     h1 {
-      font-size: 2rem;
+      font-size: 1.9rem;
       margin: 0.5rem auto;
+
+      .toggle-footer-btn {font-size: 1.9rem;}
     }
 
     .model-selection {

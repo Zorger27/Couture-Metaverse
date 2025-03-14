@@ -2299,8 +2299,7 @@ export default {
       {{ t('project1.name') }}
       <CanvasFullScreen :canvasContainer="canvasContainer" /> <ToggleFullScreen /> <button
       @click="toggleFooter" class="toggle-footer-btn" :title="isFooterHidden ? t('special.openFooter') : t('special.closeFooter')"><i
-      :class="isFooterHidden ? 'fas fa-toggle-on' : 'fas fa-toggle-off'"></i>
-    </button>
+      :class="isFooterHidden ? 'fas fa-toggle-on' : 'fas fa-toggle-off'"></i></button>
     </h1>
     <line></line>
     <div class="scene-container" ref="canvasContainer"></div>
