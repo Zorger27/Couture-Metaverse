@@ -3021,9 +3021,7 @@ export default {
 
       .button {@include btn;}
 
-      .load-all-btn {
-        display: none;
-      }
+      .load-all-btn {display: none;}
 
       .delete {@include btn;}
     }
@@ -3162,30 +3160,20 @@ export default {
       top: 150px;
       gap: 10px;
 
-      .button {
-        @include btn;
-      }
+      .button {@include btn;}
 
-      .woman {
-        display: none;
-      }
+      .woman {display: none;}
 
-      .load-all-btn {
-        display: none;
-      }
+      .load-all-btn {display: none;}
 
-      .delete {
-        @include btn;
-      }
+      .delete {@include btn;}
     }
 
     .rotation-controls {
       bottom: 20px;
       gap: 10px;
 
-      button {
-        @include btn;
-      }
+      button {@include btn;}
     }
 
     .model-controls {
@@ -3196,24 +3184,18 @@ export default {
       .color-container,
       .texture-container {
 
-        .color-main, .texture-main {
-          @include btn;
-        }
+        .color-main, .texture-main {@include btn;}
 
         .color-controls, .texture-controls {
           left: 50px; /* Отступ вправо от основной кнопки */
           gap: 8px;
 
-          .color-button, .button {
-            @include btn;
-          }
+          .color-button, .button {@include btn;}
         }
       }
 
       .color-other {
-        .color-button {
-          @include btn;
-        }
+        .color-button {@include btn;}
       }
 
       .texture-other {
@@ -3228,9 +3210,7 @@ export default {
           margin-bottom: 8px;
         }
 
-        .mixing {
-          @include btn;
-        }
+        .mixing {@include btn;}
       }
     }
 
@@ -3243,9 +3223,7 @@ export default {
         .right-menu {
 
           .saving-container {
-            .save-button {
-              @include btn;
-            }
+            .save-button {@include btn;}
 
             .save-options {
               //&.active {margin-right: -2px;}
