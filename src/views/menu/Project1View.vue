@@ -2307,9 +2307,9 @@ export default {
     <!-- Кнопки управления моделями -->
     <div class="model-selection">
       <img :src="models.menShirt1.icon" :alt="t('models.menShirt1')" @click="loadModel('menShirt1')" class="button" :title="t('models.menShirt1')">
-      <img :src="models.womenShirt.icon" :alt="t('models.womenShirt')" @click="loadModel('womenShirt')" class="button" :title="t('models.womenShirt')">
+      <img :src="models.womenShirt.icon" :alt="t('models.womenShirt')" @click="loadModel('womenShirt')" class="button woman" :title="t('models.womenShirt')">
       <img :src="models.menShirt2.icon" :alt="t('models.menShirt2')" @click="loadModel('menShirt2')" class="button" :title="t('models.menShirt2')">
-      <img :src="models.womenDress.icon" :alt="t('models.womenDress')" @click="loadModel('womenDress')" class="button" :title="t('models.womenDress')">
+      <img :src="models.womenDress.icon" :alt="t('models.womenDress')" @click="loadModel('womenDress')" class="button woman" :title="t('models.womenDress')">
       <button @click="loadAllModels" class="load-all-btn button" :title="t('models.composition1x4')"><i class="fas fa-th-large"></i></button>
       <button @click="loadAllModels3d" class="load-all-btn button" :title="t('models.composition2x2')"><i class="fas fa-cubes"></i></button>
       <button @click="clearLocalStorage" class="delete" :title="t('special.delete')"><i class="fas fa-broom"></i></button>
@@ -2450,6 +2450,39 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+@mixin btn($width: 50px, $height: 50px, $fs: 24px) {
+  width: $width;
+  height: $height;
+  font-size: $fs;
+  border: none;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+  transition: ease-in-out, border .2s, background-color .2s, box-shadow .2s;
+
+  @media (max-width: 1020px) {
+    width: calc(#{$width} - 5px);
+    height: calc(#{$height} - 5px);
+    font-size: calc(#{$fs} - 2px);
+  }
+
+  @media (max-width: 768px) {
+    width: calc(#{$width} - 10px);
+    height: calc(#{$height} - 10px);
+    font-size: calc(#{$fs} - 6px);
+  }
+}
+
+@mixin img-style {
+  width: 100%; /* Ширина изображения соответствует ширине контейнера */
+  height: 100%; /* Высота изображения соответствует высоте контейнера */
+  object-fit: cover; /* Сохраняет пропорции изображения и заполняет контейнер */
+  display: block; /* Убирает нижний отступ у изображений */
+}
+
 .container {
   flex: 1 0 auto;
   background: linear-gradient(to bottom, rgb(255, 249, 229), rgb(255, 240, 244)) no-repeat center;
@@ -2485,21 +2518,11 @@ export default {
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 20px;
+    gap: 15px;
 
     .button {
-      width: 50px;
-      height: 50px;
+      @include btn; // Используем значения по умолчанию
       color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      //background-color: #a9ed9f;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: ease-in-out, color .2s, background-color .2s, box-shadow .2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       overflow: hidden; /* Скрываем части изображения, выходящие за границы контейнера */
 
       &:hover {
@@ -2507,13 +2530,7 @@ export default {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
 
-      img {
-        width: 100%; /* Ширина изображения соответствует ширине контейнера */
-        height: 100%; /* Высота изображения соответствует высоте контейнера */
-        object-fit: cover; /* Сохраняет пропорции изображения и заполняет контейнер */
-        display: block; /* Убирает нижний отступ у изображений */
-      }
-
+      img {@include img-style;} // Стили для img подключены
     }
 
     .load-all-btn {
@@ -2521,32 +2538,19 @@ export default {
       color: white;
       font-size: 24px;
 
-      .fas {
-        color: white;
-      }
+      .fas {color: white;}
     }
 
     .load-all-btn:hover {
-      .fas {
-        color: gold;
-      }
+      .fas {color: gold;}
 
       background: #9760aa;
     }
 
     .delete {
-      width: 50px;
-      height: 50px;
-      font-size: 24px;
-      border: none;
-      border-radius: 5px;
+      @include btn; // Используем значения по умолчанию
       color: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       background-color: #ffea00;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: ease-in-out, border .2s, background-color .2s, box-shadow .2s;
 
       &:hover {
         background-color: #ffffff; /* Более яркий цвет при наведении */
@@ -2567,19 +2571,9 @@ export default {
     gap: 20px; // Отступ между кнопками
 
     button {
-      width: 50px;
-      height: 50px;
+      @include btn; // Используем значения по умолчанию
       color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 24px;
-      border-radius: 5px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       background-color: #87ceeb;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: ease-in-out, background-color .2s, box-shadow .2s;
 
       &:hover {
         background-color: #00bfff; /* Более яркий цвет при наведении */
@@ -2604,19 +2598,9 @@ export default {
       align-items: center;
 
       .color-main, .texture-main {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        @include btn; // Используем значения по умолчанию
         background: darkblue;
         color: white;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-        transition: background-color 0.2s, box-shadow 0.2s;
 
         &.active {background-color: darkgreen;}
         &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
@@ -2631,25 +2615,21 @@ export default {
         transform: translateX(-20px);
         transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 
+        img {@include img-style;} // Стили для img подключены
+
         &.show {
           opacity: 1;
           transform: translateX(0);
         }
 
         .color-button, .button {
-          width: 50px;
-          height: 50px;
-          border-radius: 5px;
-          border: none;
-          cursor: pointer;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-          transition: box-shadow 0.2s;
+          @include btn; // Используем значения по умолчанию
 
           &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
         }
       }
     }
-    /* 🎯 Анимация для Vue Transition */
+    /* Анимация для Vue Transition */
     .slide-enter-from, .slide-leave-to {
       opacity: 0;
       transform: translateX(-20px);
@@ -2669,14 +2649,7 @@ export default {
       flex-direction: column;
 
       .color-button {
-        width: 50px;
-        height: 50px;
-        border: none;
-        //margin-bottom: 10px;
-        cursor: pointer;
-        border-radius: 5px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-        transition: background-color 0.2s, box-shadow 0.2s;
+        @include btn; // Используем значения по умолчанию
 
         &:hover {
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -2694,42 +2667,22 @@ export default {
       flex-direction: column;
 
       .button {
-        width: 50px;
-        height: 50px;
+        @include btn; // Используем значения по умолчанию
         margin-bottom: 10px;
-        cursor: pointer;
-        border-radius: 5px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-        transition: background-color 0.2s, box-shadow 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         overflow: hidden; /* Скрываем части изображения, выходящие за границы контейнера */
 
         .fa-solid, .fa-brands, .fas {font-size: 24px;}
 
         &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
 
-        img {
-          width: 100%; /* Ширина изображения соответствует ширине контейнера */
-          height: 100%; /* Высота изображения соответствует высоте контейнера */
-          object-fit: cover; /* Сохраняет пропорции изображения и заполняет контейнер */
-          display: block; /* Убирает нижний отступ у изображений */
-        }
+        img {@include img-style;} // Стили для img подключены
       }
 
       .upload {
-        width: 50px;
-        height: 50px;
+        @include btn; // Используем значения по умолчанию
         color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
         margin-bottom: 10px;
         background-color: dodgerblue;
-        //background: linear-gradient(to bottom, rgb(229, 255, 229), rgb(250, 247, 234)) no-repeat center;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-        transition: ease-in-out, background-color .2s, box-shadow .2s;
 
         &:hover {
           background-color: darkgreen;
@@ -2749,18 +2702,9 @@ export default {
       .file-input {display: none;}
 
       .mixing {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-        border: none;
-        border-radius: 5px;
+        @include btn; // Используем значения по умолчанию
         color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
         background-color: red;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-        transition: ease-in-out, background-color .2s, box-shadow .2s;
 
         &:hover {
           background-color: mediumvioletred;
@@ -2810,26 +2754,13 @@ export default {
           align-items: center;
 
           .save-button {
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
+            @include btn; // Используем значения по умолчанию
             margin-bottom: 10px;
-            border: none;
-            border-radius: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             background: dodgerblue;
             color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-            transition: background-color 0.2s, box-shadow 0.2s;
 
-            &:hover {
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            }
-            &.open {
-              background-color: darkgreen;
-            }
+            &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
+            &.open {background-color: darkgreen;}
           }
 
           .save-options {
@@ -2846,25 +2777,16 @@ export default {
               opacity: 1;
               transform: translateX(0); /* Меню появляется в центре */
             }
+
             &.active {
               //transform: translateX(40px);
               margin-right: -2px;
-
             }
 
             button {
-              width: 50px;
-              height: 50px;
-              font-size: 24px;
+              @include btn; // Используем значения по умолчанию
               margin-right: 10px; /* Расстояние между кнопками */
-              border: none;
-              border-radius: 5px;
-              display: flex;
-              justify-content: center;
-              align-items: center;
               background: lightgoldenrodyellow;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-              transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
 
               &:hover {
                 background-color: #ffffff;
@@ -2902,26 +2824,13 @@ export default {
         }
 
         .branding {
-          width: 50px;
-          height: 50px;
-          font-size: 24px;
-          border: none;
-          border-radius: 5px;
+          @include btn; // Используем значения по умолчанию
           margin-bottom: 10px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
           background: mediumvioletred;
           color: white;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-          transition: background-color 0.2s, box-shadow 0.2s;
 
-          &:hover {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          }
-          &.active {
-            background-color: darkgreen;
-          }
+          &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
+          &.active {background-color: darkgreen;}
         }
 
         &.active {
@@ -2936,17 +2845,8 @@ export default {
         flex-direction: column;
 
         button {
-          width: 50px;
-          height: 50px;
-          font-size: 24px;
-          border: none;
-          border-radius: 5px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
+          @include btn; // Используем значения по умолчанию
           margin-bottom: 10px;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-          transition: ease-in-out, background-color .2s, box-shadow .2s;
 
           &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
         }
@@ -2963,18 +2863,9 @@ export default {
             align-items: center;
 
             .logos-button {
-              width: 50px;
-              height: 50px;
-              font-size: 24px;
+              @include btn; // Используем значения по умолчанию
               margin-right: 10px;
-              border: none;
-              border-radius: 5px;
-              display: flex;
-              justify-content: center;
-              align-items: center;
               background: lightgoldenrodyellow;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-              transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
 
               &:hover {
                 background-color: #ffffff;
@@ -3005,27 +2896,14 @@ export default {
               }
 
               .logo {
-                width: 50px;
-                height: 50px;
-                font-size: 24px;
+                @include btn; // Используем значения по умолчанию
                 margin-right: 10px; /* Расстояние между кнопками */
                 //border: 2px solid transparent;
-                border-radius: 5px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
                 overflow: hidden; /* Скрываем части изображения, выходящие за границы контейнера */
                 background: white;
                 //background: lightgoldenrodyellow;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-                transition: ease-in-out, background-color .2s, color .2s, border-color .2s, box-shadow .2s;
 
-                img {
-                  width: 100%; /* Ширина изображения соответствует ширине контейнера */
-                  height: 100%; /* Высота изображения соответствует высоте контейнера */
-                  object-fit: cover; /* Сохраняет пропорции изображения и заполняет контейнер */
-                  display: block; /* Убирает нижний отступ у изображений */
-                }
+                img {@include img-style;} // Стили для img подключены
 
                 &:hover {
                   background-color: #ffffff;
@@ -3053,14 +2931,8 @@ export default {
           }
 
           .upload {
-            width: 46px;
-            height: 46px;
-            font-size: 24px;
+            @include btn($width: 46px, $height: 46px);
             border: 2px solid transparent;
-            border-radius: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             margin-bottom: 10px;
             background-color: lightgoldenrodyellow;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
@@ -3106,7 +2978,7 @@ export default {
               border-radius: 50%;
               background-color: #4CAF50;
               color: white;
-              font-size: 16px;
+              font-size: 20px;
               font-weight: bold;
               cursor: pointer;
               display: flex;
@@ -3147,31 +3019,20 @@ export default {
       top: 165px;
       gap: 15px;
 
-      .button {
-        width: 45px;
-        height: 45px;
-      }
+      .button {@include btn;}
 
       .load-all-btn {
         display: none;
       }
 
-      .delete {
-        width: 45px;
-        height: 45px;
-        font-size: 22px;
-      }
+      .delete {@include btn;}
     }
 
     .rotation-controls {
       bottom: 80px;
       gap: 15px;
 
-      button {
-        width: 45px;
-        height: 45px;
-        font-size: 22px;
-      }
+      button {@include btn;}
     }
 
     .model-controls {
@@ -3182,49 +3043,33 @@ export default {
       .color-container,
       .texture-container {
 
-        .color-main, .texture-main {
-          width: 45px;
-          height: 45px;
-          font-size: 22px;
-        }
+        .color-main, .texture-main {@include btn;}
 
         .color-controls, .texture-controls {
           left: 55px; /* Отступ вправо от основной кнопки */
           gap: 9px;
 
-          .color-button, .button {
-            width: 45px;
-            height: 45px;
-          }
+          .color-button, .button {@include btn;}
         }
       }
 
       .color-other {
-        .color-button {
-          width: 45px;
-          height: 45px;
-        }
+        .color-button {@include btn;}
       }
 
       .texture-other {
         .button {
-          width: 45px;
-          height: 45px;
+          @include btn;
           margin-bottom: 9px;
           .fa-solid, .fa-brands, .fas {font-size: 22px;}
         }
 
         .upload {
-          width: 45px;
-          height: 45px;
+          @include btn;
           margin-bottom: 9px;
         }
 
-        .mixing {
-          width: 45px;
-          height: 45px;
-          font-size: 22px;
-        }
+        .mixing {@include btn;}
       }
     }
 
@@ -3238,61 +3083,48 @@ export default {
 
           .saving-container {
             .save-button {
-              width: 45px;
-              height: 45px;
-              font-size: 22px;
+              @include btn;
             }
 
             .save-options {
               //&.active {margin-right: -2px;}
               button {
-                width: 45px;
-                height: 45px;
-                font-size: 22px;
+                @include btn;
                 margin-right: 9px;
               }
             }
           }
 
           .branding {
-            width: 45px;
-            height: 45px;
-            font-size: 22px;
+            @include btn;
             margin-bottom: 9px;
           }
         }
 
         .branding-controls {
           button {
-            width: 45px;
-            height: 45px;
-            font-size: 22px;
+            @include btn;
             margin-bottom: 9px;
           }
 
           .select-brand {
             .logos-container {
               .logos-button {
-                width: 45px;
-                height: 45px;
-                font-size: 22px;
+                @include btn;
                 margin-right: 9px;
               }
 
               .logos-options {
                 .logo {
-                  width: 45px;
-                  height: 45px;
-                  font-size: 22px;
+                  @include btn;
                   margin-right: 9px; /* Расстояние между кнопками */
                 }
               }
             }
 
             .upload {
-              width: 41px;
-              height: 41px;
-              font-size: 22px;
+              @include btn($width: 46px, $height: 46px);
+              border: 2px solid transparent;
               margin-bottom: 9px;
             }
           }
@@ -3307,7 +3139,7 @@ export default {
               .slider-button {
                 width: 20px;
                 height: 20px;
-                font-size: 14px;
+                font-size: 18px;
               }
             }
           }
@@ -3331,8 +3163,11 @@ export default {
       gap: 10px;
 
       .button {
-        width: 40px;
-        height: 40px;
+        @include btn;
+      }
+
+      .woman {
+        display: none;
       }
 
       .load-all-btn {
@@ -3340,9 +3175,7 @@ export default {
       }
 
       .delete {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
+        @include btn;
       }
     }
 
@@ -3351,9 +3184,7 @@ export default {
       gap: 10px;
 
       button {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
+        @include btn;
       }
     }
 
@@ -3366,9 +3197,7 @@ export default {
       .texture-container {
 
         .color-main, .texture-main {
-          width: 40px;
-          height: 40px;
-          font-size: 18px;
+          @include btn;
         }
 
         .color-controls, .texture-controls {
@@ -3376,37 +3205,31 @@ export default {
           gap: 8px;
 
           .color-button, .button {
-            width: 40px;
-            height: 40px;
+            @include btn;
           }
         }
       }
 
       .color-other {
         .color-button {
-          width: 40px;
-          height: 40px;
+          @include btn;
         }
       }
 
       .texture-other {
         .button {
-          width: 40px;
-          height: 40px;
+          @include btn;
           margin-bottom: 8px;
           .fa-solid, .fa-brands, .fas {font-size: 18px;}
         }
 
         .upload {
-          width: 40px;
-          height: 40px;
+          @include btn;
           margin-bottom: 8px;
         }
 
         .mixing {
-          width: 40px;
-          height: 40px;
-          font-size: 18px;
+          @include btn;
         }
       }
     }
@@ -3421,17 +3244,13 @@ export default {
 
           .saving-container {
             .save-button {
-              width: 40px;
-              height: 40px;
-              font-size: 18px;
+              @include btn;
             }
 
             .save-options {
               //&.active {margin-right: -2px;}
               button {
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
+                @include btn;
                 margin-right: 8px;
               }
               .film-start {display: none;}
@@ -3440,44 +3259,35 @@ export default {
           }
 
           .branding {
-            width: 40px;
-            height: 40px;
-            font-size: 18px;
+            @include btn;
             margin-bottom: 8px;
           }
         }
 
         .branding-controls {
           button {
-            width: 40px;
-            height: 40px;
-            font-size: 18px;
+            @include btn;
             margin-bottom: 8px;
           }
 
           .select-brand {
             .logos-container {
               .logos-button {
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
+                @include btn;
                 margin-right: 8px;
               }
 
               .logos-options {
                 .logo {
-                  width: 40px;
-                  height: 40px;
-                  font-size: 18px;
+                  @include btn;
                   margin-right: 8px; /* Расстояние между кнопками */
                 }
               }
             }
 
             .upload {
-              width: 36px;
-              height: 36px;
-              font-size: 18px;
+              @include btn($width: 46px, $height: 46px);
+              border: 2px solid transparent;
               margin-bottom: 8px;
             }
           }
@@ -3497,7 +3307,7 @@ export default {
               .slider-button {
                 width: 30px;
                 height: 30px;
-                font-size: 18px;
+                font-size: 24px;
                 margin-top: 5px;
               }
             }
