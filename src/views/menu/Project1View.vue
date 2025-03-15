@@ -2931,7 +2931,9 @@ export default {
           }
 
           .upload {
-            @include btn($width: 46px, $height: 46px);
+            //@include btn($width: 46px, $height: 46px);
+            @include btn($width: calc(50px - 4px), $height: calc(50px - 4px));
+
             border: 2px solid transparent;
             margin-bottom: 10px;
             background-color: lightgoldenrodyellow;
