@@ -1356,7 +1356,7 @@ export default {
         };
 
         // Синхронизируем значения ползунков
-        syncSliderValues(modelKey);
+        await syncSliderValues(modelKey);
 
         await createLogoMesh();
         saveModelsToStorage();
@@ -1826,6 +1826,7 @@ export default {
 
     // Нанесение логотипа на модель
     const loadBrandImage = async (event) => {
+      if (!event.target.files || !event.target.files[0]) return;
       if (!model) return;
 
       const modelKey = model.userData.modelKey;
@@ -1867,12 +1868,10 @@ export default {
           positionX: Number(previousSettings.positionX),
           positionY: Number(previousSettings.positionY),
           scale: Number(previousSettings.scale),
-          lastModified: '2025-03-12 03:33:58',
-          modifiedBy: 'Zorger27'
         };
 
         // Синхронизируем значения ползунков
-        syncSliderValues(modelKey);
+        await syncSliderValues(modelKey);
 
         await createLogoMesh();
         saveModelsToStorage();
@@ -2145,17 +2144,24 @@ export default {
     };
 
     // Функция синхронизации ползунков
-    const syncSliderValues = (modelKey) => {
+    const syncSliderValues = async (modelKey) => {
       if (!models[modelKey]?.settings?.logo) return;
 
       const logoSettings = models[modelKey].settings.logo;
 
-      // Используем nextTick для обеспечения корректного обновления UI
-      nextTick(() => {
+      // Если значения уже совпадают, Vue не должен обновлять UI
+      if (
+        positionX.value !== Number(logoSettings.positionX) ||
+        positionY.value !== Number(logoSettings.positionY) ||
+        scale.value !== Number(logoSettings.scale)
+      ) {
         positionX.value = Number(logoSettings.positionX);
         positionY.value = Number(logoSettings.positionY);
         scale.value = Number(logoSettings.scale);
-      });
+        await nextTick();
+      }
+
+      console.log("✅ Sliders updated smoothly");
     };
 
     const onWindowResize = () => {
@@ -2169,27 +2175,27 @@ export default {
     window.addEventListener('resize', onWindowResize);
 
     // Наблюдение за изменениями слайдеров
-    watch([positionX, positionY, scale], ([newX, newY, newScale]) => {
+    watch([positionX, positionY, scale], async ([newX, newY, newScale]) => {
+      console.log("🔄 watch triggered:", { newX, newY, newScale });
+
       if (!model || !model.userData.modelKey) return;
 
       const modelKey = model.userData.modelKey;
       if (!models[modelKey].settings?.logo) return;
 
-      // Обновляем настройки в модели
-      models[modelKey].settings.logo = {
-        ...models[modelKey].settings.logo,
-        positionX: Number(newX),
-        positionY: Number(newY),
-        scale: Number(newScale),
-        lastModified: '2025-03-12 03:33:58',
-        modifiedBy: 'Zorger27'
-      };
+      models[modelKey].settings.logo.positionX = Number(newX);
+      models[modelKey].settings.logo.positionY = Number(newY);
+      models[modelKey].settings.logo.scale = Number(newScale);
+
+      console.log("🛠 Updated logo settings:", models[modelKey].settings.logo);
+
+      await nextTick();
 
       requestAnimationFrame(() => {
         updateLogoTexture();
         saveModelsToStorage();
       });
-    }, { deep: true });
+    });
 
     onMounted(() => {
       init();
