@@ -3251,7 +3251,7 @@ export default {
               .slider-button {
                 width: 30px;
                 height: 30px;
-                font-size: 24px;
+                font-size: 16px;
                 margin-top: 5px;
               }
             }
