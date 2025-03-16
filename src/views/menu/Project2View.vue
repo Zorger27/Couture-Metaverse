@@ -1478,16 +1478,16 @@ export default {
     <!-- Кнопка "Сохранить" и раскрывающееся меню -->
     <div class="special-controls">
       <!-- Основная кнопка -->
-      <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.closeSaveData') : t('special.saveData')" class="save-button" :class="{'active': showSaveOptions}"><i class="fas fa-save"></i></button>
+      <button @click="toggleSaveMenu" :title="showSaveOptions ? t('special.saving.closeSaveData') : t('special.saving.saveData')" class="save-button" :class="{'active': showSaveOptions}"><i class="fas fa-save"></i></button>
 
       <!-- Анимация для раскрывающегося меню -->
       <transition name="save-options">
         <div v-show="showSaveOptions" class="save-options">
-          <button @click="saveAsJPG" :title="t('special.saveJPG')"><i class="fas fa-camera"></i></button>
-          <button @click="saveAsPNG" :title="t('special.savePNG')"><i class="fas fa-file-image"></i></button>
-          <button @click="saveAsPDF" :title="t('special.savePDF')"><i class="fas fa-file-pdf"></i></button>
-          <button v-show="!isRecording" @click="startRecording" :title="t('special.startVideo')" class="film-start"><i class="fas fa-film"></i></button>
-          <button v-show="isRecording" @click="stopRecording" :title="t('special.stopVideo')" class="film-stop"><i class="fas fa-stop-circle"></i></button>
+          <button @click="saveAsJPG" :title="t('special.saving.saveJPG')"><i class="fas fa-camera"></i></button>
+          <button @click="saveAsPNG" :title="t('special.saving.savePNG')"><i class="fas fa-file-image"></i></button>
+          <button @click="saveAsPDF" :title="t('special.saving.savePDF')"><i class="fas fa-file-pdf"></i></button>
+          <button v-show="!isRecording" @click="startRecording" :title="t('special.saving.startVideo')" class="film-start"><i class="fas fa-film"></i></button>
+          <button v-show="isRecording" @click="stopRecording" :title="t('special.saving.stopVideo')" class="film-stop"><i class="fas fa-stop-circle"></i></button>
         </div>
       </transition>
     </div>
@@ -1676,6 +1676,13 @@ export default {
         opacity: 0;
         transform: translateX(-20px);
         transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+
+        img {
+          width: 100%; /* Ширина изображения соответствует ширине контейнера */
+          height: 100%; /* Высота изображения соответствует высоте контейнера */
+          object-fit: cover; /* Сохраняет пропорции изображения и заполняет контейнер */
+          display: block; /* Убирает нижний отступ у изображений */
+        }
 
         &.show {
           opacity: 1;
