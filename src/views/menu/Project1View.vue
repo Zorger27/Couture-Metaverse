@@ -46,17 +46,19 @@ export default {
     const scale = ref(1.0);
     const positionX = ref(0.5);
     const positionY = ref(0.5);
+    const stepSize = 0.02; // Было 0.01, увеличиваем в 2 раза
     const textureLoader = new TextureLoader();
     const textureCache = {};
     const logoCache = new Map(); // Добавляем кеш для логотипов
 
     // Кнопки-ползунки
-    const incrementX = () => {positionX.value = Math.min(1, Number(positionX.value) + 0.01);};
-    const decrementX = () => {positionX.value = Math.max(0, Number(positionX.value) - 0.01);};
-    const incrementY = () => {positionY.value = Math.min(1, Number(positionY.value) + 0.01);};
-    const decrementY = () => {positionY.value = Math.max(0, Number(positionY.value) - 0.01);};
-    const incrementScale = () => {scale.value = Math.min(2, Number(scale.value) + 0.01);};
-    const decrementScale = () => {scale.value = Math.max(0.1, Number(scale.value) - 0.01);};
+    const incrementX = () => { positionX.value = Math.min(1, Number(positionX.value) + stepSize); };
+    const decrementX = () => { positionX.value = Math.max(-1, Number(positionX.value) - stepSize); };
+    const incrementY = () => { positionY.value = Math.min(1, Number(positionY.value) + stepSize); };
+    const decrementY = () => { positionY.value = Math.max(-1, Number(positionY.value) - stepSize); };
+    const incrementScale = () => { scale.value = Math.min(2, Number(scale.value) + stepSize); };
+    const decrementScale = () => { scale.value = Math.max(0.1, Number(scale.value) - stepSize); };
+
 
     // Храним последнее загруженное изображение и меш логотипа
     let lastLoadedImage = null;
@@ -2366,7 +2368,7 @@ export default {
               <div class="slider-wrapper">
 <!--                <button class="slider-button minus" @click="decrementScale"><i class="fa-solid fa-chevron-left"></i></button>-->
                 <button class="slider-button minus" @click="decrementScale">-</button>
-                <input type="range" v-model="scale" @input="loadBrandImage" id="scale" min="0.3" max="2" step="0.1" class="slider" />
+                <input type="range" v-model="scale" @input="loadBrandImage" id="scale" min="0.3" max="2" step="0.05" class="slider" />
                 <button class="slider-button plus" @click="incrementScale">+</button>
               </div>
 
@@ -2374,7 +2376,7 @@ export default {
               <label for="positionY">{{ t('special.branding.positionY') }}</label>
               <div class="slider-wrapper">
                 <button class="slider-button minus" @click="decrementY">-</button>
-                <input type="range" v-model="positionY" @input="loadBrandImage" id="positionY" min="-1.5" max="1.5" step="0.1" class="slider" />
+                <input type="range" v-model="positionY" @input="loadBrandImage" id="positionY" min="-1.5" max="1.5" step="0.05" class="slider" />
                 <button class="slider-button plus" @click="incrementY">+</button>
               </div>
 
@@ -2382,7 +2384,7 @@ export default {
               <label for="positionX">{{ t('special.branding.positionX') }}</label>
               <div class="slider-wrapper">
                 <button class="slider-button minus" @click="decrementX">-</button>
-                <input type="range" v-model="positionX" @input="loadBrandImage" id="positionX" min="-1" max="1" step="0.1" class="slider" />
+                <input type="range" v-model="positionX" @input="loadBrandImage" id="positionX" min="-1" max="1" step="0.05" class="slider" />
                 <button class="slider-button plus" @click="incrementX">+</button>
               </div>
             </div>
