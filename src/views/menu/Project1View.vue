@@ -59,7 +59,6 @@ export default {
     const incrementScale = () => { scale.value = Math.min(2, Number(scale.value) + stepSize); };
     const decrementScale = () => { scale.value = Math.max(0.1, Number(scale.value) - stepSize); };
 
-
     // Храним последнее загруженное изображение и меш логотипа
     let lastLoadedImage = null;
     let logoMesh = null;
