@@ -377,7 +377,7 @@ export default {
       currentModelKey.value = modelKey;
 
       clearScene();
-      clearLogo();
+      clearLogo(); // Используем функцию clearLogo вместо прямой очистки
 
       sceneGroup = new THREE.Group();
       scene.add(sceneGroup);
@@ -388,7 +388,7 @@ export default {
         model = gltf.scene;
 
         model.userData.modelKey = modelKey;
-        model.userData.lastModified = new Date().toISOString();
+        model.userData.lastModified = '2025-03-10 04:57:41';
         model.userData.modifiedBy = 'Zorger27';
 
         // Применяем материалы к модели
@@ -411,9 +411,72 @@ export default {
         const height = boundingBox.max.y - boundingBox.min.y;
         model.position.y = -height / 2;
 
-        // Применяем логотип используя новую функцию
+        // Если есть логотип в настройках
         if (models[modelKey].settings?.logo?.imageData) {
-          await applyLogoToModel(model, modelKey, models[modelKey].settings);
+          try {
+            // Используем getCachedLogo для загрузки логотипа
+            lastLoadedImage = await getCachedLogo(models[modelKey].settings.logo.imageData);
+
+            // Находим меш груди
+            let chestMesh = null;
+            let maxSize = 0;
+            model.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                const bbox = new THREE.Box3().setFromObject(child);
+                const size = bbox.max.y - bbox.min.y;
+                if (bbox.max.z > 0 && size > maxSize) {
+                  chestMesh = child;
+                  maxSize = size;
+                }
+              }
+            });
+
+            if (chestMesh) {
+              // Создаем меш для логотипа
+              logoMesh = new THREE.Mesh(
+                chestMesh.geometry.clone(),
+                new THREE.MeshBasicMaterial({
+                  map: null,
+                  transparent: true,
+                  opacity: 1,
+                  depthTest: true,
+                  depthWrite: false,
+                  side: THREE.DoubleSide,
+                  blending: THREE.CustomBlending,
+                  blendEquation: THREE.AddEquation,
+                  blendSrc: THREE.SrcAlphaFactor,
+                  blendDst: THREE.OneMinusSrcAlphaFactor,
+                  premultipliedAlpha: true
+                })
+              );
+
+              // Копируем трансформации
+              logoMesh.position.copy(chestMesh.position);
+              logoMesh.rotation.copy(chestMesh.rotation);
+              logoMesh.scale.copy(chestMesh.scale);
+              logoMesh.position.z += 0.001;
+
+              logoMesh.userData = {
+                isLogo: true,
+                modelKey: modelKey,
+                lastModified: '2025-03-11 04:57:41',
+                modifiedBy: 'Zorger27'
+              };
+
+              chestMesh.parent.add(logoMesh);
+
+              // Восстанавливаем сохраненные значения
+              const logoSettings = models[modelKey].settings.logo;
+              positionX.value = Number(logoSettings.positionX || 0);
+              positionY.value = Number(logoSettings.positionY || 0);
+              scale.value = Number(logoSettings.scale || 1);
+
+              // Обновляем текстуру логотипа с восстановленными значениями
+              await updateLogoTexture();
+            }
+          } catch (error) {
+            console.error(`❌ Ошибка при добавлении логотипа для модели ${modelKey}:`, error);
+          }
         }
 
         renderer.render(scene, camera);
@@ -477,7 +540,7 @@ export default {
       const spacing = maxModelWidth * 3.2;
       let startX = -(totalModels - 1) * spacing / 2;
 
-      await Promise.all(modelsArray.map(async (model, index) => {
+      modelsArray.forEach((model, index) => {
         const modelKey = model.userData.modelKey;
         let boundingBox = new THREE.Box3().setFromObject(model);
 
@@ -490,23 +553,101 @@ export default {
         console.log(`📍 ${modelKey} -> X: ${model.position.x}, Y: ${model.position.y}, Масштаб: ${scaleFactor}`);
 
         // Применяем материалы и текстуры
-        const materialPromises = [];
         model.traverse((child) => {
           if (child instanceof THREE.Mesh && child.material) {
             materialPromises.push(applyMaterialSettings(child.material, modelKey));
           }
         });
 
-        // Ждем применения материалов
-        await Promise.all(materialPromises);
-
-        // Применяем логотип используя новую функцию
+        // Добавляем логотип, если он есть в настройках модели
         if (models[modelKey].settings?.logo?.imageData) {
-          await applyLogoToModel(model, modelKey, models[modelKey].settings);
+          logoPromises.push((async () => {
+            try {
+              // Используем кеш для логотипа
+              let modelLogo;
+              if (logoCache.has(models[modelKey].settings.logo.imageData)) {
+                modelLogo = logoCache.get(models[modelKey].settings.logo.imageData);
+              } else {
+                modelLogo = new Image();
+                modelLogo.src = models[modelKey].settings.logo.imageData;
+                await new Promise((resolve, reject) => {
+                  modelLogo.onload = resolve;
+                  modelLogo.onerror = reject;
+                });
+                logoCache.set(models[modelKey].settings.logo.imageData, modelLogo);
+              }
+
+              // Находим меш груди для текущей модели
+              let chestMesh = null;
+              let maxSize = 0;
+              model.traverse((child) => {
+                if (child instanceof THREE.Mesh) {
+                  const bbox = new THREE.Box3().setFromObject(child);
+                  const size = bbox.max.y - bbox.min.y;
+                  if (bbox.max.z > 0 && size > maxSize) {
+                    chestMesh = child;
+                    maxSize = size;
+                  }
+                }
+              });
+
+              if (chestMesh) {
+                const isMultiView = isMultiModelView.value || isThreeDView.value;
+                const isWomenModel = modelKey === 'womenShirt';
+
+                // Создаем новый меш для логотипа
+                const modelLogoMesh = new THREE.Mesh(
+                  chestMesh.geometry.clone(),
+                  new THREE.MeshBasicMaterial({
+                    map: createLogoTexture(
+                      models[modelKey].settings.logo.positionX,
+                      models[modelKey].settings.logo.positionY,
+                      models[modelKey].settings.logo.scale,
+                      modelLogo
+                    ),
+                    transparent: true,
+                    opacity: 1,
+                    depthTest: true,
+                    depthWrite: false,
+                    side: THREE.DoubleSide,
+                    blending: THREE.CustomBlending,
+                    blendEquation: THREE.AddEquation,
+                    blendSrc: THREE.SrcAlphaFactor,
+                    blendDst: THREE.OneMinusSrcAlphaFactor,
+                    premultipliedAlpha: true
+                  })
+                );
+
+                // Копируем трансформации
+                modelLogoMesh.position.copy(chestMesh.position);
+                modelLogoMesh.rotation.copy(chestMesh.rotation);
+                modelLogoMesh.scale.copy(chestMesh.scale);
+
+                // Специальная обработка для женской модели в мульти-режиме
+                if (isWomenModel && isMultiView) {
+                  modelLogoMesh.scale.x *= -1;  // Отражаем по оси X
+                  // modelLogoMesh.position.x += 0.009; // Смещаем логотип влево
+                }
+
+                modelLogoMesh.position.z += 0.001;
+
+                modelLogoMesh.userData = {
+                  isLogo: true,
+                  modelKey: modelKey,
+                  lastUpdated: '2025-03-11 07:06:20',
+                  updatedBy: 'Zorger27'
+                };
+
+                chestMesh.parent.add(modelLogoMesh);
+              }
+            } catch (error) {
+              console.error(`❌ Ошибка при добавлении логотипа для модели ${modelKey}:`, error);
+            }
+          })());
         }
 
         sceneGroup.add(model);
-      }));
+      });
 
       // Ждём загрузки всех материалов и логотипов
       await Promise.all([...materialPromises, ...logoPromises]);
@@ -545,7 +686,7 @@ export default {
           const gltf = await loader.loadAsync(models[key].path);
           const model = gltf.scene;
           model.userData.modelKey = key;
-          model.userData.lastModified = '2025-03-18 01:05:43';
+          model.userData.lastModified = '2025-03-10 04:11:39';
           model.userData.modifiedBy = 'Zorger27';
 
           let boundingBox = new THREE.Box3().setFromObject(model);
@@ -569,13 +710,14 @@ export default {
       console.log(`📏 Максимальная высота: ${maxModelHeight}, максимальная ширина: ${maxModelWidth}`);
 
       // 2️⃣ Второй проход — нормализация размеров и позиционирование
+      let materialPromises = [];
+      let logoPromises = [];
       const frontScale = 1.8 / maxModelHeight;
       const backScale = frontScale * 0.8;
       const spacingX = maxModelWidth * 4.0;
       const spacingZ = maxModelWidth * 2.5;
 
-      // Используем Promise.all с map вместо forEach
-      await Promise.all(modelsArray.map(async (model, index) => {
+      modelsArray.forEach((model, index) => {
         const modelKey = model.userData.modelKey;
         const isBackRow = index >= 2;
 
@@ -592,23 +734,104 @@ export default {
         console.log(`📍 ${modelKey} -> X: ${model.position.x}, Z: ${model.position.z}, Y: ${model.position.y}, Масштаб: ${scaleFactor}`);
 
         // Применяем материалы и текстуры
-        const materialPromises = [];
         model.traverse((child) => {
           if (child instanceof THREE.Mesh && child.material) {
             materialPromises.push(applyMaterialSettings(child.material, modelKey));
           }
         });
 
-        // Ждем применения материалов
-        await Promise.all(materialPromises);
-
-        // Применяем логотип используя новую функцию
+        // Добавляем логотип, если он есть в настройках модели
         if (models[modelKey].settings?.logo?.imageData) {
-          await applyLogoToModel(model, modelKey, models[modelKey].settings);
+          logoPromises.push((async () => {
+            try {
+              // Используем кеш для логотипа
+              let modelLogo;
+              if (logoCache.has(models[modelKey].settings.logo.imageData)) {
+                modelLogo = logoCache.get(models[modelKey].settings.logo.imageData);
+              } else {
+                modelLogo = new Image();
+                modelLogo.src = models[modelKey].settings.logo.imageData;
+                await new Promise((resolve, reject) => {
+                  modelLogo.onload = resolve;
+                  modelLogo.onerror = reject;
+                });
+                logoCache.set(models[modelKey].settings.logo.imageData, modelLogo);
+              }
+
+              // Находим меш груди для текущей модели
+              let chestMesh = null;
+              let maxSize = 0;
+              model.traverse((child) => {
+                if (child instanceof THREE.Mesh) {
+                  const bbox = new THREE.Box3().setFromObject(child);
+                  const size = bbox.max.y - bbox.min.y;
+                  if (bbox.max.z > 0 && size > maxSize) {
+                    chestMesh = child;
+                    maxSize = size;
+                  }
+                }
+              });
+
+              if (chestMesh) {
+                const isMultiView = isMultiModelView.value || isThreeDView.value;
+                const isWomenModel = modelKey === 'womenShirt';
+
+                // Создаем новый меш для логотипа
+                const modelLogoMesh = new THREE.Mesh(
+                  chestMesh.geometry.clone(),
+                  new THREE.MeshBasicMaterial({
+                    map: createLogoTexture(
+                      models[modelKey].settings.logo.positionX,
+                      models[modelKey].settings.logo.positionY,
+                      models[modelKey].settings.logo.scale,
+                      modelLogo
+                    ),
+                    transparent: true,
+                    opacity: 1,
+                    depthTest: true,
+                    depthWrite: false,
+                    side: THREE.DoubleSide,
+                    blending: THREE.CustomBlending,
+                    blendEquation: THREE.AddEquation,
+                    blendSrc: THREE.SrcAlphaFactor,
+                    blendDst: THREE.OneMinusSrcAlphaFactor,
+                    premultipliedAlpha: true
+                  })
+                );
+
+                // Копируем трансформации
+                modelLogoMesh.position.copy(chestMesh.position);
+                modelLogoMesh.rotation.copy(chestMesh.rotation);
+                modelLogoMesh.scale.copy(chestMesh.scale);
+
+                // Специальная обработка для женской модели в мульти-режиме
+                if (isWomenModel && isMultiView) {
+                  modelLogoMesh.scale.x *= -1;  // Отражаем по оси X
+                  // modelLogoMesh.position.x += 0.15; // Смещаем логотип влево
+                }
+
+                modelLogoMesh.position.z += 0.001;
+
+                modelLogoMesh.userData = {
+                  isLogo: true,
+                  modelKey: modelKey,
+                  lastUpdated: '2025-03-11 07:06:20',
+                  updatedBy: 'Zorger27'
+                };
+
+                chestMesh.parent.add(modelLogoMesh);
+              }
+            } catch (error) {
+              console.error(`❌ Ошибка при добавлении логотипа для модели ${modelKey}:`, error);
+            }
+          })());
         }
 
         sceneGroup.add(model);
-      }));
+      });
+
+      // Ждём загрузки всех материалов и логотипов
+      await Promise.all([...materialPromises, ...logoPromises]);
 
       // Корректируем позицию группы
       const groupBoundingBox = new THREE.Box3().setFromObject(sceneGroup);
@@ -619,90 +842,6 @@ export default {
 
       renderer.render(scene, camera);
       console.log("🎉 Все модели и логотипы загружены (2 спереди, 2 сзади)!");
-    };
-
-    // Функция применения логотипа к модели
-    const applyLogoToModel = async (model, modelKey, modelSettings) => {
-      try {
-        // Проверяем наличие логотипа в настройках
-        if (!modelSettings?.logo?.imageData) {
-          return null;
-        }
-
-        // Используем getCachedLogo для загрузки логотипа
-        const logoImage = await getCachedLogo(modelSettings.logo.imageData);
-
-        // Находим меш груди
-        let chestMesh = null;
-        let maxSize = 0;
-        model.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            const bbox = new THREE.Box3().setFromObject(child);
-            const size = bbox.max.y - bbox.min.y;
-            if (bbox.max.z > 0 && size > maxSize) {
-              chestMesh = child;
-              maxSize = size;
-            }
-          }
-        });
-
-        if (!chestMesh) {
-          console.warn(`⚠️ Не найден меш груди для модели ${modelKey}`);
-          return null;
-        }
-
-        // Создаем меш для логотипа
-        const logoMesh = new THREE.Mesh(
-          chestMesh.geometry.clone(),
-          new THREE.MeshBasicMaterial({
-            map: createLogoTexture(
-              modelSettings.logo.positionX,
-              modelSettings.logo.positionY,
-              modelSettings.logo.scale,
-              logoImage
-            ),
-            transparent: true,
-            opacity: 1,
-            depthTest: true,
-            depthWrite: false,
-            side: THREE.DoubleSide,
-            blending: THREE.CustomBlending,
-            blendEquation: THREE.AddEquation,
-            blendSrc: THREE.SrcAlphaFactor,
-            blendDst: THREE.OneMinusSrcAlphaFactor,
-            premultipliedAlpha: true
-          })
-        );
-
-        // Копируем трансформации
-        logoMesh.position.copy(chestMesh.position);
-        logoMesh.rotation.copy(chestMesh.rotation);
-        logoMesh.scale.copy(chestMesh.scale);
-        logoMesh.position.z += 0.001;
-
-        // Специальная обработка для женской модели
-        const isMultiView = isMultiModelView.value || isThreeDView.value;
-        const isWomenModel = modelKey === 'womenShirt';
-        if (isWomenModel && isMultiView) {
-          logoMesh.scale.x *= -1;
-        }
-
-        // Добавляем метаданные
-        logoMesh.userData = {
-          isLogo: true,
-          modelKey: modelKey,
-          lastModified: new Date().toISOString(),
-          modifiedBy: 'Zorger27'
-        };
-
-        // Добавляем меш логотипа к родителю меша груди
-        chestMesh.parent.add(logoMesh);
-
-        return logoMesh;
-      } catch (error) {
-        console.error(`❌ Ошибка при добавлении логотипа для модели ${modelKey}:`, error);
-        return null;
-      }
     };
 
     // Функция очистки сцены
@@ -1021,36 +1160,24 @@ export default {
       changeColor(event.target.value);
     };
 
-    // Сброс настроек модели
+    // Сброс настроек модели!!!
     const resetModelSettings = async () => {
       if (!model) return;
 
       const modelKey = model.userData.modelKey;
       if (!modelKey) return;
 
-      // Очищаем логотипы со всех мешей модели
-      model.traverse((child) => {
-        if (child.userData && child.userData.isLogo) {
-          // Очищаем ресурсы логотипа
-          if (child.material) {
-            if (child.material.map) {
-              child.material.map.dispose();
-            }
-            child.material.dispose();
-          }
-          if (child.geometry) {
-            child.geometry.dispose();
-          }
-          // Удаляем меш логотипа из сцены
-          child.parent?.remove(child);
+      // Очищаем логотип
+      if (logoMesh) {
+        logoMesh.parent?.remove(logoMesh);
+        if (logoMesh.material.map) {
+          logoMesh.material.map.dispose();
         }
-      });
-
-      // Очищаем старые ссылки
-      logoMesh = null;
+        logoMesh.material.dispose();
+        logoMesh.geometry.dispose();
+        logoMesh = null;
+      }
       lastLoadedImage = null;
-
-      // Сбрасываем значения позиционирования
       positionX.value = 0;
       positionY.value = 0;
       scale.value = 1;
@@ -1062,25 +1189,14 @@ export default {
           imageData: null,
           positionX: 0,
           positionY: 0,
-          scale: 1,
-          lastModified: '2025-03-18 01:12:24',
-          modifiedBy: 'Zorger27'
+          scale: 1
         }
       };
 
-      // Обновляем материалы
-      await updateMaterials((material) => {
-        applyMaterialSettings(material, modelKey);
-      });
+      await updateMaterials((material) => {applyMaterialSettings(material, modelKey);});
 
-      // Сохраняем изменения и обновляем рендер
       saveModelsToStorage();
-
-      // Добавляем несколько рендеров с задержкой для гарантии обновления
       renderer.render(scene, camera);
-      setTimeout(() => {
-        renderer.render(scene, camera);
-      }, 100);
     };
 
     // Флаг для направления вращения перед паузой
@@ -1695,22 +1811,18 @@ export default {
       console.log("💾 Видео сохранено!");
     };
 
-    // Функция кеширования логотипа
+    // Функция для работы с кешем логотипов
     const getCachedLogo = async (imageData) => {
-      if (logoCache.has(imageData)) {
-        return logoCache.get(imageData);
+      if (!logoCache.has(imageData)) {
+        const image = new Image();
+        image.src = imageData;
+        await new Promise((resolve, reject) => {
+          image.onload = resolve;
+          image.onerror = reject;
+        });
+        logoCache.set(imageData, image);
       }
-
-      const image = new Image();
-      image.src = imageData;
-
-      await new Promise((resolve, reject) => {
-        image.onload = resolve;
-        image.onerror = reject;
-      });
-
-      logoCache.set(imageData, image);
-      return image;
+      return logoCache.get(imageData);
     };
 
     // Нанесение логотипа на модель
@@ -2253,7 +2365,7 @@ export default {
               <!-- Кнопка-ползунок "Масштаб" -->
               <label for="scale" style="margin-top: 5px">{{ t('special.branding.scale') }}</label>
               <div class="slider-wrapper">
-<!--                <button class="slider-button minus" @click="decrementScale"><i class="fa-solid fa-chevron-left"></i></button>-->
+                <!--                <button class="slider-button minus" @click="decrementScale"><i class="fa-solid fa-chevron-left"></i></button>-->
                 <button class="slider-button minus" @click="decrementScale">-</button>
                 <input type="range" v-model="scale" @input="loadBrandImage" id="scale" min="0.3" max="2" step="0.05" class="slider" />
                 <button class="slider-button plus" @click="incrementScale">+</button>
