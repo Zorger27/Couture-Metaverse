@@ -42,6 +42,7 @@ export default {
     const currentModelKey = ref(null);  // 🏷 Переменная для отслеживания текущей модели
     const isMultiModelView = ref(false); // 🏷 Флаг для обычного режима "1x4 модели"
     const isThreeDView = ref(false); // 🏷 Флаг для режима "2x2 модели"
+    const isWomenDress = ref (false);
     const isBrandingOpen = ref(false);
     const scale = ref(1.0);
     const positionX = ref(0.5);
@@ -376,6 +377,8 @@ export default {
       isThreeDView.value = false;
       currentModelKey.value = modelKey;
 
+      isWomenDress.value = modelKey === "womenDress";
+
       clearScene();
       clearLogo(); // Используем функцию clearLogo вместо прямой очистки
 
@@ -388,8 +391,6 @@ export default {
         model = gltf.scene;
 
         model.userData.modelKey = modelKey;
-        model.userData.lastModified = '2025-03-10 04:57:41';
-        model.userData.modifiedBy = 'Zorger27';
 
         // Применяем материалы к модели
         const materialPromises = [];
@@ -459,8 +460,6 @@ export default {
               logoMesh.userData = {
                 isLogo: true,
                 modelKey: modelKey,
-                lastModified: '2025-03-11 04:57:41',
-                modifiedBy: 'Zorger27'
               };
 
               chestMesh.parent.add(logoMesh);
@@ -626,7 +625,6 @@ export default {
                 // Специальная обработка для женской модели в мульти-режиме
                 if (isWomenModel && isMultiView) {
                   modelLogoMesh.scale.x *= -1;  // Отражаем по оси X
-                  // modelLogoMesh.position.x += 0.009; // Смещаем логотип влево
                 }
 
                 modelLogoMesh.position.z += 0.001;
@@ -2242,7 +2240,7 @@ export default {
 
     return {
       t, isFooterHidden, toggleFooter, canvasContainer,
-      models, loadModel, loadAllModels, loadAllModels3d, isMultiModelView, isThreeDView,
+      models, loadModel, loadAllModels, loadAllModels3d, isMultiModelView, isThreeDView, isWomenDress,
       uploadTexture, changeColor, changeColorFromPicker, changeTexture, changeLogo,
       toggleMixing, isMixingEnabled,
       resetModelSettings, clearLocalStorage,
@@ -2274,7 +2272,7 @@ export default {
       <img :src="models.menShirt1.icon" :alt="t('models.menShirt1')" @click="loadModel('menShirt1')" class="button" :title="t('models.menShirt1')">
       <img :src="models.womenShirt.icon" :alt="t('models.womenShirt')" @click="loadModel('womenShirt')" class="button woman" :title="t('models.womenShirt')">
       <img :src="models.menShirt2.icon" :alt="t('models.menShirt2')" @click="loadModel('menShirt2')" class="button" :title="t('models.menShirt2')">
-      <img :src="models.womenDress.icon" :alt="t('models.womenDress')" @click="loadModel('womenDress')" class="button woman" :title="t('models.womenDress')">
+      <img :src="models.womenDress.icon" :alt="t('models.womenDress')" @click="loadModel('womenDress')" class="button" :title="t('models.womenDress')">
       <button @click="loadAllModels" class="load-all-btn button" :title="t('models.composition1x4')"><i class="fas fa-th-large"></i></button>
       <button @click="loadAllModels3d" class="load-all-btn button" :title="t('models.composition2x2')"><i class="fas fa-cubes"></i></button>
       <button @click="clearLocalStorage" class="delete" :title="t('special.delete')"><i class="fas fa-broom"></i></button>
@@ -2391,7 +2389,7 @@ export default {
         </transition>
         <div class="right-menu" :class="{'active': isBrandingOpen}">
           <!-- Кнопка "Брендировать" и раскрывающееся меню -->
-          <button v-if="!isMultiModelView && !isThreeDView" @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
+          <button v-if="!isMultiModelView && !isThreeDView && !isWomenDress" @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
 
           <div class="saving-container">
             <!-- Кнопка "Сохранить" и раскрывающееся меню -->
