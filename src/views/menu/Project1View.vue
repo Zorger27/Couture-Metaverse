@@ -1021,24 +1021,36 @@ export default {
       changeColor(event.target.value);
     };
 
-    // Сброс настроек модели!!!
+    // Сброс настроек модели
     const resetModelSettings = async () => {
       if (!model) return;
 
       const modelKey = model.userData.modelKey;
       if (!modelKey) return;
 
-      // Очищаем логотип
-      if (logoMesh) {
-        logoMesh.parent?.remove(logoMesh);
-        if (logoMesh.material.map) {
-          logoMesh.material.map.dispose();
+      // Очищаем логотипы со всех мешей модели
+      model.traverse((child) => {
+        if (child.userData && child.userData.isLogo) {
+          // Очищаем ресурсы логотипа
+          if (child.material) {
+            if (child.material.map) {
+              child.material.map.dispose();
+            }
+            child.material.dispose();
+          }
+          if (child.geometry) {
+            child.geometry.dispose();
+          }
+          // Удаляем меш логотипа из сцены
+          child.parent?.remove(child);
         }
-        logoMesh.material.dispose();
-        logoMesh.geometry.dispose();
-        logoMesh = null;
-      }
+      });
+
+      // Очищаем старые ссылки
+      logoMesh = null;
       lastLoadedImage = null;
+
+      // Сбрасываем значения позиционирования
       positionX.value = 0;
       positionY.value = 0;
       scale.value = 1;
@@ -1050,14 +1062,25 @@ export default {
           imageData: null,
           positionX: 0,
           positionY: 0,
-          scale: 1
+          scale: 1,
+          lastModified: '2025-03-18 01:12:24',
+          modifiedBy: 'Zorger27'
         }
       };
 
-      await updateMaterials((material) => {applyMaterialSettings(material, modelKey);});
+      // Обновляем материалы
+      await updateMaterials((material) => {
+        applyMaterialSettings(material, modelKey);
+      });
 
+      // Сохраняем изменения и обновляем рендер
       saveModelsToStorage();
+
+      // Добавляем несколько рендеров с задержкой для гарантии обновления
       renderer.render(scene, camera);
+      setTimeout(() => {
+        renderer.render(scene, camera);
+      }, 100);
     };
 
     // Флаг для направления вращения перед паузой
