@@ -632,8 +632,6 @@ export default {
                 modelLogoMesh.userData = {
                   isLogo: true,
                   modelKey: modelKey,
-                  lastUpdated: '2025-03-11 07:06:20',
-                  updatedBy: 'Zorger27'
                 };
 
                 chestMesh.parent.add(modelLogoMesh);
