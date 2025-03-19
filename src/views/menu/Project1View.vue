@@ -33,6 +33,7 @@ export default {
     const canvasContainer = ref(null);
     let scene, camera, renderer, model;
     let sceneGroup = null; // Эта переменная будет использоваться для всех моделей
+    const isSmallScreen = ref(window.innerWidth <= 768);
     const isMixingEnabled = ref(false); // Флаг для смешивания текстур и цветов
     const isRecording = ref(false); // Показываем статус записи
     const showSaveOptions = ref(false);
@@ -43,6 +44,7 @@ export default {
     const isMultiModelView = ref(false); // 🏷 Флаг для обычного режима "1x4 модели"
     const isThreeDView = ref(false); // 🏷 Флаг для режима "2x2 модели"
     const isWomenDress = ref (false);
+    const isWomenShirt = ref(false);
     const isBrandingOpen = ref(false);
     const scale = ref(1.0);
     const positionX = ref(0.5);
@@ -375,9 +377,11 @@ export default {
     const loadModel = async (modelKey) => {
       isMultiModelView.value = false;
       isThreeDView.value = false;
+      isBrandingOpen.value = false; // Закрываем меню при смене модели
       currentModelKey.value = modelKey;
 
       isWomenDress.value = modelKey === "womenDress";
+      isWomenShirt.value = modelKey === "womenShirt";
 
       clearScene();
       clearLogo(); // Используем функцию clearLogo вместо прямой очистки
@@ -2167,6 +2171,15 @@ export default {
 
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      // Отслеживаем изменение разрешения
+      const wasLargeScreen = isSmallScreen.value === false;
+      isSmallScreen.value = window.innerWidth <= 768;
+
+      // Если экран стал маленьким — закрываем меню
+      if (wasLargeScreen && isSmallScreen.value) {
+        isBrandingOpen.value = false;
+      }
     };
 
     window.addEventListener('resize', onWindowResize);
@@ -2237,8 +2250,8 @@ export default {
     });
 
     return {
-      t, isFooterHidden, toggleFooter, canvasContainer,
-      models, loadModel, loadAllModels, loadAllModels3d, isMultiModelView, isThreeDView, isWomenDress,
+      t, isFooterHidden, toggleFooter, canvasContainer, isSmallScreen,
+      models, loadModel, loadAllModels, loadAllModels3d, isMultiModelView, isThreeDView, isWomenDress, isWomenShirt,
       uploadTexture, changeColor, changeColorFromPicker, changeTexture, changeLogo,
       toggleMixing, isMixingEnabled,
       resetModelSettings, clearLocalStorage,
@@ -2268,7 +2281,7 @@ export default {
     <!-- Кнопки управления моделями -->
     <div class="model-selection">
       <img :src="models.menShirt1.icon" :alt="t('models.menShirt1')" @click="loadModel('menShirt1')" class="button" :title="t('models.menShirt1')">
-      <img :src="models.womenShirt.icon" :alt="t('models.womenShirt')" @click="loadModel('womenShirt')" class="button woman" :title="t('models.womenShirt')">
+      <img :src="models.womenShirt.icon" :alt="t('models.womenShirt')" @click="loadModel('womenShirt')" class="button" :title="t('models.womenShirt')">
       <img :src="models.menShirt2.icon" :alt="t('models.menShirt2')" @click="loadModel('menShirt2')" class="button" :title="t('models.menShirt2')">
       <img :src="models.womenDress.icon" :alt="t('models.womenDress')" @click="loadModel('womenDress')" class="button" :title="t('models.womenDress')">
       <button @click="loadAllModels" class="load-all-btn button" :title="t('models.composition1x4')"><i class="fas fa-th-large"></i></button>
@@ -2387,7 +2400,7 @@ export default {
         </transition>
         <div class="right-menu" :class="{'active': isBrandingOpen}">
           <!-- Кнопка "Брендировать" и раскрывающееся меню -->
-          <button v-if="!isMultiModelView && !isThreeDView && !isWomenDress" @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
+          <button v-if="!isMultiModelView && !isThreeDView && !isWomenDress && (!isWomenShirt || !isSmallScreen)" @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
 
           <div class="saving-container">
             <!-- Кнопка "Сохранить" и раскрывающееся меню -->
@@ -3124,8 +3137,6 @@ export default {
       gap: 10px;
 
       .button {@include btn;}
-
-      .woman {display: none;}
 
       .load-all-btn {display: none;}
 
