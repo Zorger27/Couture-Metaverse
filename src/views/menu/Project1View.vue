@@ -2284,8 +2284,8 @@ export default {
       <img :src="models.womenShirt.icon" :alt="t('models.womenShirt')" @click="loadModel('womenShirt')" class="button" :title="t('models.womenShirt')">
       <img :src="models.menShirt2.icon" :alt="t('models.menShirt2')" @click="loadModel('menShirt2')" class="button" :title="t('models.menShirt2')">
       <img :src="models.womenDress.icon" :alt="t('models.womenDress')" @click="loadModel('womenDress')" class="button" :title="t('models.womenDress')">
-      <button @click="loadAllModels" class="load-all-btn button" :title="t('models.composition1x4')"><i class="fas fa-th-large"></i></button>
-      <button @click="loadAllModels3d" class="load-all-btn button" :title="t('models.composition2x2')"><i class="fas fa-cubes"></i></button>
+      <button @click="loadAllModels" class="load-all-btn" :title="t('models.composition1x4')"><i class="fas fa-th-large"></i></button>
+      <button @click="loadAllModels3d" class="load-all-btn" :title="t('models.composition2x2')"><i class="fas fa-cubes"></i></button>
       <button @click="clearLocalStorage" class="delete" :title="t('special.delete')"><i class="fas fa-broom"></i></button>
     </div>
 
@@ -2494,10 +2494,12 @@ export default {
     .button {
       @include btn; // Используем значения по умолчанию
       color: white;
+      border: 1px solid grey;
       overflow: hidden; /* Скрываем части изображения, выходящие за границы контейнера */
 
       &:hover {
         //background-color: #2cbd03; /* Более яркий цвет при наведении */
+        border: 1px solid darkgrey;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
 
@@ -2505,9 +2507,9 @@ export default {
     }
 
     .load-all-btn {
+      @include btn;
       background: #6f1f8e;
       color: white;
-      font-size: 24px;
 
       .fas {color: white;}
     }
@@ -2515,7 +2517,8 @@ export default {
     .load-all-btn:hover {
       .fas {color: gold;}
 
-      background: #9760aa;
+      background: royalblue;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
     .delete {
@@ -2992,7 +2995,10 @@ export default {
       top: 165px;
       gap: 15px;
 
-      .button {@include btn;}
+      .button {
+        @include btn;
+        border: 1px solid grey;
+      }
 
       .load-all-btn {display: none;}
 
@@ -3133,7 +3139,10 @@ export default {
       top: 150px;
       gap: 10px;
 
-      .button {@include btn;}
+      .button {
+        @include btn;
+        border: 1px solid grey;
+      }
 
       .load-all-btn {display: none;}
 

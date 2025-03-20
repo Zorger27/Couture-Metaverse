@@ -905,8 +905,8 @@ export default {
       <img :src="models.womenShirt.icon" :alt="t('models.womenShirt')" @click="loadModel('womenShirt')" class="button" :title="t('models.womenShirt')">
       <img :src="models.menShirt2.icon" :alt="t('models.menShirt2')" @click="loadModel('menShirt2')" class="button" :title="t('models.menShirt2')">
       <img :src="models.womenDress.icon" :alt="t('models.womenDress')" @click="loadModel('womenDress')" class="button" :title="t('models.womenDress')">
-      <button @click="loadAllModels" class="load-all-btn button" :title="t('models.allModels')"><i class="fas fa-th-large"></i></button>
-      <button @click="loadAllModels3d" class="load-all-btn button" :title="t('models.allModels3d')"><i class="fas fa-cubes"></i></button>
+      <button @click="loadAllModels" class="load-all-btn" :title="t('models.composition1x4')"><i class="fas fa-th-large"></i></button>
+      <button @click="loadAllModels3d" class="load-all-btn" :title="t('models.composition2x2')"><i class="fas fa-cubes"></i></button>
       <button @click="clearLocalStorage" class="delete" :title="t('special.delete')"><i class="fas fa-broom"></i></button>
     </div>
 
@@ -1027,9 +1027,7 @@ export default {
       font-size: 2.5rem;
       color: mediumseagreen;
     }
-    .toggle-footer-btn:hover {
-      color: goldenrod;
-    }
+    .toggle-footer-btn:hover {color: goldenrod;}
   }
 
   .scene-container {
@@ -1050,54 +1048,39 @@ export default {
     gap: 15px;
 
     .button {
-      width: 50px;
-      height: 50px;
+      @include btn;
       color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      //background-color: #a9ed9f;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: ease-in-out, color .2s, background-color .2s, box-shadow .2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      border: 1px solid grey;
       overflow: hidden; /* Скрываем части изображения, выходящие за границы контейнера */
 
       &:hover {
         //background-color: #2cbd03; /* Более яркий цвет при наведении */
+        border: 1px solid darkgrey;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
 
-      img {
-        width: 100%; /* Ширина изображения соответствует ширине контейнера */
-        height: 100%; /* Высота изображения соответствует высоте контейнера */
-        object-fit: cover; /* Сохраняет пропорции изображения и заполняет контейнер */
-        display: block; /* Убирает нижний отступ у изображений */
-      }
+      img {@include img-style;}
 
     }
 
     .load-all-btn {
+      @include btn;
       background: #6f1f8e;
       color: white;
-      font-size: 24px;
       .fas {color: white;}
     }
-    .load-all-btn:hover {.fas {color: gold;} background: #9760aa;}
+
+    .load-all-btn:hover {
+      .fas {color: gold;}
+      //background: #9760aa;
+      background: royalblue;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
     .delete {
-      width: 50px;
-      height: 50px;
-      font-size: 24px;
-      border: none;
-      border-radius: 5px;
+      @include btn;
       color: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       background-color: #ffea00;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: ease-in-out, border .2s, background-color .2s, box-shadow .2s;
 
       &:hover {
         background-color: #ffffff; /* Более яркий цвет при наведении */
@@ -1118,19 +1101,9 @@ export default {
     gap: 20px; // Отступ между кнопками
 
     button {
-      width: 50px;
-      height: 50px;
+      @include btn; // Используем значения по умолчанию
       color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 24px;
-      border-radius: 5px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       background-color: #87ceeb;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: ease-in-out, background-color .2s, box-shadow .2s;
 
       &:hover {
         background-color: #00bfff; /* Более яркий цвет при наведении */
@@ -1301,26 +1274,20 @@ export default {
       gap: 15px;
 
       .button {
-        width: 45px;
-        height: 45px;
+        @include btn;
+        border: 1px solid grey;
       }
+
       .load-all-btn {display: none;}
-      .delete {
-        width: 45px;
-        height: 45px;
-        font-size: 22px;
-      }
+
+      .delete {@include btn;}
     }
 
     .rotation-controls {
       bottom: 80px;
       gap: 15px;
 
-      button {
-        width: 45px;
-        height: 45px;
-        font-size: 22px;
-      }
+      button {@include btn;}
     }
 
     .model-controls {
@@ -1377,26 +1344,20 @@ export default {
       gap: 10px;
 
       .button {
-        width: 40px;
-        height: 40px;
+        @include btn;
+        border: 1px solid grey;
       }
+
       .load-all-btn {display: none;}
-      .delete {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-      }
+
+      .delete {@include btn;}
     }
 
     .rotation-controls {
       bottom: 20px;
       gap: 10px;
 
-      button {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-      }
+      button {@include btn;}
     }
 
     .model-controls {
