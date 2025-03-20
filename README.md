@@ -7,7 +7,7 @@
 #### 🎨✨ A Couture Metaverse 3D is a unique platform for creating and customizing 3D models! 🖌️👗 ####
 
 Choose colors, add textures, apply branding, and create stylish looks! 🕶️👕 Experiment, mix and customize – your design, your rules! 🚀
-Save your creations in PNG, MP4, or PDF formats 📸 and share them with the world!
+Save your creations in JPG, PNG, PDF or **MP4** formats and share them with the world! 📸
 
 #### 👑 Couture Metaverse 3D – where technology meets fashion and creativity! 💃 ####
 
