@@ -56,6 +56,15 @@
     "openColorMenu": "Abrir el menú de selección de colores",
     "closeColorMenu": "Cerrar el menú de selección de colores"
   },
+  "changeShader": {
+    "openShaderMenu": "Abrir el menú Shader",
+    "closeShaderMenu": "Cerrar el menú Shader",
+    "aquaGlow": "Resplandor acuático",
+    "fireGloss": "Brillo de fuego",
+    "purpleShine": "Brillo púrpura",
+    "grayGreen": "Gris-Verde",
+    "softPinkGloss": "Brillo rosa suave"
+  },
   "texture": {
     "texture1": "Aplicar la textura № 1",
     "texture2": "Aplicar la textura № 2",

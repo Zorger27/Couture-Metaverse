@@ -2472,9 +2472,7 @@ export default {
       font-size: 2.5rem;
       color: mediumseagreen;
     }
-    .toggle-footer-btn:hover {
-      color: goldenrod;
-    }
+    .toggle-footer-btn:hover {color: goldenrod;}
   }
 
   .scene-container {

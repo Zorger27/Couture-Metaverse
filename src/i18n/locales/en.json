@@ -56,6 +56,15 @@
     "openColorMenu": "Open color selection menu",
     "closeColorMenu": "Close color selection menu"
   },
+  "changeShader": {
+    "openShaderMenu": "Open Shader Menu",
+    "closeShaderMenu": "Close Shader Menu",
+    "aquaGlow": "Aqua Glow",
+    "fireGloss": "Fire Gloss",
+    "purpleShine": "Purple Shine",
+    "grayGreen": "Gray-Green",
+    "softPinkGloss": "Soft Pink Gloss"
+  },
   "texture": {
     "texture1": "Apply the Texture № 1",
     "texture2": "Apply the Texture № 2",

@@ -56,6 +56,15 @@
     "openColorMenu": "Відкрити меню вибору кольору",
     "closeColorMenu": "Закрити меню вибору кольору"
   },
+  "changeShader": {
+    "openShaderMenu": "Відкрити Шейдерне меню",
+    "closeShaderMenu": "Закрити Шейдерне меню",
+    "aquaGlow": "Синій зі свіченням",
+    "fireGloss": "Вогненний блиск",
+    "purpleShine": "Фіолетовий блиск",
+    "grayGreen": "Сіро-зелений",
+    "softPinkGloss": "М'який рожевий блиск"
+  },
   "texture": {
     "texture1": "Застосувати текстуру № 1",
     "texture2": "Застосувати текстуру № 2",
