@@ -1567,18 +1567,8 @@ export default {
     gap: 15px;
 
     .button {
-      width: 50px;
-      height: 50px;
+      @include btn; // Используем значения по умолчанию
       color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      //background-color: #a9ed9f;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: ease-in-out, color .2s, background-color .2s, box-shadow .2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       overflow: hidden; /* Скрываем части изображения, выходящие за границы контейнера */
 
       &:hover {
@@ -1586,13 +1576,7 @@ export default {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
 
-      img {
-        width: 100%; /* Ширина изображения соответствует ширине контейнера */
-        height: 100%; /* Высота изображения соответствует высоте контейнера */
-        object-fit: cover; /* Сохраняет пропорции изображения и заполняет контейнер */
-        display: block; /* Убирает нижний отступ у изображений */
-      }
-
+      img {@include img-style;} // Стили для img подключены
     }
 
     .load-all-btn {
@@ -1600,32 +1584,19 @@ export default {
       color: white;
       font-size: 24px;
 
-      .fas {
-        color: white;
-      }
+      .fas {color: white;}
     }
 
     .load-all-btn:hover {
-      .fas {
-        color: gold;
-      }
+      .fas {color: gold;}
 
       background: #9760aa;
     }
 
     .delete {
-      width: 50px;
-      height: 50px;
-      font-size: 24px;
-      border: none;
-      border-radius: 5px;
+      @include btn; // Используем значения по умолчанию
       color: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       background-color: #ffea00;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: ease-in-out, border .2s, background-color .2s, box-shadow .2s;
 
       &:hover {
         background-color: #ffffff; /* Более яркий цвет при наведении */
@@ -1646,19 +1617,9 @@ export default {
     gap: 20px; // Отступ между кнопками
 
     button {
-      width: 50px;
-      height: 50px;
+      @include btn; // Используем значения по умолчанию
       color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 24px;
-      border-radius: 5px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       background-color: #87ceeb;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: ease-in-out, background-color .2s, box-shadow .2s;
 
       &:hover {
         background-color: #00bfff; /* Более яркий цвет при наведении */
@@ -1683,19 +1644,9 @@ export default {
       align-items: center;
 
       .color-main, .texture-main {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        @include btn; // Используем значения по умолчанию
         background: darkblue;
         color: white;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-        transition: background-color 0.2s, box-shadow 0.2s;
 
         &.active {background-color: darkgreen;}
         &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
@@ -1710,12 +1661,7 @@ export default {
         transform: translateX(-20px);
         transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 
-        img {
-          width: 100%; /* Ширина изображения соответствует ширине контейнера */
-          height: 100%; /* Высота изображения соответствует высоте контейнера */
-          object-fit: cover; /* Сохраняет пропорции изображения и заполняет контейнер */
-          display: block; /* Убирает нижний отступ у изображений */
-        }
+        img {@include img-style;} // Стили для img подключены
 
         &.show {
           opacity: 1;
@@ -1723,19 +1669,13 @@ export default {
         }
 
         .color-button, .button {
-          width: 50px;
-          height: 50px;
-          border-radius: 5px;
-          border: none;
-          cursor: pointer;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-          transition: box-shadow 0.2s;
+          @include btn; // Используем значения по умолчанию
 
           &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
         }
       }
     }
-    /* 🎯 Анимация для Vue Transition */
+    /* Анимация для Vue Transition */
     .slide-enter-from, .slide-leave-to {
       opacity: 0;
       transform: translateX(-20px);
@@ -1755,14 +1695,7 @@ export default {
       flex-direction: column;
 
       .color-button {
-        width: 50px;
-        height: 50px;
-        border: none;
-        //margin-bottom: 10px;
-        cursor: pointer;
-        border-radius: 5px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-        transition: background-color 0.2s, box-shadow 0.2s;
+        @include btn; // Используем значения по умолчанию
 
         &:hover {
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -1780,46 +1713,22 @@ export default {
       flex-direction: column;
 
       .button {
-        width: 50px;
-        height: 50px;
+        @include btn; // Используем значения по умолчанию
         margin-bottom: 10px;
-        cursor: pointer;
-        border-radius: 5px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-        transition: background-color 0.2s, box-shadow 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         overflow: hidden; /* Скрываем части изображения, выходящие за границы контейнера */
 
-        .fa-solid, .fa-brands, .fas {
-          font-size: 24px;
-        }
+        .fa-solid, .fa-brands, .fas {font-size: 24px;}
 
-        &:hover {
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
+        &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
 
-        img {
-          width: 100%; /* Ширина изображения соответствует ширине контейнера */
-          height: 100%; /* Высота изображения соответствует высоте контейнера */
-          object-fit: cover; /* Сохраняет пропорции изображения и заполняет контейнер */
-          display: block; /* Убирает нижний отступ у изображений */
-        }
+        img {@include img-style;} // Стили для img подключены
       }
 
       .upload {
-        width: 50px;
-        height: 50px;
+        @include btn; // Используем значения по умолчанию
         color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
         margin-bottom: 10px;
         background-color: dodgerblue;
-        //background: linear-gradient(to bottom, rgb(229, 255, 229), rgb(250, 247, 234)) no-repeat center;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-        transition: ease-in-out, background-color .2s, box-shadow .2s;
 
         &:hover {
           background-color: darkgreen;
@@ -1832,29 +1741,16 @@ export default {
         background-color: #f0f0f0;
         border: 1px solid #ccc;
 
-        &:hover {
-          background-color: #e0e0e0;
-        }
+        &:hover {background-color: #e0e0e0;}
       }
 
       /* Скрываем оригинальный input */
-      .file-input {
-        display: none;
-      }
+      .file-input {display: none;}
 
       .mixing {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-        border: none;
-        border-radius: 5px;
+        @include btn; // Используем значения по умолчанию
         color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
         background-color: red;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-        transition: ease-in-out, background-color .2s, box-shadow .2s;
 
         &:hover {
           background-color: mediumvioletred;
@@ -1872,10 +1768,8 @@ export default {
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 
           i {
-            transform: rotate(180deg);
+            transform: rotate(180deg); /* При активном состоянии иконка может анимированно поворачиваться */
           }
-
-          /* При активном состоянии иконка может анимированно поворачиваться */
         }
       }
     }
@@ -1890,19 +1784,10 @@ export default {
     flex-direction: column;
 
     .save-button {
-      width: 50px;
-      height: 50px;
-      font-size: 24px;
+      @include btn;
       margin-bottom: 10px;
-      border: none;
-      border-radius: 5px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       background: dodgerblue;
       color: white;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-      transition: background-color 0.2s, box-shadow 0.2s;
 
       &:hover {box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);}
       &.active {background-color: darkgreen;}
@@ -1916,18 +1801,9 @@ export default {
       transition: opacity 0.4s ease, transform 0.4s ease;
 
       button {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
+        @include btn;
         margin-bottom: 10px;
-        border: none;
-        border-radius: 5px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
         background: lightgoldenrodyellow;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-        transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
 
         &:hover {
           background-color: #ffffff;
@@ -1992,31 +1868,18 @@ export default {
       top: 165px;
       gap: 15px;
 
-      .button {
-        width: 45px;
-        height: 45px;
-      }
+      .button {@include btn;}
 
-      .load-all-btn {
-        display: none;
-      }
+      .load-all-btn {display: none;}
 
-      .delete {
-        width: 45px;
-        height: 45px;
-        font-size: 22px;
-      }
+      .delete {@include btn;}
     }
 
     .rotation-controls {
       bottom: 80px;
       gap: 15px;
 
-      button {
-        width: 45px;
-        height: 45px;
-        font-size: 22px;
-      }
+      button {@include btn;}
     }
 
     .model-controls {
@@ -2027,49 +1890,33 @@ export default {
       .color-container,
       .texture-container {
 
-        .color-main, .texture-main {
-          width: 45px;
-          height: 45px;
-          font-size: 22px;
-        }
+        .color-main, .texture-main {@include btn;}
 
         .color-controls, .texture-controls {
           left: 55px; /* Отступ вправо от основной кнопки */
           gap: 9px;
 
-          .color-button, .button {
-            width: 45px;
-            height: 45px;
-          }
+          .color-button, .button {@include btn;}
         }
       }
 
       .color-other {
-        .color-button {
-          width: 45px;
-          height: 45px;
-        }
+        .color-button {@include btn;}
       }
 
       .texture-other {
         .button {
-          width: 45px;
-          height: 45px;
+          @include btn;
           margin-bottom: 9px;
           .fa-solid, .fa-brands, .fas {font-size: 22px;}
         }
 
         .upload {
-          width: 45px;
-          height: 45px;
+          @include btn;
           margin-bottom: 9px;
         }
 
-        .mixing {
-          width: 45px;
-          height: 45px;
-          font-size: 22px;
-        }
+        .mixing {@include btn;}
       }
     }
 
@@ -2078,17 +1925,13 @@ export default {
       top: 54%;
 
       .save-button {
-        width: 45px;
-        height: 45px;
-        font-size: 22px;
+        @include btn;
         margin-bottom: 9px;
       }
 
       .save-options {
         button {
-          width: 45px;
-          height: 45px;
-          font-size: 22px;
+          @include btn;
           margin-bottom: 9px;
         }
       }
@@ -2109,31 +1952,18 @@ export default {
       top: 150px;
       gap: 10px;
 
-      .button {
-        width: 40px;
-        height: 40px;
-      }
+      .button {@include btn;}
 
-      .load-all-btn {
-        display: none;
-      }
+      .load-all-btn {display: none;}
 
-      .delete {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-      }
+      .delete {@include btn;}
     }
 
     .rotation-controls {
       bottom: 20px;
       gap: 10px;
 
-      button {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-      }
+      button {@include btn;}
     }
 
     .model-controls {
@@ -2144,49 +1974,33 @@ export default {
       .color-container,
       .texture-container {
 
-        .color-main, .texture-main {
-          width: 40px;
-          height: 40px;
-          font-size: 18px;
-        }
+        .color-main, .texture-main {@include btn;}
 
         .color-controls, .texture-controls {
           left: 50px; /* Отступ вправо от основной кнопки */
           gap: 8px;
 
-          .color-button, .button {
-            width: 40px;
-            height: 40px;
-          }
+          .color-button, .button {@include btn;}
         }
       }
 
       .color-other {
-        .color-button {
-          width: 40px;
-          height: 40px;
-        }
+        .color-button {@include btn;}
       }
 
       .texture-other {
         .button {
-          width: 40px;
-          height: 40px;
+          @include btn;
           margin-bottom: 8px;
           .fa-solid, .fa-brands, .fas {font-size: 18px;}
         }
 
         .upload {
-          width: 40px;
-          height: 40px;
+          @include btn;
           margin-bottom: 8px;
         }
 
-        .mixing {
-          width: 40px;
-          height: 40px;
-          font-size: 18px;
-        }
+        .mixing {@include btn;}
       }
     }
 
@@ -2195,17 +2009,13 @@ export default {
       top: 59%;
 
       .save-button {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
+        @include btn;
         margin-bottom: 8px;
       }
 
       .save-options {
         button {
-          width: 40px;
-          height: 40px;
-          font-size: 18px;
+          @include btn;
           margin-bottom: 8px;
         }
         .film-start {display: none;}
