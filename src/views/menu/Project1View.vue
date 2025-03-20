@@ -1279,13 +1279,13 @@ export default {
       if (showTextureMenu.value) showColorMenu.value = false; // Закрываем другое меню
     };
 
+    const closeTextureMenu = () => {showTextureMenu.value = false;};
+
     // Открыть или закрыть меню "Брендирование"
     const toggleBranding = () => {
       isBrandingOpen.value = !isBrandingOpen.value;
       if (!isBrandingOpen.value) showLogoMenu.value = false;
     };
-
-    const closeTextureMenu = () => {showTextureMenu.value = false;};
 
     const toggleLogoMenu = () => {showLogoMenu.value = !showLogoMenu.value;}
 
@@ -2347,7 +2347,6 @@ export default {
     </div>
 
     <div class="special-controls">
-
       <div class="branding-container">
         <transition name="fade">
           <div v-if="isBrandingOpen" class="branding-controls">

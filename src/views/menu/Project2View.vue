@@ -1495,6 +1495,39 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+@mixin btn($width: 50px, $height: 50px, $fs: 24px) {
+  width: $width;
+  height: $height;
+  font-size: $fs;
+  border: none;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+  transition: ease-in-out, border .2s, background-color .2s, box-shadow .2s;
+
+  @media (max-width: 1020px) {
+    width: calc(#{$width} - 5px);
+    height: calc(#{$height} - 5px);
+    font-size: calc(#{$fs} - 2px);
+  }
+
+  @media (max-width: 768px) {
+    width: calc(#{$width} - 10px);
+    height: calc(#{$height} - 10px);
+    font-size: calc(#{$fs} - 6px);
+  }
+}
+
+@mixin img-style {
+  width: 100%; /* Ширина изображения соответствует ширине контейнера */
+  height: 100%; /* Высота изображения соответствует высоте контейнера */
+  object-fit: cover; /* Сохраняет пропорции изображения и заполняет контейнер */
+  display: block; /* Убирает нижний отступ у изображений */
+}
+
 .container {
   flex: 1 0 auto;
   background: linear-gradient(to bottom, rgb(229, 251, 255), rgb(255, 240, 244)) no-repeat center;
@@ -1531,7 +1564,7 @@ export default {
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 20px;
+    gap: 15px;
 
     .button {
       width: 50px;
