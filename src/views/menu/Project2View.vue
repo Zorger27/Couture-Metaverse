@@ -61,25 +61,58 @@ export default {
       localStorage.setItem('modelsSettings', JSON.stringify(models));
     };
 
-    // Удаление данных из localStorage с подтверждением
-    const clearLocalStorage = () => {
-      // Проверяем, есть ли данные с ключом 'modelsSettings' в localStorage
+    // Удаление данных из localStorage с подтверждением и восстановлением оригинальных настроек
+    const clearLocalStorage = async () => {
       const modelsSettings = localStorage.getItem('modelsSettings');
 
       if (modelsSettings) {
-        // Если данные есть, запрашиваем подтверждение
         const confirmed = confirm(t('special.confirm'));
 
         if (confirmed) {
-          // Если пользователь нажал "ОК", удаляем данные
+          // Удаляем данные из localStorage
           localStorage.removeItem('modelsSettings');
+
+          // Восстанавливаем оригинальные настройки для всех моделей
+          for (const key in models) {
+            // Восстанавливаем настройки и добавляем пустые настройки логотипа
+            models[key].settings = {
+              ...models[key].originalSettings,
+              logo: {
+                imageData: null,
+                positionX: 0,
+                positionY: 0,
+                scale: 1,
+              }
+            };
+          }
+
+          // Если текущая модель загружена, перезагружаем её
+          if (model && model.userData.modelKey) {
+            const currentModelKey = model.userData.modelKey;
+
+            // Очищаем сцену
+            clearScene();
+
+            // Перезагружаем модель с оригинальными настройками
+            await loadModel(currentModelKey);
+          }
+
+          // Принудительно обновляем рендер несколько раз
+          if (renderer && scene && camera) {
+            // Первый рендер
+            renderer.render(scene, camera);
+
+            // Дополнительный рендер через небольшую задержку
+            setTimeout(() => {
+              renderer.render(scene, camera);
+            }, 100);
+          }
+
           alert(t('special.alertYes'));
         } else {
-          // Если пользователь нажал "Отмена", ничего не делаем
           alert(t('special.alertNo'));
         }
       } else {
-        // Если данных нет, уведомляем пользователя
         alert(t('special.noData'));
       }
     };
@@ -88,55 +121,127 @@ export default {
     const models = loadStoredModels() || {
       menShirt1: {
         path: '/assets/models/01_men_shirt.glb',
-        name: 'models.menShirt1', // Ключ для перевода
+        name: 'models.menShirt1',
         icon: '/assets/img/models/01_men_shirt.webp',
         originalSettings: {
-          texture: '/assets/textures/materialTexture1.webp', // Путь к начальной текстуре
-          color: new THREE.Color(0xffffff), // Начальный цвет
+          texture: '/assets/textures/materialTexture1.webp',
+          color: new THREE.Color(0xffffff),
           roughness: 0.1,
           metalness: 0.5,
-          brightnessMultiplier: 4.5, // Уникальное значение яркости для модели
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
         },
-        settings: {},
+        settings: {
+          texture: '/assets/textures/materialTexture1.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
+        },
       },
       womenShirt: {
         path: '/assets/models/02_women_shirt.glb',
-        name: 'models.womenShirt', // Ключ для перевода
+        name: 'models.womenShirt',
         icon: '/assets/img/models/02_women_shirt.webp',
         originalSettings: {
           texture: '/assets/textures/materialTexture2.webp',
-          color: new THREE.Color(0xffffff), // Начальный цвет
+          color: new THREE.Color(0xffffff),
           roughness: 0.1,
           metalness: 0.5,
           brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
         },
-        settings: {},
+        settings: {
+          texture: '/assets/textures/materialTexture2.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
+        },
       },
       menShirt2: {
         path: '/assets/models/03_men_shirt.glb',
-        name: 'models.menShirt2', // Ключ для перевода
+        name: 'models.menShirt2',
         icon: '/assets/img/models/03_men_shirt.webp',
         originalSettings: {
           texture: '/assets/textures/materialTexture3.webp',
-          color: new THREE.Color(0xffffff), // Начальный цвет
+          color: new THREE.Color(0xffffff),
           roughness: 0.1,
           metalness: 0.5,
           brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
         },
-        settings: {},
+        settings: {
+          texture: '/assets/textures/materialTexture3.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
+        },
       },
       womenDress: {
         path: '/assets/models/04_dress.glb',
-        name: 'models.womenDress', // Ключ для перевода
+        name: 'models.womenDress',
         icon: '/assets/img/models/04_dress.webp',
         originalSettings: {
           texture: '/assets/textures/materialTexture1.webp',
-          color: new THREE.Color(0xffffff), // Начальный цвет
+          color: new THREE.Color(0xffffff),
           roughness: 0.1,
           metalness: 0.5,
           brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
         },
-        settings: {},
+        settings: {
+          texture: '/assets/textures/materialTexture1.webp',
+          color: new THREE.Color(0xffffff),
+          roughness: 0.1,
+          metalness: 0.5,
+          brightnessMultiplier: 4.5,
+          logo: {
+            imageData: null,
+            positionX: 0,
+            positionY: 0,
+            scale: 1
+          }
+        },
       },
     };
 
@@ -1353,10 +1458,7 @@ export default {
     });
 
     return {
-      t,
-      isFooterHidden,
-      toggleFooter,
-      canvasContainer,
+      t, isFooterHidden, toggleFooter, canvasContainer,
       models,
       loadModel,
       loadAllModels,

@@ -200,8 +200,6 @@ export default {
                 positionX: 0,
                 positionY: 0,
                 scale: 1,
-                lastModified: '2025-03-10 05:25:43',
-                modifiedBy: 'Zorger27'
               }
             };
           }
@@ -215,14 +213,6 @@ export default {
 
             // Перезагружаем модель с оригинальными настройками
             await loadModel(currentModelKey);
-
-            // Обновляем метаданные
-            model.traverse((child) => {
-              if (child.isMesh) {
-                child.userData.lastModified = '2025-03-10 05:25:43';
-                child.userData.modifiedBy = 'Zorger27';
-              }
-            });
           }
 
           // Принудительно обновляем рендер несколько раз
