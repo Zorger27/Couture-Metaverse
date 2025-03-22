@@ -989,7 +989,7 @@ export default {
       <img :src="models.womenDress.icon" :alt="t('models.womenDress')" @click="loadModel('womenDress')" class="button" :title="t('models.womenDress')">
       <button @click="loadAllModels" class="load-all-btn" :title="t('models.composition1x4')"><i class="fas fa-th-large"></i></button>
       <button @click="loadAllModels3d" class="load-all-btn" :title="t('models.composition2x2')"><i class="fas fa-cubes"></i></button>
-      <button @click="clearLocalStorage" class="delete" :title="t('special.delete')"><i class="fas fa-broom"></i></button>
+      <button v-if="!isMultiModelView" @click="clearLocalStorage" class="delete" :title="t('special.delete')"><i class="fas fa-broom"></i></button>
     </div>
 
     <!-- Кнопки управления вращением -->
