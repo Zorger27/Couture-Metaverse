@@ -2364,25 +2364,25 @@ export default {
               <label for="scale" style="margin-top: 5px">{{ t('special.branding.scale') }}</label>
               <div class="slider-wrapper">
                 <!--                <button class="slider-button minus" @click="decrementScale"><i class="fa-solid fa-chevron-left"></i></button>-->
-                <button v-if="!isWomenShirt || !isSmallScreen" class="slider-button minus" @click="decrementScale">-</button>
+                <button v-if="(!isWomenShirt || !isSmallScreen)" class="slider-button minus" @click="decrementScale">-</button>
                 <input type="range" v-model="scale" @input="loadBrandImage" id="scale" min="0.3" max="2" step="0.05" class="slider" :class="{'shirt': (isWomenShirt && isSmallScreen)}" />
-                <button v-if="!isWomenShirt || !isSmallScreen" class="slider-button plus" @click="incrementScale">+</button>
+                <button v-if="(!isWomenShirt || !isSmallScreen)" class="slider-button plus" @click="incrementScale">+</button>
               </div>
 
               <!-- Кнопка-ползунок "Вертикаль" -->
               <label for="positionY">{{ t('special.branding.positionY') }}</label>
               <div class="slider-wrapper">
-                <button v-if="!isWomenShirt || !isSmallScreen" class="slider-button minus" @click="decrementY">-</button>
+                <button v-if="(!isWomenShirt || !isSmallScreen)" class="slider-button minus" @click="decrementY">-</button>
                 <input type="range" v-model="positionY" @input="loadBrandImage" id="positionY" min="-1.5" max="1.5" step="0.05" class="slider" :class="{'shirt': (isWomenShirt && isSmallScreen)}" />
-                <button v-if="!isWomenShirt || !isSmallScreen" class="slider-button plus" @click="incrementY">+</button>
+                <button v-if="(!isWomenShirt || !isSmallScreen)" class="slider-button plus" @click="incrementY">+</button>
               </div>
 
               <!-- Кнопка-ползунок "Горизонталь" -->
               <label for="positionX">{{ t('special.branding.positionX') }}</label>
               <div class="slider-wrapper">
-                <button v-if="!isWomenShirt || !isSmallScreen" class="slider-button minus" @click="decrementX">-</button>
+                <button v-if="(!isWomenShirt || !isSmallScreen)" class="slider-button minus" @click="decrementX">-</button>
                 <input type="range" v-model="positionX" @input="loadBrandImage" id="positionX" min="-1" max="1" step="0.05" class="slider" :class="{'shirt': (isWomenShirt && isSmallScreen)}" />
-                <button v-if="!isWomenShirt || !isSmallScreen" class="slider-button plus" @click="incrementX">+</button>
+                <button v-if="(!isWomenShirt || !isSmallScreen)" class="slider-button plus" @click="incrementX">+</button>
               </div>
             </div>
           </div>
