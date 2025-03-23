@@ -2364,32 +2364,32 @@ export default {
               <label for="scale" style="margin-top: 5px">{{ t('special.branding.scale') }}</label>
               <div class="slider-wrapper">
                 <!--                <button class="slider-button minus" @click="decrementScale"><i class="fa-solid fa-chevron-left"></i></button>-->
-                <button class="slider-button minus" @click="decrementScale">-</button>
-                <input type="range" v-model="scale" @input="loadBrandImage" id="scale" min="0.3" max="2" step="0.05" class="slider" />
-                <button class="slider-button plus" @click="incrementScale">+</button>
+                <button v-if="!isWomenShirt || !isSmallScreen" class="slider-button minus" @click="decrementScale">-</button>
+                <input type="range" v-model="scale" @input="loadBrandImage" id="scale" min="0.3" max="2" step="0.05" class="slider" :class="{'shirt': (isWomenShirt && isSmallScreen)}" />
+                <button v-if="!isWomenShirt || !isSmallScreen" class="slider-button plus" @click="incrementScale">+</button>
               </div>
 
               <!-- Кнопка-ползунок "Вертикаль" -->
               <label for="positionY">{{ t('special.branding.positionY') }}</label>
               <div class="slider-wrapper">
-                <button class="slider-button minus" @click="decrementY">-</button>
-                <input type="range" v-model="positionY" @input="loadBrandImage" id="positionY" min="-1.5" max="1.5" step="0.05" class="slider" />
-                <button class="slider-button plus" @click="incrementY">+</button>
+                <button v-if="!isWomenShirt || !isSmallScreen" class="slider-button minus" @click="decrementY">-</button>
+                <input type="range" v-model="positionY" @input="loadBrandImage" id="positionY" min="-1.5" max="1.5" step="0.05" class="slider" :class="{'shirt': (isWomenShirt && isSmallScreen)}" />
+                <button v-if="!isWomenShirt || !isSmallScreen" class="slider-button plus" @click="incrementY">+</button>
               </div>
 
               <!-- Кнопка-ползунок "Горизонталь" -->
               <label for="positionX">{{ t('special.branding.positionX') }}</label>
               <div class="slider-wrapper">
-                <button class="slider-button minus" @click="decrementX">-</button>
-                <input type="range" v-model="positionX" @input="loadBrandImage" id="positionX" min="-1" max="1" step="0.05" class="slider" />
-                <button class="slider-button plus" @click="incrementX">+</button>
+                <button v-if="!isWomenShirt || !isSmallScreen" class="slider-button minus" @click="decrementX">-</button>
+                <input type="range" v-model="positionX" @input="loadBrandImage" id="positionX" min="-1" max="1" step="0.05" class="slider" :class="{'shirt': (isWomenShirt && isSmallScreen)}" />
+                <button v-if="!isWomenShirt || !isSmallScreen" class="slider-button plus" @click="incrementX">+</button>
               </div>
             </div>
           </div>
         </transition>
         <div class="right-menu" :class="{'active': isBrandingOpen}">
           <!-- Кнопка "Брендировать" и раскрывающееся меню -->
-          <button v-if="!isMultiModelView && !isThreeDView && !isWomenDress && (!isWomenShirt || !isSmallScreen)" @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
+          <button v-if="!isMultiModelView && !isThreeDView && !isWomenDress" @click="toggleBranding" :title="isBrandingOpen ? t('special.branding.closeBranding') : t('special.branding.openBranding')" class="branding" :class="{'active': isBrandingOpen}"><i class="fas fa-trademark"></i></button>
 
           <div class="saving-container">
             <!-- Кнопка "Сохранить" и раскрывающееся меню -->
@@ -3251,6 +3251,11 @@ export default {
               gap: 10px;
 
               input {display: none;}
+
+              .shirt {
+                display: block;
+                margin: 7px 0;
+              }
 
               .slider-button {
                 width: 30px;
