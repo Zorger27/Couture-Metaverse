@@ -38,7 +38,7 @@ export const openGraphMixin = {
         { property: 'og:type', content: 'website' },
         { property: 'twitter:card', content: 'summary_large_image' },
         { name: 'author', content: 'Anatolii Zorin' },
-        { name: 'robots', content: 'index,follow' },
+        { name: 'robots', content: 'index,follow' }
       ];
 
       metaTags.forEach((metaTag) => {
