@@ -1,19 +1,29 @@
 export const openGraphMixin = {
   methods: {
     setPageTitle(mainTitle) {
-       // Проверка, существует ли уже тег <title>
-       let pageTitle = document.querySelector('title');
+      // Проверка, существует ли уже тег <title>
+      let pageTitle = document.querySelector('title');
 
-       if (pageTitle) {
-         // Если тег <title> существует, обновить его содержимое
-         pageTitle.innerText = mainTitle;
-       } else {
-         // Если тег <title> не существует, создать новый
-         const newTitleTag = document.createElement('title');
-         newTitleTag.innerText = mainTitle;
-         document.head.appendChild(newTitleTag);
-       }
-      },
+      if (pageTitle) {
+        // Если тег <title> существует, обновить его содержимое
+        pageTitle.innerText = mainTitle;
+      } else {
+        // Если тег <title> не существует, создать новый
+        const newTitleTag = document.createElement('title');
+        newTitleTag.innerText = mainTitle;
+        document.head.appendChild(newTitleTag);
+      }
+    },
+
+    setCanonical(url) {
+      const existingCanonical = document.querySelector('link[rel="canonical"]');
+      if (existingCanonical) existingCanonical.remove();
+
+      const link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      link.setAttribute('href', url);
+      document.head.appendChild(link);
+    },
 
     setOpenGraphTags(metaDescription, title, description, imageUrl, url) {
       const metaTags = [
@@ -26,7 +36,6 @@ export const openGraphMixin = {
         { property: 'twitter:image', content: imageUrl },
         { property: 'og:url', content: url },
         { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: 'https://couture-metaverse.vercel.app' },
         { property: 'twitter:card', content: 'summary_large_image' }
       ];
 

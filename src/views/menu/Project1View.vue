@@ -8,12 +8,12 @@ import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
 import CanvasFullScreen from '@/components/util/CanvasFullScreen.vue';
 import ToggleFullScreen from '@/components/util/ToggleFullScreen.vue';
-import {gMixinCanonical} from '@/assets/ogimage/gMixinCanonical';
+import {openGraphMixin} from "@/assets/ogimage/openGraphMixin";
 
 
 export default {
   name: 'Project1',
-  mixins: [gMixinCanonical],
+  mixins: [openGraphMixin],
   components: {CanvasFullScreen, ToggleFullScreen},
   mounted() {
     const mainTitle = 'Couture Metaverse 3D';
@@ -25,6 +25,7 @@ export default {
 
     this.setOpenGraphTags(metaDescription, title, description, imageUrl, url);
     this.setPageTitle(mainTitle);
+    this.setCanonical(url);
   },
   methods: {},
   setup() {
