@@ -85,12 +85,12 @@ export default {
       logo4: '/assets/logos/logo4.webp'
     };
 
-    // Фиксированная запись MP4 для Safari
-    let safariRecorder = null;
-    let safariStream = null;
-
-    let mediaRecorder;
-    let recordedChunks = [];
+    // // Фиксированная запись MP4 для Safari
+    // let safariRecorder = null;
+    // let safariStream = null;
+    //
+    // let mediaRecorder;
+    // let recordedChunks = [];
 
     const getTexture = (path) => {
       if (!textureCache[path]) {
@@ -1742,6 +1742,11 @@ export default {
       closeSaveMenu();
     };
 
+    // Переменные для записи видео
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let animationFrameId = null;
+
     // Начать запись видео
     const startRecording = () => {
       if (!renderer || !scene || !camera) {
@@ -1749,135 +1754,201 @@ export default {
         return;
       }
 
+      const canvas = renderer.domElement;
+
+      // Расчёт размеров с учётом текста и отступов (как в JPG)
+      const isMobile = window.innerWidth < 768;
+      const scaleFactor = isMobile ? 1.2 : 1.0;
+
+      let baseFontSize = Math.floor(canvas.width * 0.045 * scaleFactor);
+      const smallFontSize = Math.floor(baseFontSize * 0.7);
+      let footerFontSize = Math.floor(baseFontSize * 0.6);
+      const padding = Math.floor(baseFontSize * 1.1);
+
+      const topMargin = padding * (isMobile ? 2.0 : 1.2);
+      const titleDateSpacing = padding * (isMobile ? 1.0 : 0.9);
+      const footerSiteSpacing = padding * (isMobile ? 0.8 : 0.7);
+      const bottomMargin = padding * (isMobile ? 1.0 : 0.5);
+
+      // Создание canvas с правильными размерами (включая текст)
       const streamCanvas = document.createElement("canvas");
       const streamCtx = streamCanvas.getContext("2d");
-      streamCanvas.width = renderer.domElement.width;
-      streamCanvas.height = renderer.domElement.height;
-      const stream = streamCanvas.captureStream(60); // 60 FPS
+      streamCanvas.width = canvas.width + padding * 2;
+      streamCanvas.height = canvas.height + topMargin + titleDateSpacing + footerSiteSpacing + bottomMargin;
 
-      // 📏 Динамические параметры
-      const isMobile = window.innerWidth < 768;
-      const baseFontSize = Math.floor(streamCanvas.width * 0.03);
-      const smallFontSize = Math.floor(baseFontSize * 0.7);
-      const footerFontSize = Math.floor(baseFontSize * 0.6);
+      // Создание видео-потока из canvas (60 FPS)
+      const stream = streamCanvas.captureStream(60);
 
-      // 🛠️ Отступы
-      const paddingTop = baseFontSize * (isMobile ? 2.0 : 1.2); // Отступ сверху
-      const paddingBottom = baseFontSize * (isMobile ? 1.0 : 0.5); // Отступ снизу
-      const textSpacing = baseFontSize * (isMobile ? 1.0 : 0.9); // Расстояние между текстами
-
+      // Функция отрисовки каждого кадра видео
       const drawFrame = () => {
+        // Рендерим сцену
         renderer.render(scene, camera);
+
+        // Заливка белым фоном
         streamCtx.fillStyle = "white";
         streamCtx.fillRect(0, 0, streamCanvas.width, streamCanvas.height);
-        streamCtx.drawImage(renderer.domElement, 0, 0);
+
+        // Копируем 3D сцену с отступами (как в JPG)
+        streamCtx.drawImage(canvas, padding, topMargin + titleDateSpacing);
 
         const { title, dateTime, footer, site } = getSaveMetadata();
 
-        // 📌 Заголовок (зелёный)
+        // Функция для динамического подбора размера шрифта
+        const adjustFontSize = (text, maxWidth, initialFontSize) => {
+          let fontSize = initialFontSize;
+          do {
+            streamCtx.font = `bold ${fontSize}px Arial`;
+            if (streamCtx.measureText(text).width <= maxWidth) {
+              return fontSize;
+            }
+            fontSize--;
+          } while (fontSize > 10);
+          return fontSize;
+        };
+
+        // Подбор размера шрифта для каждого текста
+        baseFontSize = adjustFontSize(title, streamCanvas.width * 0.9, baseFontSize);
+        footerFontSize = adjustFontSize(footer, streamCanvas.width * 0.9, footerFontSize);
+        const siteFontSize = adjustFontSize(site, streamCanvas.width * 0.9, footerFontSize);
+
+        // 📌 Заголовок (зелёный, жирный)
         streamCtx.font = `bold ${baseFontSize}px Arial`;
         streamCtx.fillStyle = "green";
         streamCtx.textAlign = "center";
-        streamCtx.fillText(title, streamCanvas.width / 2, paddingTop);
+        streamCtx.fillText(title, streamCanvas.width / 2, topMargin);
 
         // 📅 Дата (голубая)
         streamCtx.font = `normal ${smallFontSize}px Arial`;
         streamCtx.fillStyle = "dodgerblue";
-        streamCtx.fillText(dateTime, streamCanvas.width / 2, paddingTop + textSpacing);
+        streamCtx.fillText(dateTime, streamCanvas.width / 2, topMargin + titleDateSpacing);
 
         // 🔽 Footer (розовый)
+        const footerY = streamCanvas.height - footerSiteSpacing - bottomMargin;
         streamCtx.font = `normal ${footerFontSize}px Arial`;
         streamCtx.fillStyle = "deeppink";
-        streamCtx.fillText(footer, streamCanvas.width / 2, streamCanvas.height - paddingBottom - textSpacing);
+        streamCtx.fillText(footer, streamCanvas.width / 2, footerY);
 
-        // 📅 Сайт (синий)
-        streamCtx.font = `italic ${footerFontSize}px Arial`;
+        // 🌐 Сайт (синий, курсив)
+        streamCtx.font = `italic ${siteFontSize}px Arial`;
         streamCtx.fillStyle = "blue";
-        streamCtx.fillText(site, streamCanvas.width / 2, streamCanvas.height - paddingBottom);
+        streamCtx.fillText(site, streamCanvas.width / 2, footerY + footerSiteSpacing);
 
-        requestAnimationFrame(drawFrame);
+        // Продолжаем запись следующего кадра
+        animationFrameId = requestAnimationFrame(drawFrame);
       };
 
-      drawFrame(); // Запуск обновления кадров
+      // Определение поддерживаемого формата видео
+      let mimeType;
+      let isMP4 = false;
 
-      if (MediaRecorder.isTypeSupported("video/webm; codecs=vp9")) {
-        mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp9" });
+      // Проверка Safari (предпочитаем MP4)
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+      if (isSafari && MediaRecorder.isTypeSupported("video/mp4")) {
+        mimeType = "video/mp4";
+        isMP4 = true;
+        console.log("🍎 Safari обнаружен! Используем MP4.");
+      } else if (MediaRecorder.isTypeSupported("video/webm; codecs=vp9")) {
+        mimeType = "video/webm; codecs=vp9";
       } else if (MediaRecorder.isTypeSupported("video/webm; codecs=vp8")) {
-        mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp8" });
-      } else if (window.MediaSource && MediaSource.isTypeSupported("video/mp4; codecs=avc1.42E01E")) {
-        console.log("🎥 Safari обнаружен! Используем MediaSource для записи MP4.");
-        startRecordingForSafari(stream);
-        return;
+        mimeType = "video/webm; codecs=vp8";
+      } else if (MediaRecorder.isTypeSupported("video/mp4")) {
+        mimeType = "video/mp4";
+        isMP4 = true;
       } else {
         console.error("⛔ Ваш браузер не поддерживает запись видео.");
+        alert("Запись видео не поддерживается в этом браузере");
         return;
       }
 
+      // Создание MediaRecorder для записи потока
+      try {
+        mediaRecorder = new MediaRecorder(stream, { mimeType });
+      } catch (error) {
+        console.error("Ошибка создания MediaRecorder:", error);
+        alert("Не удалось начать запись видео");
+        return;
+      }
+
+      // Обработчик получения данных
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) recordedChunks.push(event.data);
+        if (event.data.size > 0) {
+          recordedChunks.push(event.data);
+        }
       };
 
-      mediaRecorder.onstop = saveVideo;
+      // Обработчик завершения записи
+      mediaRecorder.onstop = () => saveVideo(isMP4);
+
+      // Очистка буфера
       recordedChunks = [];
-      mediaRecorder.start();
-      isRecording.value = true;
-      console.log("🎥 Запись началась с аннотациями!");
-    };
 
-    // Запись видео для Safari
-    const startRecordingForSafari = (stream) => {
-      safariStream = stream;
-      safariRecorder = new MediaRecorder(safariStream, { mimeType: "video/mp4" });
+      // ЖДЁМ один кадр, чтобы canvas гарантированно отрендерился
+      requestAnimationFrame(() => {
+        // Отрисовываем первый кадр (с кубиком!)
+        drawFrame();
 
-      safariRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) recordedChunks.push(event.data);
-      };
+        // Ждём ещё один кадр для надёжности
+        requestAnimationFrame(() => {
+          // Теперь запускаем запись - первый кадр уже готов!
+          mediaRecorder.start();
+          isRecording.value = true;
 
-      safariRecorder.onstop = saveVideo;
-
-      recordedChunks = [];
-      safariRecorder.start();
-      isRecording.value = true;
-      console.log("🎥 Запись MP4 началась (Safari)!");
+          console.log(`🎥 Запись видео началась! Формат: ${isMP4 ? 'MP4' : 'WebM'}`);
+        });
+      });
     };
 
     // Остановка записи
     const stopRecording = () => {
+      // Остановка MediaRecorder
       if (mediaRecorder && mediaRecorder.state !== "inactive") {
         mediaRecorder.stop();
       }
 
-      if (safariRecorder && safariRecorder.state !== "inactive") {
-        safariRecorder.stop();
+      // Остановка отрисовки кадров
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
       }
 
+      // Обновление состояния
       isRecording.value = false;
-      console.log("🛑 Запись остановлена!");
 
-      closeSaveMenu(); // Закрываем меню только теперь!
+      console.log("🛑 Запись видео остановлена!");
+
+      closeSaveMenu();
     };
 
     // Сохранение видео
-    const saveVideo = () => {
+    const saveVideo = (isMP4Format) => {
+      // Проверка наличия записанных данных
       if (recordedChunks.length === 0) {
         console.warn("⚠️ Нет записанных данных!");
         return;
       }
 
-      const mimeType = safariRecorder ? "video/mp4" : "video/webm";
+      // Определение типа видео и расширения
+      const mimeType = isMP4Format ? "video/mp4" : "video/webm";
+      const extension = isMP4Format ? "mp4" : "webm";
+
+      // Создание Blob из записанных фрагментов
       const blob = new Blob(recordedChunks, { type: mimeType });
       const url = URL.createObjectURL(blob);
 
+      // Создание ссылки для скачивания
       const link = document.createElement("a");
       link.href = url;
-      link.download = `model.${safariRecorder ? "mp4" : "webm"}`;
+      link.download = `Model.${extension}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
+      // Освобождение памяти
       URL.revokeObjectURL(url);
       recordedChunks = [];
-      console.log("💾 Видео сохранено!");
+
+      console.log(`💾 Видео сохранено как Model.${extension}!`);
     };
 
     // Функция для работы с кешем логотипов
