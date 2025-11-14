@@ -85,13 +85,6 @@ export default {
       logo4: '/assets/logos/logo4.webp'
     };
 
-    // // Фиксированная запись MP4 для Safari
-    // let safariRecorder = null;
-    // let safariStream = null;
-    //
-    // let mediaRecorder;
-    // let recordedChunks = [];
-
     const getTexture = (path) => {
       if (!textureCache[path]) {
         textureCache[path] = textureLoader.load(path);
